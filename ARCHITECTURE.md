@@ -1,6 +1,10 @@
 # Palomita Bar — Arquitectura
 
-Estado: **Fase 0 (auditoría) completada.** Fase 3 (migraciones Supabase) está **propuesta pero NO aplicada** — pendiente de confirmación explícita antes de tocar la base de datos compartida.
+Estado: **Fase 0 (auditoría), Fase 1 (scaffold) y Fase 3 (migraciones Supabase) completadas.**
+El schema `restaurant` está creado y aplicado en el proyecto compartido, Palomita ya es un
+tenant activo con carta sembrada desde el PDF. Ver §4 para el detalle exacto de lo aplicado.
+Quedan pendientes: conectar el frontend a estas funciones RPC (Fase 4), cocina/Realtime (Fase
+5), Stripe (Fase 6) y administración (Fase 7).
 
 ---
 
@@ -130,12 +134,24 @@ Tablas, todas con `cliente_id → public.clientes.id` y RLS con el mismo patrón
 - `restaurant.payments` (id, pedido_id, stripe_session_id, stripe_payment_intent_id, amount_centimos, status, created_at).
 - `restaurant.pedido_estado_historial` (id, pedido_id, estado_anterior, estado_nuevo, user_id, motivo, created_at).
 
-**Acceso.** Igual que el resto de la plataforma: el frontend público nunca hace `SELECT`/`INSERT` directo, todo pasa por funciones RPC nuevas en `public` (`get_carta_publica(site_key)`, `crear_pedido_restaurant(site_key, mesa_identifier, items, ...)`, `actualizar_estado_pedido(...)`) que resuelven el tenant desde `site_key` y leen/escriben en `restaurant.*` internamente — mismo patrón que `get_productos_publico`/`crear_pedido`. Esto también evita tener que exponer el schema `restaurant` en la configuración de API de Supabase (que es una opción de proyecto compartida): las funciones `SECURITY DEFINER` en `public` pueden operar sobre cualquier schema sin que este esté expuesto vía REST, así que no se toca ninguna configuración a nivel de proyecto.
+**Acceso.** Igual que el resto de la plataforma: el frontend público nunca hace `SELECT`/`INSERT` directo, todo pasa por funciones RPC en `public` que resuelven el tenant desde `site_key` y leen/escriben en `restaurant.*` internamente — mismo patrón que `get_productos_publico`/`crear_pedido`. No ha hecho falta exponer el schema `restaurant` en la configuración de API de Supabase (opción de proyecto compartida): las funciones `SECURITY DEFINER` en `public` operan sobre cualquier schema sin que este esté expuesto vía REST, así que no se ha tocado ninguna configuración a nivel de proyecto.
 
-**Realtime.** Para que cocina reciba actualizaciones en vivo hace falta añadir `restaurant.pedidos` (y `restaurant.pedido_items`) a la publicación `supabase_realtime`. Es un `ALTER PUBLICATION supabase_realtime ADD TABLE restaurant.pedidos;` — aditivo, solo añade las tablas nuevas de Palomita, no afecta a las tablas de Arrantza que ya estén (o no) en esa publicación.
+**Transiciones de estado validadas en el propio Postgres, no solo en la app.** Un trigger `restaurant.validar_transicion_estado_pedido()` en `BEFORE UPDATE OF estado` bloquea saltos no permitidos (p. ej. `DELIVERED → RECEIVED`) y registra automáticamente cada cambio en `pedido_estado_historial`, sea cual sea el camino por el que llegue el `UPDATE` (RPC, panel admin, lo que sea). Transiciones permitidas: `RECEIVED→ACCEPTED|CANCELLED`, `ACCEPTED→PREPARING|CANCELLED`, `PREPARING→READY|CANCELLED`, `READY→DELIVERED`.
 
-**Nada de esto se ejecuta todavía.** Es la propuesta de migración para la Fase 3. Antes de
-aplicar cualquier `apply_migration`, necesito luz verde explícita.
+**Realtime.** `restaurant.pedidos` y `restaurant.pedido_items` están añadidas a la publicación `supabase_realtime` (aditivo, no afecta a lo que ya hubiera ahí).
+
+### 4.4 Estado: **aplicado** (2026-08-12)
+
+Todo lo anterior ya está en el proyecto Supabase compartido:
+- Schema `restaurant` con las 9 tablas, índices y RLS descritos arriba.
+- Trigger de validación de transiciones de estado.
+- Funciones RPC públicas: `get_categorias_publica`, `get_carta_publica`, `validar_mesa`, `crear_pedido_restaurant`, `get_pedido_publico` (todas `SECURITY DEFINER`, resuelven el tenant desde `site_key`, nunca confían en `producto_id`/precio/mesa enviados sin validar contra `restaurant.*`).
+- Palomita dada de alta en `public.clientes` (`slug = 'palomita-bar'`).
+- Carta sembrada en `restaurant.categorias`/`restaurant.productos` con el contenido real del PDF (14 categorías, ~35 productos) y una mesa de prueba (`numero = 1`).
+- `get_advisors` (security) revisado tras aplicar: **sin hallazgos nuevos** más allá del mismo patrón ya aceptado (funciones `SECURITY DEFINER` ejecutables por `anon`, que es el diseño intencionado — ver §3.4).
+- `site_key` de Palomita y credenciales públicas guardadas en `.env.local` (no commiteado).
+
+Pendiente y fuera de alcance de esta fase: conectar el frontend Next.js a estas funciones (Fase 4), dashboard de cocina con Realtime (Fase 5), Stripe Checkout + webhook (Fase 6), panel de administración (Fase 7).
 
 ---
 
