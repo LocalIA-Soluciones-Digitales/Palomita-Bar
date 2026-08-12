@@ -1,15 +1,19 @@
 import type { Metadata } from "next";
 import { SITE } from "@/lib/constants";
+import { getHorarioPublico } from "@/lib/restaurant/queries";
+
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Contacto",
   description: `${SITE.name}: ${SITE.address.line1}, ${SITE.address.city}. ${SITE.phone}.`,
 };
 
-export default function ContactoPage() {
+export default async function ContactoPage() {
   const mapsQuery = encodeURIComponent(
     `${SITE.address.line1}, ${SITE.address.postalCode} ${SITE.address.city}`,
   );
+  const horario = await getHorarioPublico();
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-24">
@@ -55,7 +59,9 @@ export default function ContactoPage() {
             <p className="text-xs uppercase tracking-widest2 text-brand-ink/50">
               Horario
             </p>
-            <p className="mt-2 text-lg text-brand-ink/70">{SITE.hoursNote}</p>
+            <p className="mt-2 whitespace-pre-line text-lg text-brand-ink/70">
+              {horario || SITE.hoursNote}
+            </p>
           </div>
         </div>
 

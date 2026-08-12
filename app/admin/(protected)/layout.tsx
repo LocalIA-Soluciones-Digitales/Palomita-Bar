@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { AdminNav } from "@/components/admin/AdminNav";
 
 export default async function AdminLayout({
   children,
@@ -15,5 +16,10 @@ export default async function AdminLayout({
     redirect("/admin/login");
   }
 
-  return <div className="min-h-screen bg-brand-sand">{children}</div>;
+  return (
+    <div className="min-h-screen bg-brand-sand">
+      <AdminNav />
+      <div className="p-4 sm:p-6">{children}</div>
+    </div>
+  );
 }

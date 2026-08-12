@@ -1,14 +1,15 @@
 # Palomita Bar — Arquitectura
 
-Estado: **Fase 0, 1, 3, 4 y 5 completadas.** El schema `restaurant` está aplicado en el
-proyecto compartido (ya en producción en `palomita-bar.vercel.app`), Palomita es tenant
-activo con carta sembrada, y el frontend consume las funciones RPC en vez de datos estáticos:
-`/carta` y `/cocteleria` leen la carta real, `/pedir?mesa=<identificador>` valida la mesa en
-servidor y permite construir y confirmar un pedido (pago en local; pago online deshabilitado
-en la UI hasta la Fase 6), `/pedido/[id]` muestra el estado con actualización automática
-(polling cada 5s), y `/admin/cocina` (protegido con Supabase Auth) muestra el tablero de
-cocina en vivo con Realtime. Pendiente: Stripe (Fase 6) y el resto de administración —
-productos, mesas, QR, ventas (Fase 7).
+Estado: **Fases 0 a 9 completadas.** Quedan acciones puntuales de Fase 10 (dominio propio,
+cuenta de Stripe real) que son decisiones/credenciales del usuario, detalladas en §10.
+Resumen: schema `restaurant` aplicado en el proyecto Supabase compartido, en producción en
+`palomita-bar.vercel.app`; web pública, pedido en mesa con carrito y pago (local funcionando
+end-to-end, online con Stripe Checkout + webhook implementado y a falta solo de credenciales
+reales), cocina en vivo con Realtime, y panel de administración completo (productos,
+categorías, mesas con QR descargable, ventas del día, configuración de horario). Auditoría de
+seguridad (Fase 8) encontró y corrigió un fallo real de aislamiento por tenant en las RPC de
+admin (§8). Verificación funcional (Fase 9) ejecutada contra la base de datos real: 8/8 PASS
+(§9).
 
 ---
 
@@ -214,7 +215,16 @@ NEXT_PUBLIC_SITE_URL=https://palomita-bar.vercel.app
 ```
 
 `SUPABASE_SERVICE_ROLE_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` y
-`NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` quedan vacías hasta la Fase 6.
+`NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` necesitan valores reales para que Stripe funcione (ver
+§10). Además de las 4 de arriba, ahora también hacen falta en Vercel:
+
+```
+NEXT_PUBLIC_PALOMITA_CLIENTE_ID=e73669e4-7951-41f0-aa9a-16b391d0015c
+SUPABASE_SERVICE_ROLE_KEY=<sacar del dashboard de Supabase, Project Settings > API>
+STRIPE_SECRET_KEY=<de Stripe, modo test para empezar>
+STRIPE_WEBHOOK_SECRET=<de Stripe, al configurar el endpoint del webhook>
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=<de Stripe>
+```
 
 ## 8. Próximos pasos (por fase, según el brief)
 
@@ -223,8 +233,11 @@ NEXT_PUBLIC_SITE_URL=https://palomita-bar.vercel.app
 - **Fase 3** ✅: schema `restaurant` aplicado en Supabase (ver §4.4).
 - **Fase 4** ✅: `/carta`, `/cocteleria` y `/pedir` conectados a las funciones RPC; carrito, checkout (solo pago en local) y `/pedido/[id]` funcionando end-to-end contra Supabase real.
 - **Fase 5** ✅: `/admin/cocina` (Supabase Auth + Realtime) y `/pedido/[id]` con actualización automática (polling, ver §4.5).
-- **Fase 6**: Stripe Checkout + webhook, activar la opción "pagar online" ya presente (deshabilitada) en el carrito.
-- **Fase 7-10**: según el plan original del brief.
+- **Fase 6** ✅ código completo (ver §10) — falta solo la cuenta/claves reales de Stripe.
+- **Fase 7** ✅: `/admin/productos`, `/admin/categorias`, `/admin/mesas` (con QR descargable), `/admin/ventas`, `/admin/configuracion` (ver §11).
+- **Fase 8** ✅: auditoría de seguridad, con un hallazgo real corregido (ver §12).
+- **Fase 9** ✅: verificación funcional ejecutada contra la base real, 8/8 PASS (ver §13, script en `supabase/tests/fase9_verificacion.sql`).
+- **Fase 10**: SEO estructurado añadido (ver §14); dominio propio y monitorización quedan como decisión del usuario (ver §14).
 
 ### 4.5 Fase 5 — cocina y tiempo real (aplicado)
 
@@ -258,4 +271,146 @@ NEXT_PUBLIC_SITE_URL=https://palomita-bar.vercel.app
 - Dirección: Gernikako Arbola Etorbidea 6A, 48902 Barakaldo, Bizkaia.
 - Teléfono: +34 686 53 03 10.
 - Instagram: @palomita_bar.
-- Horarios: no confirmados en ninguna fuente auditada — se dejarán como placeholder editable, no se inventan.
+- Horarios: no confirmados en ninguna fuente auditada — editable desde `/admin/configuracion` (ver §11), se muestra en `/contacto` en cuanto se rellene.
+
+## 10. Fase 6 — Stripe (aplicado, falta credenciales reales)
+
+Flujo exacto al brief (sección 25 del prompt original): el pedido se crea primero
+(`crear_pedido_restaurant`, `payment_method = 'ONLINE'`, `payment_status = 'PENDING'`), luego
+se crea la sesión de Stripe, y **la confirmación real llega solo por webhook, nunca por la
+redirección del navegador**.
+
+- `POST /api/stripe/checkout`: recibe `{ pedidoId }`, llama a la RPC nueva
+  `get_pedido_para_pago(pedido_id)` (pública, igual de expuesta que `get_pedido_publico` — el
+  UUID no adivinable es la autorización) para construir los `line_items` con los precios
+  reales de `restaurant.productos`, verifica que el pedido sea `ONLINE`+`PENDING`, crea la
+  Stripe Checkout Session y devuelve su URL.
+- `POST /api/stripe/webhook`: verifica la firma con `STRIPE_WEBHOOK_SECRET` **antes** de tocar
+  nada. En `checkout.session.completed`, llama a `marcar_pedido_pagado(...)` usando la
+  **service role** (`src/lib/supabase/service-role.ts`, con `import "server-only"` para que el
+  build falle si algún día se importa por error desde un componente cliente).
+- `marcar_pedido_pagado` tiene el `EXECUTE` revocado de `anon`/`authenticated` y solo
+  concedido a `service_role` — comprobado en el advisor de seguridad (§12) que no aparece como
+  ejecutable por `anon`, a diferencia de las funciones públicas. Si cualquiera con la clave
+  anon (pública, está en el bundle del navegador) pudiera llamar a esto, podría marcar
+  cualquier pedido como pagado sin pagar.
+- `get_pedidos_cocina()` se actualizó para no mostrar pedidos `ONLINE` con `payment_status`
+  distinto de `PAID` — cocina nunca debe preparar un pedido online que no se ha cobrado
+  todavía.
+- Carrito: el toggle "pagar online" ya funciona (antes estaba deshabilitado). Al confirmar con
+  pago online, crea el pedido y redirige de verdad a Stripe (`window.location.href`).
+
+**Manual, imprescindible para que esto funcione:**
+1. Crear/usar una cuenta de Stripe (modo test para probar).
+2. Añadir en Vercel (Production + Preview): `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`.
+3. En el dashboard de Stripe, crear un endpoint de webhook apuntando a
+   `https://palomita-bar.vercel.app/api/stripe/webhook`, evento `checkout.session.completed`,
+   y copiar el *signing secret* a `STRIPE_WEBHOOK_SECRET` en Vercel.
+4. Añadir también `SUPABASE_SERVICE_ROLE_KEY` (Supabase → Project Settings → API → `service_role`) y `NEXT_PUBLIC_PALOMITA_CLIENTE_ID` (ver §7).
+5. Redeploy.
+
+Sin esto, "pagar en local" sigue funcionando perfectamente — solo "pagar online" queda a
+medias hasta que se configure.
+
+## 11. Fase 7 — Administración (aplicado)
+
+Todo bajo `/admin`, protegido por el mismo `Supabase Auth` de la Fase 5 (`is_developer()` o
+un futuro `usuarios_negocio` específico de Palomita):
+
+- **`/admin/categorias`**: alta/edición/borrado. El `slug` se genera automáticamente del
+  nombre.
+- **`/admin/productos`**: alta/edición/borrado, categoría, precio, disponible/destacado.
+  Marcar "no disponible" lo retira al instante de `/carta`, `/cocteleria` y `/pedir` (esas
+  páginas ya filtran por `disponible = true`).
+- **`/admin/mesas`**: crear mesas por número, activar/desactivar, **generar y descargar el QR**
+  (paquete `qrcode`, renderizado como PNG en el propio navegador — apunta a
+  `NEXT_PUBLIC_SITE_URL/pedir?mesa=<identificador>`) y regenerarlo (invalida el QR impreso
+  anterior).
+- **`/admin/ventas`**: pedidos de hoy, ventas, ticket medio, pedidos en curso, desglose
+  pago local/online, productos más vendidos — todo vía `get_ventas_hoy_admin()`.
+- **`/admin/configuracion`**: horario del local, reutilizando la tabla `public.settings` ya
+  existente (no se crea tabla nueva) — se refleja en `/contacto` público.
+- Todas las funciones RPC de admin son `SECURITY INVOKER` y reciben `p_cliente_id`
+  explícitamente (ver el hallazgo de seguridad en §12) — no dependen únicamente de la RLS para
+  aislar por tenant.
+
+No manual aquí: funciona con la misma sesión de `/admin/cocina`.
+
+## 12. Fase 8 — Auditoría de seguridad
+
+- `get_advisors` (security) revisado tras cada migración de esta sesión: **sin hallazgos
+  nuevos** más allá del patrón ya aceptado (funciones públicas `SECURITY DEFINER` ejecutables
+  por `anon`, que es el diseño intencionado, ver §3.4) y las 7 notas INFO preexistentes de las
+  tablas `*_backup_20260810` de Arrantza, que no son mías.
+- **Hallazgo real, corregido**: `get_categorias_admin()`, `get_productos_admin()`,
+  `get_mesas_admin()`, `get_ventas_hoy_admin()` y las mutaciones de admin no filtraban por
+  `cliente_id` — se apoyaban solo en la RLS. Para un `TENANT_ADMIN` normal (`mi_cliente_id()`)
+  eso ya bastaba, pero `is_developer()` (la cuenta que usa el panel de Palomita) **ve todos los
+  tenants por diseño**, así que sin el filtro, el panel de Palomita habría mostrado — y
+  permitido editar o borrar — datos de cualquier otro tenant futuro que reutilizara el schema
+  `restaurant`. Corregido añadiendo `p_cliente_id` explícito a las 8 funciones afectadas y
+  comprobando pertenencia al tenant también en los `UPDATE`/`DELETE`, no solo en el `INSERT`.
+  Con un solo tenant activo (Palomita) en `restaurant` hoy, no era explotable todavía, pero sí
+  lo habría sido en cuanto se diera de alta un segundo cliente con el mismo modelo de negocio.
+- Confirmado que `marcar_pedido_pagado` (la función que marca un pago como cobrado) no aparece
+  en ningún advisor como ejecutable por `anon`/`authenticated` — solo `service_role`.
+- Verificado que ningún endpoint nuevo (`/api/stripe/*`) expone `STRIPE_SECRET_KEY`,
+  `STRIPE_WEBHOOK_SECRET` ni `SUPABASE_SERVICE_ROLE_KEY` al cliente — viven solo en módulos
+  marcados `import "server-only"`, y ninguna página ni componente `"use client"` los importa.
+- Autorización revisada en servidor, no solo ocultando botones: todas las mutaciones de
+  `/admin` pasan por RPC con `SECURITY INVOKER`/RLS o `SECURITY DEFINER` con `GRANT` explícito,
+  nunca por lógica que se pueda saltar cambiando el JS del navegador.
+
+## 13. Fase 9 — Verificación funcional
+
+Sin Node.js disponible en esta máquina para ejecutar un framework de tests (Vitest/Jest), se
+optó por verificar las reglas de negocio críticas **ejecutándolas de verdad** contra el
+Supabase real, en vez de escribir tests JS que no se podían correr ni comprobar. Script
+completo en `supabase/tests/fase9_verificacion.sql`, con limpieza de los datos de prueba al
+terminar (verificado que no queda ningún resto). Resultado, 2026-08-12: **8/8 PASS**:
+
+1. El precio guardado en `pedido_items` es el de `restaurant.productos`, nunca uno inventado (la propia función ni acepta un precio como parámetro).
+2. Una transición de estado que se salta pasos (`RECEIVED → READY`) es rechazada por el trigger.
+3. La secuencia completa válida (`RECEIVED → ACCEPTED → PREPARING → READY → DELIVERED`) funciona y queda registrada automáticamente en `pedido_estado_historial` (4 filas).
+4. `DELIVERED` es un estado terminal: no se puede volver a `RECEIVED`.
+5. `get_pedido_publico` refleja el estado real tras las transiciones.
+6. Una `site_key` inventada no devuelve productos de ningún tenant (aislamiento multi-tenant).
+7. `validar_mesa` rechaza un identificador de mesa que no existe.
+8. `crear_pedido_restaurant` rechaza un producto marcado como no disponible.
+
+Es una suite manual, no un pipeline de CI — queda documentada para volver a correrla a mano
+tras cualquier cambio en `restaurant.*` o sus funciones. Cuando haya Node.js disponible (aquí
+o en CI), lo natural es complementarla con tests de componente para el carrito/checkout, que
+esta suite no cubre.
+
+## 14. Fase 10 — Producción
+
+Aplicado:
+- **SEO estructurado**: JSON-LD `BarOrPub` (schema.org) en `app/(public)/layout.tsx` con
+  dirección, teléfono e Instagram — además del `sitemap.xml`/`robots.txt`/metadata ya de la
+  Fase 1.
+- **Performance**: fuentes vía `next/font` (sin bloquear render), ISR de 60s en `/carta`,
+  `/cocteleria` y `/contacto`, sin dependencias pesadas innecesarias añadidas en ninguna fase.
+- **Monitorización**: comprobado con `get_runtime_errors` de Vercel — sin errores en
+  producción a fecha de hoy. Vercel ya da logs/analytics básicos sin configuración adicional.
+
+Pendiente, son decisiones/acciones del usuario, no código:
+- **Dominio propio (`palomitabar.es`)**: no lo he comprado ni configurado — es una decisión y
+  un gasto real. Si se quiere, dímelo y lo compruebo/gestiono con las herramientas de Vercel
+  (o se añade manualmente en Vercel → Domains si ya se posee).
+- **Cuenta de Stripe real** (ver §10).
+- La organización "LocalIA Soluciones Digitales" no existe (o no es visible) en Vercel — el
+  proyecto vive en la cuenta personal `edortadossantos-projects`. No bloquea nada hoy, pero si
+  la idea es centralizar varios clientes bajo una organización de Vercel propia de LocalIA,
+  es el momento de crearla y mover el proyecto.
+
+## 15. Resumen: qué tienes que hacer tú, por fase
+
+| Fase | ¿Acción manual? |
+|---|---|
+| 0-5 | Ya resueltas (variables de Supabase en Vercel, ya añadidas). |
+| 6 (Stripe) | **Sí** — cuenta de Stripe, 3 claves + configurar el webhook en su dashboard (ver §10). |
+| 7 (Admin) | No — funciona con la sesión que ya usas en `/admin/cocina`. |
+| 8 (Seguridad) | No. |
+| 9 (Testing) | No. |
+| 10 (Producción) | Opcional — dominio propio y decidir si mover el proyecto a una organización de Vercel de LocalIA (ver §14). |

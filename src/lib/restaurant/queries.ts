@@ -72,3 +72,11 @@ export async function getPedidoPublico(pedidoId: string): Promise<PedidoPublico 
   if (error || !data) return null;
   return data as unknown as PedidoPublico;
 }
+
+export async function getHorarioPublico(): Promise<string | null> {
+  const { data, error } = await supabase.rpc("get_horario_publico", {
+    p_site_key: siteKey(),
+  });
+  if (error) return null;
+  return (data as unknown as string | null) ?? null;
+}

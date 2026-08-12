@@ -17,7 +17,7 @@ export default async function CocinaPage() {
   const pedidosIniciales = (error ? [] : (data as unknown as PedidoCocina[]) ?? []);
 
   return (
-    <div className="min-h-screen p-4 sm:p-6">
+    <div>
       <h1 className="font-display text-2xl text-brand-ink">Cocina</h1>
       <KitchenBoard pedidosIniciales={pedidosIniciales} />
     </div>

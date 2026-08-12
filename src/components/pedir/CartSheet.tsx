@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCart } from "@/components/cart/cart-context";
 import { formatCentimos } from "@/lib/format";
 import { crearPedido } from "@/lib/restaurant/queries";
+import type { PaymentMethod } from "@/lib/restaurant/types";
 
 export function CartSheet({
   mesaIdentificador,
@@ -14,6 +15,7 @@ export function CartSheet({
   onClose: () => void;
 }) {
   const { lines, increment, decrement, removeItem, totalCentimos, clear } = useCart();
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("LOCAL");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -24,14 +26,32 @@ export function CartSheet({
     try {
       const pedidoId = await crearPedido({
         mesaIdentificador,
-        paymentMethod: "LOCAL",
+        paymentMethod,
         items: lines.map((l) => ({
           producto_id: l.producto.id,
           cantidad: l.cantidad,
         })),
       });
+
+      if (paymentMethod === "LOCAL") {
+        clear();
+        router.push(`/pedido/${pedidoId}`);
+        return;
+      }
+
+      const response = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pedidoId }),
+      });
+
+      if (!response.ok) {
+        throw new Error("checkout_failed");
+      }
+
+      const { url } = (await response.json()) as { url: string };
       clear();
-      router.push(`/pedido/${pedidoId}`);
+      window.location.href = url;
     } catch {
       setError(
         "No hemos podido completar tu pedido. Comprueba tu conexión e inténtalo de nuevo.",
@@ -109,12 +129,28 @@ export function CartSheet({
         <div className="mt-4">
           <p className="text-xs uppercase tracking-widest2 text-brand-ink/50">Pago</p>
           <div className="mt-2 flex gap-2">
-            <div className="flex-1 border border-brand-black bg-brand-black px-4 py-3 text-center text-sm text-brand-cream">
+            <button
+              type="button"
+              onClick={() => setPaymentMethod("LOCAL")}
+              className={`flex-1 border px-4 py-3 text-center text-sm transition-colors ${
+                paymentMethod === "LOCAL"
+                  ? "border-brand-black bg-brand-black text-brand-cream"
+                  : "border-brand-black/20 text-brand-ink/60"
+              }`}
+            >
               Pagar en local
-            </div>
-            <div className="flex-1 border border-brand-black/15 px-4 py-3 text-center text-sm text-brand-ink/35">
-              Pagar online (próximamente)
-            </div>
+            </button>
+            <button
+              type="button"
+              onClick={() => setPaymentMethod("ONLINE")}
+              className={`flex-1 border px-4 py-3 text-center text-sm transition-colors ${
+                paymentMethod === "ONLINE"
+                  ? "border-brand-black bg-brand-black text-brand-cream"
+                  : "border-brand-black/20 text-brand-ink/60"
+              }`}
+            >
+              Pagar online
+            </button>
           </div>
         </div>
 
@@ -126,7 +162,11 @@ export function CartSheet({
           disabled={submitting || lines.length === 0}
           className="mt-6 w-full bg-brand-pink py-4 text-sm uppercase tracking-widest2 text-white transition-colors hover:bg-brand-pink-dark disabled:opacity-50"
         >
-          {submitting ? "Enviando pedido…" : "Confirmar pedido"}
+          {submitting
+            ? "Enviando pedido…"
+            : paymentMethod === "ONLINE"
+              ? "Ir a pagar"
+              : "Confirmar pedido"}
         </button>
       </div>
     </div>
