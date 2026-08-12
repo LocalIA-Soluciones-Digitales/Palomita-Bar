@@ -11,7 +11,7 @@ export function CartSheet({
   mesaIdentificador,
   onClose,
 }: {
-  mesaIdentificador: string;
+  mesaIdentificador?: string;
   onClose: () => void;
 }) {
   const { lines, increment, decrement, removeItem, totalCentimos, clear } = useCart();

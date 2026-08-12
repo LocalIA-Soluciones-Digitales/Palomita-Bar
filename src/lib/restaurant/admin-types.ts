@@ -1,3 +1,5 @@
+import type { EstadoPedido, PaymentMethod, PaymentStatus } from "@/lib/restaurant/types";
+
 export interface CategoriaAdmin {
   id: string;
   cliente_id: string;
@@ -29,6 +31,33 @@ export interface MesaAdmin {
   nombre: string | null;
   identificador: string;
   activa: boolean;
+}
+
+export interface PedidoMesaItemAdmin {
+  producto_nombre: string;
+  cantidad: number;
+  precio_unitario_centimos: number;
+  notas: string | null;
+}
+
+export interface PedidoMesaAdmin {
+  id: string;
+  estado: EstadoPedido;
+  payment_method: PaymentMethod;
+  payment_status: PaymentStatus;
+  total_centimos: number;
+  notas: string | null;
+  created_at: string;
+  items: PedidoMesaItemAdmin[];
+}
+
+export interface MesaEstadoAdmin {
+  id: string;
+  numero: number;
+  nombre: string | null;
+  identificador: string;
+  activa: boolean;
+  pedidos_hoy: PedidoMesaAdmin[];
 }
 
 export interface VentasHoy {

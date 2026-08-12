@@ -18,18 +18,9 @@ export default async function PedirPage({
 }) {
   const { mesa: mesaIdentificador } = await searchParams;
 
-  if (!mesaIdentificador) {
-    return (
-      <EmptyState
-        title="Escanea el QR de tu mesa"
-        description="Para pedir necesitas escanear el código QR que tienes en la mesa."
-      />
-    );
-  }
+  const mesa = mesaIdentificador ? await validarMesa(mesaIdentificador) : null;
 
-  const mesa = await validarMesa(mesaIdentificador);
-
-  if (!mesa) {
+  if (mesaIdentificador && !mesa) {
     return (
       <EmptyState
         title="Mesa no disponible"
@@ -44,7 +35,11 @@ export default async function PedirPage({
     <CartProvider>
       <div className="mx-auto max-w-3xl px-6 pb-32 pt-16">
         <p className="text-xs uppercase tracking-widest2 text-brand-pink">
-          {mesa.nombre ? `${mesa.nombre} (Mesa ${mesa.numero})` : `Mesa ${mesa.numero}`}
+          {mesa
+            ? mesa.nombre
+              ? `${mesa.nombre} (Mesa ${mesa.numero})`
+              : `Mesa ${mesa.numero}`
+            : "Modo prueba · sin mesa asignada"}
         </p>
         <h1 className="mt-4 font-display text-4xl">¿Qué te apetece?</h1>
 

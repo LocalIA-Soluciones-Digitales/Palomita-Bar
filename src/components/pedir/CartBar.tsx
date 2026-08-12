@@ -5,7 +5,7 @@ import { useCart } from "@/components/cart/cart-context";
 import { formatCentimos } from "@/lib/format";
 import { CartSheet } from "@/components/pedir/CartSheet";
 
-export function CartBar({ mesaIdentificador }: { mesaIdentificador: string }) {
+export function CartBar({ mesaIdentificador }: { mesaIdentificador?: string }) {
   const { totalItems, totalCentimos } = useCart();
   const [open, setOpen] = useState(false);
 

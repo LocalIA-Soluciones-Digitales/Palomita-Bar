@@ -49,14 +49,14 @@ export async function validarMesa(identificador: string): Promise<Mesa | null> {
 }
 
 export async function crearPedido(params: {
-  mesaIdentificador: string;
+  mesaIdentificador?: string;
   items: CartItemInput[];
   paymentMethod: PaymentMethod;
   notas?: string;
 }): Promise<string> {
   const { data, error } = await supabase.rpc("crear_pedido_restaurant", {
     p_site_key: siteKey(),
-    p_mesa_identificador: params.mesaIdentificador,
+    p_mesa_identificador: params.mesaIdentificador ?? null,
     p_items: params.items,
     p_payment_method: params.paymentMethod,
     p_notas: params.notas ?? null,

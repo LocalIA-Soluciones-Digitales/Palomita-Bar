@@ -2,9 +2,11 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import type {
   CategoriaAdmin,
   MesaAdmin,
+  MesaEstadoAdmin,
   ProductoAdmin,
   VentasHoy,
 } from "@/lib/restaurant/admin-types";
+import type { EstadoPedido } from "@/lib/restaurant/types";
 
 const PALOMITA_CLIENTE_ID = process.env.NEXT_PUBLIC_PALOMITA_CLIENTE_ID;
 
@@ -146,6 +148,24 @@ export async function regenerarQrMesaAdmin(id: string): Promise<MesaAdmin> {
   });
   if (error) throw error;
   return data as unknown as MesaAdmin;
+}
+
+export async function getMesasEstadoAdmin(): Promise<MesaEstadoAdmin[]> {
+  const supabase = createSupabaseBrowserClient();
+  const { data, error } = await supabase.rpc("get_mesas_estado_admin", {
+    p_cliente_id: clienteId(),
+  });
+  if (error) throw error;
+  return (data ?? []) as unknown as MesaEstadoAdmin[];
+}
+
+export async function avanzarPedidoAdmin(pedidoId: string, nuevoEstado: EstadoPedido): Promise<void> {
+  const supabase = createSupabaseBrowserClient();
+  const { error } = await supabase.rpc("avanzar_pedido_cocina", {
+    p_pedido_id: pedidoId,
+    p_nuevo_estado: nuevoEstado,
+  });
+  if (error) throw error;
 }
 
 export async function getVentasHoyAdmin(): Promise<VentasHoy> {
