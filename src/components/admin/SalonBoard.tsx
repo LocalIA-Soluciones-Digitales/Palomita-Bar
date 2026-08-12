@@ -153,7 +153,8 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
   };
 
   const posicionMesa = (mesa: MesaEstadoAdmin, index: number): { x: number; y: number } => {
-    if (posicionesArrastre[mesa.id]) return posicionesArrastre[mesa.id];
+    const enArrastre = posicionesArrastre[mesa.id];
+    if (enArrastre) return enArrastre;
     if (mesa.pos_x !== null && mesa.pos_y !== null) return { x: mesa.pos_x, y: mesa.pos_y };
     return posicionAuto(index);
   };
