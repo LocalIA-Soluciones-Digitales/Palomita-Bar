@@ -1,13 +1,14 @@
 # Palomita Bar — Arquitectura
 
-Estado: **Fase 0, 1, 3 y 4 completadas.** El schema `restaurant` está aplicado en el proyecto
-compartido, Palomita es tenant activo con carta sembrada, y el frontend ya consume las
-funciones RPC en vez de datos estáticos: `/carta` y `/cocteleria` leen la carta real desde
-Supabase, `/pedir?mesa=<identificador>` valida la mesa en servidor y permite construir un
-pedido y confirmarlo (pago en local; pago online queda deshabilitado en la UI hasta la Fase
-6), y `/pedido/[id]` muestra el estado. Pendiente: **añadir las variables de entorno en
-Vercel** (ver §7 — sin ellas el build de `/carta`/`/cocteleria` falla), Realtime en cocina
-(Fase 5), Stripe (Fase 6) y administración (Fase 7).
+Estado: **Fase 0, 1, 3, 4 y 5 completadas.** El schema `restaurant` está aplicado en el
+proyecto compartido (ya en producción en `palomita-bar.vercel.app`), Palomita es tenant
+activo con carta sembrada, y el frontend consume las funciones RPC en vez de datos estáticos:
+`/carta` y `/cocteleria` leen la carta real, `/pedir?mesa=<identificador>` valida la mesa en
+servidor y permite construir y confirmar un pedido (pago en local; pago online deshabilitado
+en la UI hasta la Fase 6), `/pedido/[id]` muestra el estado con actualización automática
+(polling cada 5s), y `/admin/cocina` (protegido con Supabase Auth) muestra el tablero de
+cocina en vivo con Realtime. Pendiente: Stripe (Fase 6) y el resto de administración —
+productos, mesas, QR, ventas (Fase 7).
 
 ---
 
@@ -221,9 +222,37 @@ NEXT_PUBLIC_SITE_URL=https://palomita-bar.vercel.app
 - **Fase 2** ✅ (parcial): páginas públicas (home, historia, galería, contacto) con contenido de referencia. Historia/galería siguen pendientes de contenido real del negocio.
 - **Fase 3** ✅: schema `restaurant` aplicado en Supabase (ver §4.4).
 - **Fase 4** ✅: `/carta`, `/cocteleria` y `/pedir` conectados a las funciones RPC; carrito, checkout (solo pago en local) y `/pedido/[id]` funcionando end-to-end contra Supabase real.
-- **Fase 5**: dashboard de cocina (`/admin/cocina`) + Supabase Realtime, también para que `/pedido/[id]` se actualice solo sin recargar.
+- **Fase 5** ✅: `/admin/cocina` (Supabase Auth + Realtime) y `/pedido/[id]` con actualización automática (polling, ver §4.5).
 - **Fase 6**: Stripe Checkout + webhook, activar la opción "pagar online" ya presente (deshabilitada) en el carrito.
 - **Fase 7-10**: según el plan original del brief.
+
+### 4.5 Fase 5 — cocina y tiempo real (aplicado)
+
+- Rutas reorganizadas en grupos: `app/(public)/...` (con el nav/footer de la web pública) y
+  `app/admin/(protected)/...` (sin ese nav, protegido) + `app/admin/login` (sin proteger, para
+  evitar un bucle de redirección). El layout raíz (`app/layout.tsx`) ya no pinta cabecera ni
+  pie — eso vive solo en `app/(public)/layout.tsx`.
+- Auth: `@supabase/ssr` con sesión por cookie (`middleware.ts` la refresca en cada petición a
+  `/admin/*`). `/admin/(protected)/layout.tsx` exige sesión; si no hay, redirige a
+  `/admin/login`.
+- **No hace falta crear ningún usuario nuevo.** `is_developer()` (ya existente, ver §3.2)
+  reconoce el email `edortadossantos@gmail.com` y la cuenta `admin@developers.local` como
+  super-admin de LocalIA con acceso a todos los tenants — esta última ya existe y se usó esta
+  semana en el proyecto de Arrantza. Cualquiera de las dos sirve para entrar en
+  `/admin/cocina` de Palomita sin dar de alta nada en `usuarios_negocio`.
+- `get_pedidos_cocina()` / `avanzar_pedido_cocina(pedido_id, nuevo_estado)`: RPC nuevas en
+  `public`, `SECURITY INVOKER` (no `DEFINER`) — se ejecutan como el usuario autenticado, así
+  que las políticas RLS de `restaurant.pedidos`/`pedido_items` ya existentes hacen todo el
+  aislamiento por tenant sin lógica extra. El trigger de transición de estado (§4.4) sigue
+  aplicando igual, venga la `UPDATE` de esta función o de cualquier otro sitio.
+- El tablero de cocina (`KitchenBoard`) se suscribe con Realtime a `restaurant.pedidos` y
+  `restaurant.pedido_items` — como el cliente va autenticado, RLS también filtra los eventos
+  de Realtime por tenant automáticamente.
+- `/pedido/[id]` es público (`anon`), y `anon` no tiene política de `SELECT` sobre
+  `restaurant.pedidos` — por diseño (§3.2), así que no puede usar Realtime ahí (no recibiría
+  eventos). En vez de montar un mecanismo de *broadcast* solo para este caso, hace *polling*
+  cada 5s a `get_pedido_publico` mientras el pedido no esté en un estado final. Es una
+  simplificación consciente, no una limitación técnica de fondo.
 
 ## 9. Datos de contacto públicos (verificados desde el PDF de la carta, sin inventar nada)
 - Dirección: Gernikako Arbola Etorbidea 6A, 48902 Barakaldo, Bizkaia.

@@ -1,15 +1,9 @@
-import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+"use client";
+
+import { useEffect, useState } from "react";
 import { getPedidoPublico } from "@/lib/restaurant/queries";
 import { formatCentimos } from "@/lib/format";
-import type { EstadoPedido } from "@/lib/restaurant/types";
-
-export const dynamic = "force-dynamic";
-
-export const metadata: Metadata = {
-  title: "Tu pedido",
-  robots: { index: false },
-};
+import type { EstadoPedido, PedidoPublico } from "@/lib/restaurant/types";
 
 const PASOS: { estado: EstadoPedido; label: string }[] = [
   { estado: "RECEIVED", label: "Pedido recibido" },
@@ -19,17 +13,22 @@ const PASOS: { estado: EstadoPedido; label: string }[] = [
   { estado: "DELIVERED", label: "Entregado" },
 ];
 
-export default async function PedidoPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
-  const pedido = await getPedidoPublico(id);
+const ESTADOS_FINALES: EstadoPedido[] = ["DELIVERED", "CANCELLED"];
+const INTERVALO_MS = 5000;
 
-  if (!pedido) {
-    notFound();
-  }
+export function PedidoStatus({ pedidoInicial }: { pedidoInicial: PedidoPublico }) {
+  const [pedido, setPedido] = useState(pedidoInicial);
+
+  useEffect(() => {
+    if (ESTADOS_FINALES.includes(pedido.estado)) return;
+
+    const interval = setInterval(async () => {
+      const actualizado = await getPedidoPublico(pedido.id);
+      if (actualizado) setPedido(actualizado);
+    }, INTERVALO_MS);
+
+    return () => clearInterval(interval);
+  }, [pedido.estado, pedido.id]);
 
   const pasoActualIndex = PASOS.findIndex((p) => p.estado === pedido.estado);
   const cancelado = pedido.estado === "CANCELLED";
