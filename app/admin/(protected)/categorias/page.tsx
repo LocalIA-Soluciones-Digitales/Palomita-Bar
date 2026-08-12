@@ -19,12 +19,18 @@ function slugify(value: string): string {
     .replace(/(^-|-$)/g, "");
 }
 
-const FORM_VACIO = { nombre: "", tipo: "comida" as const, orden: 0 };
+interface CategoriaForm {
+  nombre: string;
+  tipo: "comida" | "bebida";
+  orden: number;
+}
+
+const FORM_VACIO: CategoriaForm = { nombre: "", tipo: "comida", orden: 0 };
 
 export default function CategoriasAdminPage() {
   const [categorias, setCategorias] = useState<CategoriaAdmin[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [form, setForm] = useState(FORM_VACIO);
+  const [form, setForm] = useState<CategoriaForm>(FORM_VACIO);
   const [editandoId, setEditandoId] = useState<string | null>(null);
   const [guardando, setGuardando] = useState(false);
 
