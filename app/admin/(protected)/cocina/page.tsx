@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { KitchenBoard } from "@/components/cocina/KitchenBoard";
+import { CocinaTabs } from "@/components/admin/CocinaTabs";
 import type { PedidoCocina } from "@/lib/restaurant/cocina-types";
 
 export const dynamic = "force-dynamic";
@@ -19,7 +19,7 @@ export default async function CocinaPage() {
   return (
     <div>
       <h1 className="font-display text-2xl text-brand-ink">Cocina</h1>
-      <KitchenBoard pedidosIniciales={pedidosIniciales} />
+      <CocinaTabs pedidosIniciales={pedidosIniciales} />
     </div>
   );
 }

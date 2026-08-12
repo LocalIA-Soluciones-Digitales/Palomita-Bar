@@ -31,6 +31,9 @@ export interface MesaAdmin {
   nombre: string | null;
   identificador: string;
   activa: boolean;
+  ocupada: boolean;
+  pos_x: number | null;
+  pos_y: number | null;
 }
 
 export interface PedidoMesaItemAdmin {
@@ -57,6 +60,9 @@ export interface MesaEstadoAdmin {
   nombre: string | null;
   identificador: string;
   activa: boolean;
+  ocupada: boolean;
+  pos_x: number | null;
+  pos_y: number | null;
   pedidos_hoy: PedidoMesaAdmin[];
 }
 
@@ -70,4 +76,36 @@ export interface VentasHoy {
   pagos_online: number;
   pagos_local: number;
   top_productos: { nombre: string; cantidad: number }[];
+}
+
+export interface InformeVentasDia {
+  fecha: string;
+  pedidos: number;
+  ventas_centimos: number;
+}
+
+export interface InformeVentasProducto {
+  producto_id: string;
+  nombre: string;
+  categoria: string;
+  unidades: number;
+  ventas_centimos: number;
+}
+
+export interface InformeVentasCategoria {
+  categoria: string;
+  unidades: number;
+  ventas_centimos: number;
+}
+
+export interface InformeVentas {
+  resumen: {
+    pedidos: number;
+    ventas_centimos: number;
+    ticket_medio_centimos: number;
+    unidades_vendidas: number;
+  };
+  por_dia: InformeVentasDia[];
+  por_categoria: InformeVentasCategoria[];
+  productos: InformeVentasProducto[];
 }
