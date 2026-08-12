@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { formatCentimos } from "@/lib/format";
+import { playNewOrderChime } from "@/lib/notify-sound";
 import {
   actualizarMesaOcupadaAdmin,
   actualizarMesaPosicionAdmin,
@@ -113,7 +114,15 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
       .channel("salon-mesas")
       .on(
         "postgres_changes",
-        { event: "*", schema: "restaurant", table: "pedidos" },
+        { event: "INSERT", schema: "restaurant", table: "pedidos" },
+        () => {
+          playNewOrderChime();
+          refetch();
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "restaurant", table: "pedidos" },
         () => refetch(),
       )
       .on(

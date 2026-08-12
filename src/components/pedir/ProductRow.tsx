@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useCart } from "@/components/cart/cart-context";
 import { formatCentimos } from "@/lib/format";
 import type { Producto } from "@/lib/restaurant/types";
@@ -10,14 +11,27 @@ export function ProductRow({ producto }: { producto: Producto }) {
 
   return (
     <div className="flex items-center justify-between gap-4 py-4">
-      <div className="min-w-0">
-        <p className="font-display text-lg">{producto.nombre}</p>
-        {producto.descripcion ? (
-          <p className="mt-1 text-sm text-brand-ink/60">{producto.descripcion}</p>
+      <div className="flex min-w-0 items-center gap-3">
+        {producto.imagen_url ? (
+          <div className="relative h-14 w-14 shrink-0 overflow-hidden bg-brand-sand">
+            <Image
+              src={producto.imagen_url}
+              alt={producto.nombre}
+              fill
+              sizes="56px"
+              className="object-cover"
+            />
+          </div>
         ) : null}
-        <p className="mt-1 text-sm text-brand-ink/80">
-          {formatCentimos(producto.precio_centimos)} €
-        </p>
+        <div className="min-w-0">
+          <p className="font-display text-lg">{producto.nombre}</p>
+          {producto.descripcion ? (
+            <p className="mt-1 text-sm text-brand-ink/60">{producto.descripcion}</p>
+          ) : null}
+          <p className="mt-1 text-sm text-brand-ink/80">
+            {formatCentimos(producto.precio_centimos)} €
+          </p>
+        </div>
       </div>
 
       {line ? (

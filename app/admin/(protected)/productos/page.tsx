@@ -5,6 +5,7 @@ import {
   eliminarProductoAdmin,
   getCategoriasAdmin,
   getProductosAdmin,
+  subirImagenProducto,
   upsertProductoAdmin,
 } from "@/lib/restaurant/admin-queries";
 import type { CategoriaAdmin, ProductoAdmin } from "@/lib/restaurant/admin-types";
@@ -18,6 +19,7 @@ const FORM_VACIO = {
   disponible: true,
   destacado: false,
   orden: 0,
+  imagenUrl: null as string | null,
 };
 
 export default function ProductosAdminPage() {
@@ -27,6 +29,7 @@ export default function ProductosAdminPage() {
   const [form, setForm] = useState(FORM_VACIO);
   const [editandoId, setEditandoId] = useState<string | null>(null);
   const [guardando, setGuardando] = useState(false);
+  const [subiendoImagen, setSubiendoImagen] = useState(false);
 
   const cargar = async () => {
     try {
@@ -41,6 +44,19 @@ export default function ProductosAdminPage() {
   useEffect(() => {
     cargar();
   }, []);
+
+  const handleSubirImagen = async (file: File) => {
+    setSubiendoImagen(true);
+    setError(null);
+    try {
+      const url = await subirImagenProducto(file);
+      setForm((f) => ({ ...f, imagenUrl: url }));
+    } catch {
+      setError("No se ha podido subir la imagen.");
+    } finally {
+      setSubiendoImagen(false);
+    }
+  };
 
   const handleGuardar = async () => {
     const precioCentimos = Math.round(parseFloat(form.precio.replace(",", ".")) * 100);
@@ -61,6 +77,7 @@ export default function ProductosAdminPage() {
         disponible: form.disponible,
         destacado: form.destacado,
         orden: form.orden,
+        imagenUrl: form.imagenUrl,
       });
       setForm(FORM_VACIO);
       setEditandoId(null);
@@ -82,6 +99,7 @@ export default function ProductosAdminPage() {
       disponible: producto.disponible,
       destacado: producto.destacado,
       orden: producto.orden,
+      imagenUrl: producto.imagen_url,
     });
   };
 
@@ -96,6 +114,7 @@ export default function ProductosAdminPage() {
         disponible: !producto.disponible,
         destacado: producto.destacado,
         orden: producto.orden,
+        imagenUrl: producto.imagen_url,
       });
       await cargar();
     } catch {
@@ -164,6 +183,45 @@ export default function ProductosAdminPage() {
             className="mt-1 w-full border border-brand-black/20 px-3 py-2 text-sm"
           />
         </div>
+
+        <div className="col-span-2 sm:col-span-4">
+          <label className="text-xs uppercase tracking-widest2 text-brand-ink/50">Foto</label>
+          <div className="mt-1 flex items-center gap-3">
+            {form.imagenUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={form.imagenUrl}
+                alt=""
+                className="h-16 w-16 shrink-0 border border-brand-black/10 object-cover"
+              />
+            ) : (
+              <div className="h-16 w-16 shrink-0 border border-dashed border-brand-black/20 bg-brand-sand" />
+            )}
+            <input
+              type="file"
+              accept="image/*"
+              disabled={subiendoImagen}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) handleSubirImagen(file);
+              }}
+              className="text-xs"
+            />
+            {subiendoImagen ? (
+              <span className="text-xs text-brand-ink/50">Subiendo…</span>
+            ) : null}
+            {form.imagenUrl ? (
+              <button
+                type="button"
+                onClick={() => setForm((f) => ({ ...f, imagenUrl: null }))}
+                className="text-xs uppercase tracking-widest2 text-brand-ink/40 hover:text-red-600"
+              >
+                Quitar
+              </button>
+            ) : null}
+          </div>
+        </div>
+
         <label className="flex items-center gap-2 text-sm">
           <input
             type="checkbox"
@@ -185,7 +243,7 @@ export default function ProductosAdminPage() {
           <button
             type="button"
             onClick={handleGuardar}
-            disabled={guardando}
+            disabled={guardando || subiendoImagen}
             className="bg-brand-black px-4 py-2 text-xs uppercase tracking-widest2 text-brand-cream disabled:opacity-50"
           >
             {editandoId ? "Guardar cambios" : "Añadir producto"}
@@ -210,6 +268,7 @@ export default function ProductosAdminPage() {
       <table className="mt-6 w-full border-collapse bg-white text-sm">
         <thead>
           <tr className="border-b border-brand-black/10 text-left text-xs uppercase tracking-widest2 text-brand-ink/50">
+            <th className="p-3" />
             <th className="p-3">Nombre</th>
             <th className="p-3">Categoría</th>
             <th className="p-3">Precio</th>
@@ -220,6 +279,18 @@ export default function ProductosAdminPage() {
         <tbody>
           {productos?.map((producto) => (
             <tr key={producto.id} className="border-b border-brand-black/5">
+              <td className="p-3">
+                {producto.imagen_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={producto.imagen_url}
+                    alt=""
+                    className="h-10 w-10 object-cover"
+                  />
+                ) : (
+                  <div className="h-10 w-10 bg-brand-sand" />
+                )}
+              </td>
               <td className="p-3">{producto.nombre}</td>
               <td className="p-3">{producto.categoria_nombre ?? "—"}</td>
               <td className="p-3">{formatCentimos(producto.precio_centimos)} €</td>

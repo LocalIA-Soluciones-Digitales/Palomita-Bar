@@ -75,6 +75,7 @@ export async function upsertProductoAdmin(input: {
   disponible: boolean;
   destacado: boolean;
   orden: number;
+  imagenUrl?: string | null;
 }): Promise<ProductoAdmin> {
   const supabase = createSupabaseBrowserClient();
   const { data, error } = await supabase.rpc("upsert_producto_admin", {
@@ -87,9 +88,25 @@ export async function upsertProductoAdmin(input: {
     p_disponible: input.disponible,
     p_destacado: input.destacado,
     p_orden: input.orden,
+    p_imagen_url: input.imagenUrl ?? null,
   });
   if (error) throw error;
   return data as unknown as ProductoAdmin;
+}
+
+export async function subirImagenProducto(file: File): Promise<string> {
+  const supabase = createSupabaseBrowserClient();
+  const extension = file.name.split(".").pop() ?? "jpg";
+  const path = `${clienteId()}/products/${crypto.randomUUID()}.${extension}`;
+
+  const { error } = await supabase.storage.from("restaurant-media").upload(path, file, {
+    cacheControl: "3600",
+    upsert: false,
+  });
+  if (error) throw error;
+
+  const { data } = supabase.storage.from("restaurant-media").getPublicUrl(path);
+  return data.publicUrl;
 }
 
 export async function eliminarProductoAdmin(id: string): Promise<void> {
@@ -225,13 +242,6 @@ export async function getInformeVentasAdmin(desde: Date, hasta: Date): Promise<I
   });
   if (error) throw error;
   return data as unknown as InformeVentas;
-}
-
-export async function esDeveloperAdmin(): Promise<boolean> {
-  const supabase = createSupabaseBrowserClient();
-  const { data, error } = await supabase.rpc("is_developer");
-  if (error) return false;
-  return Boolean(data);
 }
 
 export async function getConfiguracionAdmin(): Promise<string | null> {

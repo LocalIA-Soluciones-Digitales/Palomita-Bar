@@ -21,6 +21,12 @@ export function Header() {
             </Link>
           ))}
           <Link
+            href="/admin"
+            className="text-xs uppercase tracking-widest2 text-brand-ink/40 transition-colors hover:text-brand-ink"
+          >
+            Equipo
+          </Link>
+          <Link
             href="/pedir"
             className="inline-flex items-center bg-brand-pink px-5 py-2.5 text-sm uppercase tracking-widest2 text-white transition-colors hover:bg-brand-pink-dark"
           >

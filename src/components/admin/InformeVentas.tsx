@@ -54,7 +54,7 @@ function calcularRango(id: RangoId): { desde: Date; hasta: Date; etiqueta: strin
   }
 }
 
-export function InformeDesarrollo() {
+export function InformeVentas() {
   const [rango, setRango] = useState<RangoId>("30d");
   const [informe, setInforme] = useState<InformeVentas | null>(null);
   const [error, setError] = useState<string | null>(null);

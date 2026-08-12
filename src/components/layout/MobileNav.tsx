@@ -55,6 +55,13 @@ export function MobileNav() {
             >
               Pedir
             </Link>
+            <Link
+              href="/admin"
+              onClick={() => setOpen(false)}
+              className="text-xs uppercase tracking-widest2 text-brand-ink/40"
+            >
+              Equipo
+            </Link>
           </nav>
         </div>
       ) : null}

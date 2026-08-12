@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { formatCentimos } from "@/lib/format";
+import { playNewOrderChime } from "@/lib/notify-sound";
 import type { EstadoPedido } from "@/lib/restaurant/types";
 import type { PedidoCocina } from "@/lib/restaurant/cocina-types";
 
@@ -37,7 +38,15 @@ export function KitchenBoard({ pedidosIniciales }: { pedidosIniciales: PedidoCoc
       .channel("cocina-pedidos")
       .on(
         "postgres_changes",
-        { event: "*", schema: "restaurant", table: "pedidos" },
+        { event: "INSERT", schema: "restaurant", table: "pedidos" },
+        () => {
+          playNewOrderChime();
+          refetch();
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "restaurant", table: "pedidos" },
         () => refetch(),
       )
       .on(
@@ -86,8 +95,17 @@ export function KitchenBoard({ pedidosIniciales }: { pedidosIniciales: PedidoCoc
                   minute: "2-digit",
                 });
 
+                const esNuevo = pedido.estado === "RECEIVED";
+
                 return (
-                  <div key={pedido.id} className="border border-brand-black/10 p-3">
+                  <div
+                    key={pedido.id}
+                    className={`border p-3 ${
+                      esNuevo
+                        ? "animate-pulse border-amber-400 ring-2 ring-amber-300"
+                        : "border-brand-black/10"
+                    }`}
+                  >
                     <div className="flex items-center justify-between">
                       <span className="font-display text-lg">
                         {pedido.mesa_numero
