@@ -17,11 +17,19 @@ Lo que existe hoy **encaja parcialmente**: el patrón de aislamiento multi-tenan
 autenticación y RPC es 100% reutilizable tal cual. Las tablas `productos` y `pedidos`, en
 cambio, están modeladas para un negocio de "pedido a domicilio de pescado" (categorías fijas
 tipo pescado/marisco, precio en texto, `items` como JSON, sin mesas, sin cocina, sin pagos) y
-no representan un pedido en mesa con estados de cocina y Stripe. Por eso el plan de datos de
-Palomita (§4) **no modifica el esquema de ninguna tabla existente**: solo añade tablas nuevas,
-propias del modelo de pedido en mesa, y dos `INSERT` en `clientes`/`usuarios_negocio` (para
-eso están pensadas). Cero `ALTER TABLE`, cero `DROP`, cero riesgo sobre el cliente ya en
-producción.
+no representan un pedido en mesa con estados de cocina y Stripe.
+
+**Enfoque de plataforma, no solo de este proyecto.** LocalIA va a seguir dando de alta
+clientes con modelos de negocio distintos sobre esta misma base de datos. Seguir añadiendo
+tablas al schema `public` con nombres cada vez más específicos para evitar chocar con las de
+otros clientes (`productos_carta`, `pedidos_mesa`...) no escala. El plan de datos de Palomita
+(§4) organiza esto de raíz: `public` se queda como el **núcleo de la plataforma** (tenants,
+usuarios, funciones de aislamiento, tablas realmente genéricas) y cada modelo de negocio vive
+en su propio **schema de Postgres** dentro de la misma base de datos — para Palomita, el
+schema `restaurant`, reutilizable tal cual por cualquier bar/restaurante futuro. Sigue siendo
+una única base de datos centralizada; lo que cambia es que un cliente nuevo nunca puede
+colisionar con el esquema de otro, sin necesidad de convenciones de nombres ad-hoc. Cero
+`ALTER TABLE`, cero `DROP` sobre lo existente, cero riesgo sobre el cliente ya en producción.
 
 ---
 
@@ -88,42 +96,43 @@ nuevo, hay que dar de alta a Palomita como fila en `clientes` y seguir el mismo 
 
 ---
 
-## 4. Qué se reutiliza / qué se crea (propuesta — pendiente de confirmación)
+## 4. Estrategia de plataforma multi-tenant (propuesta — pendiente de confirmación)
 
-**Revisión tras feedback: plan de exposición cero sobre las tablas existentes.** La primera
-versión de este plan (§4, versión anterior) proponía extender `productos`/`pedidos`/
-`usuarios_negocio` con columnas nuevas *nullable* y ampliar un `CHECK`. Eso no es destructivo
-en Postgres (`ALTER TABLE ADD COLUMN` nullable es un cambio de metadatos, no reescribe filas;
-ampliar un `CHECK` no invalida valores existentes), pero sigue siendo tocar el DDL de tablas
-que usa un cliente real en producción (Arrantza). Dado que `productos`/`pedidos` tampoco
-encajan estructuralmente con el modelo de pedido en mesa (ver §3.1), no hace falta forzar el
-reuso: se sustituye por un plan que **no ejecuta ni un solo `ALTER TABLE` ni `DROP` sobre
-tablas existentes**, solo `CREATE TABLE` nuevas y los `INSERT` que la propia tabla `clientes`
-está pensada para recibir.
+**Un schema de Postgres por vertical de negocio, dentro de la misma base de datos.**
+`public` pasa a ser el núcleo compartido de toda la plataforma LocalIA. Cada modelo de
+negocio (pedido en mesa, reservas, tienda online, lo que venga) vive en su propio schema,
+con sus propias tablas, sin tocar `public` ni el schema de ningún otro vertical. Un cliente
+nuevo de un vertical ya existente (otro bar, otro restaurante) reutiliza el schema tal cual;
+un cliente de un modelo de negocio nuevo simplemente añade un schema más. Nada de esto es
+infraestructura nueva: sigue siendo un único proyecto Supabase, una única base de datos
+Postgres, un único `clientes` como registro de tenants.
 
-### 4.1 Se reutiliza tal cual (cero cambios de esquema, solo lectura/INSERT)
+### 4.1 `public` — núcleo de la plataforma (se reutiliza tal cual, cero cambios de esquema)
 - `clientes` — Palomita es una fila nueva (`INSERT`, no `ALTER`): `slug = 'palomita-bar'`, `tipo_proyecto = 'web'`. Exactamente para esto existe la tabla.
-- `usuarios_negocio` — staff de Palomita se da de alta con `INSERT` usando `rol = 'gestion'`, el único valor que el `CHECK` permite hoy. **No hace falta ampliar ese `CHECK`**: las políticas RLS auditadas (`is_developer() OR cliente_id = mi_cliente_id()`) no leen el valor de `rol`, solo `cliente_id`. Si más adelante hace falta distinguir permisos (p. ej. cocina no debería ver `/admin/ventas`), se resuelve con una tabla nueva `staff_permisos` (cliente_id, user_id, permisos jsonb) — de nuevo, `CREATE TABLE`, no `ALTER`.
+- `usuarios_negocio` — staff de Palomita se da de alta con `INSERT` usando `rol = 'gestion'`, el único valor que el `CHECK` permite hoy. **No hace falta ampliar ese `CHECK`**: las políticas RLS auditadas (`is_developer() OR cliente_id = mi_cliente_id()`) no leen el valor de `rol`, solo `cliente_id`. Si más adelante hace falta distinguir permisos (p. ej. cocina no debería ver `/admin/ventas`), se resuelve con una tabla nueva `staff_permisos`, no ampliando este `CHECK`.
 - `resenas`, `newsletter_subscribers`, `settings`, `visits`, `error_logs` — mismo esquema, mismo patrón RPC, sin cambios.
-- Los helpers `cliente_id_from_site_key()`, `mi_cliente_id()`, `is_developer()` y el patrón de políticas RLS `is_developer() OR cliente_id = mi_cliente_id()` — se invocan, no se modifican.
+- Los helpers `cliente_id_from_site_key()`, `mi_cliente_id()`, `is_developer()` y el patrón de políticas RLS `is_developer() OR cliente_id = mi_cliente_id()` — se invocan desde cualquier schema (Postgres permite llamadas cross-schema sin restricción), no se modifican.
 
 ### 4.2 No se toca en absoluto
-- `productos`, `pedidos` y sus `_backup_20260810`: cero `ALTER`, cero lectura/escritura desde el código de Palomita. Siguen siendo exclusivamente de Arrantza.
+- `public.productos`, `public.pedidos` y sus `_backup_20260810`: cero `ALTER`, cero lectura/escritura desde el código de Palomita. Siguen siendo exclusivamente de Arrantza y de su vertical (catálogo + pedido a domicilio/recogida).
 
-### 4.3 Se crea nuevo (tablas propias, `CREATE TABLE` puro, tenant-scoped vía `cliente_id`)
-Nombradas para no colisionar con `productos`/`pedidos` (que quedan como el modelo de
-catálogo/pedido a domicilio de Arrantza) y quedar disponibles para cualquier tenant futuro con
-pedido en mesa:
-- `categorias` (id, cliente_id, nombre, slug, orden).
-- `productos_carta` (id, cliente_id, categoria_id, nombre, descripcion, precio_centimos integer, imagen_url, disponible, destacado, alergenos, orden, created_at, updated_at) — precio numérico desde el origen, sin el problema del `precio text` de `productos`.
-- `mesas` (id, cliente_id, numero, identificador, activa, created_at, updated_at).
-- `pedidos_mesa` (id, cliente_id, mesa_id, estado, payment_method, payment_status, notas, created_at, updated_at) — estado propio (`RECEIVED/ACCEPTED/PREPARING/READY/DELIVERED/CANCELLED`), sin mezclarlo con el `estado` de `pedidos`.
-- `pedidos_mesa_items` (id, pedido_mesa_id, producto_id, cantidad, precio_unitario_centimos, notas, modificadores jsonb) — líneas de pedido reales para cocina e informes.
-- `payments` (id, pedido_mesa_id, stripe_session_id, stripe_payment_intent_id, amount_centimos, status, created_at).
-- `pedido_mesa_estado_historial` (id, pedido_mesa_id, estado_anterior, estado_nuevo, user_id, motivo, created_at).
-- `product_modifiers` / `product_modifier_options` (arquitectura preparada, sin necesidad de llenarla ya).
+### 4.3 Schema nuevo `restaurant` — vertical "pedido en mesa" (reutilizable por cualquier bar/restaurante futuro)
+```sql
+CREATE SCHEMA restaurant;
+```
+Tablas, todas con `cliente_id → public.clientes.id` y RLS con el mismo patrón `is_developer() OR cliente_id = mi_cliente_id()`:
+- `restaurant.categorias` (id, cliente_id, nombre, slug, orden).
+- `restaurant.productos` (id, cliente_id, categoria_id, nombre, descripcion, precio_centimos integer, imagen_url, disponible, destacado, alergenos, orden, created_at, updated_at) — precio numérico desde el origen, sin el problema de `productos.precio` como texto.
+- `restaurant.product_modifiers` / `restaurant.product_modifier_options` — arquitectura preparada para opciones de producto, sin necesidad de llenarla ya.
+- `restaurant.mesas` (id, cliente_id, numero, identificador, activa, created_at, updated_at).
+- `restaurant.pedidos` (id, cliente_id, mesa_id, estado, payment_method, payment_status, notas, created_at, updated_at) — estado propio del flujo de cocina (`RECEIVED/ACCEPTED/PREPARING/READY/DELIVERED/CANCELLED`), independiente del `estado` de `public.pedidos`.
+- `restaurant.pedido_items` (id, pedido_id, producto_id, cantidad, precio_unitario_centimos, notas, modificadores jsonb) — líneas de pedido reales para cocina e informes.
+- `restaurant.payments` (id, pedido_id, stripe_session_id, stripe_payment_intent_id, amount_centimos, status, created_at).
+- `restaurant.pedido_estado_historial` (id, pedido_id, estado_anterior, estado_nuevo, user_id, motivo, created_at).
 
-Todas llevan `cliente_id`, cubiertas por RLS con el mismo patrón `is_developer() OR cliente_id = mi_cliente_id()` para admin/cocina, y acceso público exclusivamente vía funciones RPC nuevas (`get_carta_publica(site_key)`, `crear_pedido_mesa(site_key, mesa_id, items, ...)`) que resuelven el tenant desde `site_key`, siguiendo el mismo patrón que `get_productos_publico`/`crear_pedido`.
+**Acceso.** Igual que el resto de la plataforma: el frontend público nunca hace `SELECT`/`INSERT` directo, todo pasa por funciones RPC nuevas en `public` (`get_carta_publica(site_key)`, `crear_pedido_restaurant(site_key, mesa_identifier, items, ...)`, `actualizar_estado_pedido(...)`) que resuelven el tenant desde `site_key` y leen/escriben en `restaurant.*` internamente — mismo patrón que `get_productos_publico`/`crear_pedido`. Esto también evita tener que exponer el schema `restaurant` en la configuración de API de Supabase (que es una opción de proyecto compartida): las funciones `SECURITY DEFINER` en `public` pueden operar sobre cualquier schema sin que este esté expuesto vía REST, así que no se toca ninguna configuración a nivel de proyecto.
+
+**Realtime.** Para que cocina reciba actualizaciones en vivo hace falta añadir `restaurant.pedidos` (y `restaurant.pedido_items`) a la publicación `supabase_realtime`. Es un `ALTER PUBLICATION supabase_realtime ADD TABLE restaurant.pedidos;` — aditivo, solo añade las tablas nuevas de Palomita, no afecta a las tablas de Arrantza que ya estén (o no) en esa publicación.
 
 **Nada de esto se ejecuta todavía.** Es la propuesta de migración para la Fase 3. Antes de
 aplicar cualquier `apply_migration`, necesito luz verde explícita.
