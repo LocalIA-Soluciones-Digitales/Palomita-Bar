@@ -17,8 +17,11 @@ Lo que existe hoy **encaja parcialmente**: el patrón de aislamiento multi-tenan
 autenticación y RPC es 100% reutilizable tal cual. Las tablas `productos` y `pedidos`, en
 cambio, están modeladas para un negocio de "pedido a domicilio de pescado" (categorías fijas
 tipo pescado/marisco, precio en texto, `items` como JSON, sin mesas, sin cocina, sin pagos) y
-no representan un pedido en mesa con estados de cocina y Stripe. La sección 4 explica qué se
-reutiliza tal cual, qué se extiende de forma aditiva y qué se crea nuevo.
+no representan un pedido en mesa con estados de cocina y Stripe. Por eso el plan de datos de
+Palomita (§4) **no modifica el esquema de ninguna tabla existente**: solo añade tablas nuevas,
+propias del modelo de pedido en mesa, y dos `INSERT` en `clientes`/`usuarios_negocio` (para
+eso están pensadas). Cero `ALTER TABLE`, cero `DROP`, cero riesgo sobre el cliente ya en
+producción.
 
 ---
 
@@ -85,34 +88,45 @@ nuevo, hay que dar de alta a Palomita como fila en `clientes` y seguir el mismo 
 
 ---
 
-## 4. Qué se reutiliza / qué se extiende / qué se crea (propuesta — pendiente de confirmación)
+## 4. Qué se reutiliza / qué se crea (propuesta — pendiente de confirmación)
 
-### 4.1 Se reutiliza tal cual (sin migraciones)
-- `clientes` — Palomita será una fila nueva (`slug = 'palomita-bar'`, `tipo_proyecto = 'web'`).
-- `usuarios_negocio` — staff de Palomita (admin, cocina) se da de alta aquí.
-- `resenas`, `newsletter_subscribers`, `settings`, `visits`, `error_logs` — mismo esquema, mismo patrón RPC.
-- Los helpers `cliente_id_from_site_key()`, `mi_cliente_id()`, `is_developer()` y el patrón de políticas RLS `is_developer() OR cliente_id = mi_cliente_id()`.
+**Revisión tras feedback: plan de exposición cero sobre las tablas existentes.** La primera
+versión de este plan (§4, versión anterior) proponía extender `productos`/`pedidos`/
+`usuarios_negocio` con columnas nuevas *nullable* y ampliar un `CHECK`. Eso no es destructivo
+en Postgres (`ALTER TABLE ADD COLUMN` nullable es un cambio de metadatos, no reescribe filas;
+ampliar un `CHECK` no invalida valores existentes), pero sigue siendo tocar el DDL de tablas
+que usa un cliente real en producción (Arrantza). Dado que `productos`/`pedidos` tampoco
+encajan estructuralmente con el modelo de pedido en mesa (ver §3.1), no hace falta forzar el
+reuso: se sustituye por un plan que **no ejecuta ni un solo `ALTER TABLE` ni `DROP` sobre
+tablas existentes**, solo `CREATE TABLE` nuevas y los `INSERT` que la propia tabla `clientes`
+está pensada para recibir.
 
-### 4.2 Se extiende de forma aditiva (no destructiva, no afecta a Arrantza)
-- `productos`: el `CHECK` de `categoria` está hardcodeado a categorías de pescadería — bloquea su reuso tal cual para cualquier tenant nuevo (ya era una limitación de diseño previa a este proyecto). Propuesta: sustituir el `CHECK` fijo por una FK a una tabla `categorias` nueva (tenant-scoped), lo cual es una mejora general del sistema multi-tenant, no solo para Palomita. Las filas actuales de Arrantza no se tocan (su columna `categoria` seguía siendo texto, se migra a FK sin pérdida de datos).
-- `productos.precio` es `text`. No se toca su tipo (riesgo para Arrantza). Para Palomita se añade una columna nueva **nullable** `precio_centimos integer` (precio real en céntimos, fuente de verdad para cálculos y Stripe). Aditivo puro: columna nueva, nullable, no rompe nada existente.
-- `usuarios_negocio.rol`: el `CHECK` solo permite `'gestion'`. Se amplía el `CHECK` para incluir `'tenant_admin'`, `'kitchen'`, `'staff'` (Arrantza sigue usando `'gestion'` sin cambios).
-- `pedidos`: se añaden columnas nuevas **nullable** `mesa_id uuid` (FK a `mesas`, ver 4.3), `payment_method text`, `payment_status text`, `estado_cocina text`. Se mantiene el `estado` actual intacto para no romper el flujo de Arrantza; Palomita usa `estado_cocina` para su propio estado de cocina (`RECEIVED/ACCEPTED/PREPARING/READY/DELIVERED/CANCELLED`) en vez de mezclar semánticas distintas en la misma columna.
+### 4.1 Se reutiliza tal cual (cero cambios de esquema, solo lectura/INSERT)
+- `clientes` — Palomita es una fila nueva (`INSERT`, no `ALTER`): `slug = 'palomita-bar'`, `tipo_proyecto = 'web'`. Exactamente para esto existe la tabla.
+- `usuarios_negocio` — staff de Palomita se da de alta con `INSERT` usando `rol = 'gestion'`, el único valor que el `CHECK` permite hoy. **No hace falta ampliar ese `CHECK`**: las políticas RLS auditadas (`is_developer() OR cliente_id = mi_cliente_id()`) no leen el valor de `rol`, solo `cliente_id`. Si más adelante hace falta distinguir permisos (p. ej. cocina no debería ver `/admin/ventas`), se resuelve con una tabla nueva `staff_permisos` (cliente_id, user_id, permisos jsonb) — de nuevo, `CREATE TABLE`, no `ALTER`.
+- `resenas`, `newsletter_subscribers`, `settings`, `visits`, `error_logs` — mismo esquema, mismo patrón RPC, sin cambios.
+- Los helpers `cliente_id_from_site_key()`, `mi_cliente_id()`, `is_developer()` y el patrón de políticas RLS `is_developer() OR cliente_id = mi_cliente_id()` — se invocan, no se modifican.
 
-### 4.3 Se crea nuevo (tenant-scoped vía `cliente_id`, no exclusivo de Palomita)
-Estas tablas no existen porque el modelo de Arrantza no las necesita (no tiene mesas, ni cocina, ni pagos online). Se crean genéricas para que cualquier tenant futuro con pedido en mesa pueda reutilizarlas:
-- `categorias` (id, cliente_id, nombre, slug, orden) — sustituye el `CHECK` fijo de `productos.categoria`.
-- `mesas` (id, cliente_id, number, identifier, active).
-- `order_items` (id, pedido_id, producto_id, cantidad, precio_unitario_centimos, notas, modificadores jsonb) — para tener líneas de pedido reales de cara a cocina/informes, en vez de solo el `items` jsonb de `pedidos`.
-- `payments` (id, pedido_id, stripe_session_id, stripe_payment_intent_id, amount_centimos, status, created_at).
-- `order_status_history` (id, pedido_id, estado_anterior, estado_nuevo, user_id, motivo, created_at).
+### 4.2 No se toca en absoluto
+- `productos`, `pedidos` y sus `_backup_20260810`: cero `ALTER`, cero lectura/escritura desde el código de Palomita. Siguen siendo exclusivamente de Arrantza.
+
+### 4.3 Se crea nuevo (tablas propias, `CREATE TABLE` puro, tenant-scoped vía `cliente_id`)
+Nombradas para no colisionar con `productos`/`pedidos` (que quedan como el modelo de
+catálogo/pedido a domicilio de Arrantza) y quedar disponibles para cualquier tenant futuro con
+pedido en mesa:
+- `categorias` (id, cliente_id, nombre, slug, orden).
+- `productos_carta` (id, cliente_id, categoria_id, nombre, descripcion, precio_centimos integer, imagen_url, disponible, destacado, alergenos, orden, created_at, updated_at) — precio numérico desde el origen, sin el problema del `precio text` de `productos`.
+- `mesas` (id, cliente_id, numero, identificador, activa, created_at, updated_at).
+- `pedidos_mesa` (id, cliente_id, mesa_id, estado, payment_method, payment_status, notas, created_at, updated_at) — estado propio (`RECEIVED/ACCEPTED/PREPARING/READY/DELIVERED/CANCELLED`), sin mezclarlo con el `estado` de `pedidos`.
+- `pedidos_mesa_items` (id, pedido_mesa_id, producto_id, cantidad, precio_unitario_centimos, notas, modificadores jsonb) — líneas de pedido reales para cocina e informes.
+- `payments` (id, pedido_mesa_id, stripe_session_id, stripe_payment_intent_id, amount_centimos, status, created_at).
+- `pedido_mesa_estado_historial` (id, pedido_mesa_id, estado_anterior, estado_nuevo, user_id, motivo, created_at).
 - `product_modifiers` / `product_modifier_options` (arquitectura preparada, sin necesidad de llenarla ya).
 
-Todas llevan `cliente_id` y quedan cubiertas por RLS con el mismo patrón `is_developer() OR cliente_id = mi_cliente_id()`.
+Todas llevan `cliente_id`, cubiertas por RLS con el mismo patrón `is_developer() OR cliente_id = mi_cliente_id()` para admin/cocina, y acceso público exclusivamente vía funciones RPC nuevas (`get_carta_publica(site_key)`, `crear_pedido_mesa(site_key, mesa_id, items, ...)`) que resuelven el tenant desde `site_key`, siguiendo el mismo patrón que `get_productos_publico`/`crear_pedido`.
 
 **Nada de esto se ejecuta todavía.** Es la propuesta de migración para la Fase 3. Antes de
-aplicar cualquier `apply_migration`, necesito luz verde explícita — son cambios sobre
-infraestructura compartida con un cliente real en producción.
+aplicar cualquier `apply_migration`, necesito luz verde explícita.
 
 ---
 
