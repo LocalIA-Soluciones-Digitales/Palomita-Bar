@@ -90,7 +90,11 @@ export function KitchenBoard({ pedidosIniciales }: { pedidosIniciales: PedidoCoc
                   <div key={pedido.id} className="border border-brand-black/10 p-3">
                     <div className="flex items-center justify-between">
                       <span className="font-display text-lg">
-                        {pedido.mesa_numero ? `Mesa ${pedido.mesa_numero}` : "Sin mesa"}
+                        {pedido.mesa_numero
+                          ? pedido.mesa_nombre
+                            ? `${pedido.mesa_nombre} (Mesa ${pedido.mesa_numero})`
+                            : `Mesa ${pedido.mesa_numero}`
+                          : "Sin mesa"}
                       </span>
                       <span className="text-xs text-brand-ink/50">{hora}</span>
                     </div>

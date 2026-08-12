@@ -15,5 +15,6 @@ export interface PedidoCocina {
   total_centimos: number;
   created_at: string;
   mesa_numero: number | null;
+  mesa_nombre: string | null;
   items: PedidoCocinaItem[];
 }

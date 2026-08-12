@@ -36,7 +36,11 @@ export function PedidoStatus({ pedidoInicial }: { pedidoInicial: PedidoPublico }
   return (
     <div className="mx-auto max-w-lg px-6 py-24">
       <p className="text-xs uppercase tracking-widest2 text-brand-pink">
-        {pedido.mesa_numero ? `Mesa ${pedido.mesa_numero}` : "Pedido"}
+        {pedido.mesa_numero
+          ? pedido.mesa_nombre
+            ? `${pedido.mesa_nombre} (Mesa ${pedido.mesa_numero})`
+            : `Mesa ${pedido.mesa_numero}`
+          : "Pedido"}
       </p>
       <h1 className="mt-4 font-display text-4xl">Pedido #{pedido.id.slice(0, 8)}</h1>
 

@@ -43,7 +43,9 @@ export default async function PedirPage({
   return (
     <CartProvider>
       <div className="mx-auto max-w-3xl px-6 pb-32 pt-16">
-        <p className="text-xs uppercase tracking-widest2 text-brand-pink">Mesa {mesa.numero}</p>
+        <p className="text-xs uppercase tracking-widest2 text-brand-pink">
+          {mesa.nombre ? `${mesa.nombre} (Mesa ${mesa.numero})` : `Mesa ${mesa.numero}`}
+        </p>
         <h1 className="mt-4 font-display text-4xl">¿Qué te apetece?</h1>
 
         <div className="mt-12 space-y-16">

@@ -26,6 +26,7 @@ export interface MesaAdmin {
   id: string;
   cliente_id: string;
   numero: number;
+  nombre: string | null;
   identificador: string;
   activa: boolean;
 }

@@ -106,11 +106,23 @@ export async function getMesasAdmin(): Promise<MesaAdmin[]> {
   return (data ?? []) as unknown as MesaAdmin[];
 }
 
-export async function crearMesaAdmin(numero: number): Promise<MesaAdmin> {
+export async function crearMesaAdmin(numero: number, nombre?: string): Promise<MesaAdmin> {
   const supabase = createSupabaseBrowserClient();
   const { data, error } = await supabase.rpc("crear_mesa_admin", {
     p_cliente_id: clienteId(),
     p_numero: numero,
+    p_nombre: nombre || null,
+  });
+  if (error) throw error;
+  return data as unknown as MesaAdmin;
+}
+
+export async function actualizarMesaNombreAdmin(id: string, nombre: string): Promise<MesaAdmin> {
+  const supabase = createSupabaseBrowserClient();
+  const { data, error } = await supabase.rpc("actualizar_mesa_nombre_admin", {
+    p_id: id,
+    p_cliente_id: clienteId(),
+    p_nombre: nombre || null,
   });
   if (error) throw error;
   return data as unknown as MesaAdmin;

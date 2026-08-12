@@ -22,6 +22,7 @@ export interface Producto {
 export interface Mesa {
   id: string;
   numero: number;
+  nombre: string | null;
   identificador: string;
   activa: boolean;
 }
@@ -51,6 +52,7 @@ export interface PedidoPublico {
   payment_status: PaymentStatus;
   total_centimos: number;
   mesa_numero: number | null;
+  mesa_nombre: string | null;
   created_at: string;
   items: PedidoItemPublico[];
 }

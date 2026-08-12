@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import QRCode from "qrcode";
 import {
   actualizarMesaActivaAdmin,
+  actualizarMesaNombreAdmin,
   crearMesaAdmin,
   getMesasAdmin,
   regenerarQrMesaAdmin,
@@ -20,12 +21,15 @@ export default function MesasAdminPage() {
   const [mesas, setMesas] = useState<MesaAdmin[] | null>(null);
   const [qrs, setQrs] = useState<Record<string, string>>({});
   const [nuevoNumero, setNuevoNumero] = useState("");
+  const [nuevoNombre, setNuevoNombre] = useState("");
+  const [nombreEditado, setNombreEditado] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
 
   const cargar = async () => {
     try {
       const data = await getMesasAdmin();
       setMesas(data);
+      setNombreEditado(Object.fromEntries(data.map((m) => [m.id, m.nombre ?? ""])));
       const entries = await Promise.all(
         data.map(async (mesa) => [mesa.id, await QRCode.toDataURL(pedirUrl(mesa.identificador))] as const),
       );
@@ -43,11 +47,23 @@ export default function MesasAdminPage() {
     const numero = Number(nuevoNumero);
     if (!numero || numero <= 0) return;
     try {
-      await crearMesaAdmin(numero);
+      await crearMesaAdmin(numero, nuevoNombre.trim());
       setNuevoNumero("");
+      setNuevoNombre("");
       await cargar();
     } catch {
       setError("No se ha podido crear la mesa (¿ya existe ese número?).");
+    }
+  };
+
+  const handleGuardarNombre = async (mesa: MesaAdmin) => {
+    const nombre = (nombreEditado[mesa.id] ?? "").trim();
+    if (nombre === (mesa.nombre ?? "")) return;
+    try {
+      await actualizarMesaNombreAdmin(mesa.id, nombre);
+      await cargar();
+    } catch {
+      setError("No se ha podido guardar el nombre.");
     }
   };
 
@@ -74,7 +90,7 @@ export default function MesasAdminPage() {
     <div className="max-w-4xl">
       <h1 className="font-display text-2xl">Mesas</h1>
 
-      <div className="mt-6 flex items-end gap-3 border border-brand-black/10 bg-white p-4">
+      <div className="mt-6 flex flex-wrap items-end gap-3 border border-brand-black/10 bg-white p-4">
         <div>
           <label className="text-xs uppercase tracking-widest2 text-brand-ink/50">
             Número de mesa
@@ -84,6 +100,17 @@ export default function MesasAdminPage() {
             value={nuevoNumero}
             onChange={(e) => setNuevoNumero(e.target.value)}
             className="mt-1 w-24 border border-brand-black/20 px-3 py-2 text-sm"
+          />
+        </div>
+        <div>
+          <label className="text-xs uppercase tracking-widest2 text-brand-ink/50">
+            Nombre (opcional)
+          </label>
+          <input
+            value={nuevoNombre}
+            onChange={(e) => setNuevoNombre(e.target.value)}
+            placeholder="Ej: Terraza 1, Barra..."
+            className="mt-1 w-48 border border-brand-black/20 px-3 py-2 text-sm"
           />
         </div>
         <button
@@ -116,6 +143,16 @@ export default function MesasAdminPage() {
             <p className="mt-2 text-xs uppercase tracking-widest2 text-brand-ink/50">
               Escanea · Pide · Disfruta
             </p>
+
+            <input
+              value={nombreEditado[mesa.id] ?? ""}
+              onChange={(e) =>
+                setNombreEditado((prev) => ({ ...prev, [mesa.id]: e.target.value }))
+              }
+              onBlur={() => handleGuardarNombre(mesa)}
+              placeholder="Nombre (opcional)"
+              className="mt-3 w-full border border-brand-black/20 px-2 py-1.5 text-center text-sm"
+            />
 
             <div className="mt-3 flex flex-col gap-1.5">
               {qrs[mesa.id] ? (
