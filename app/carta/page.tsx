@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
-import { COCKTAIL_MENU, FOOD_MENU } from "@/lib/menu-data";
-import { MenuSectionList } from "@/components/menu/MenuSectionList";
+import { getCarta, getCategorias } from "@/lib/restaurant/queries";
+import { CategoryMenu } from "@/components/menu/CategoryMenu";
+
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Carta",
@@ -8,26 +10,20 @@ export const metadata: Metadata = {
     "Carta de Palomita Bar en Barakaldo: picoteo, rolls, gyozas, tartar y cócteles de autor.",
 };
 
-export default function CartaPage() {
+export default async function CartaPage() {
+  const [categorias, productos] = await Promise.all([getCategorias(), getCarta()]);
+
   return (
     <div className="mx-auto max-w-4xl px-6 py-24">
       <p className="text-xs uppercase tracking-widest2 text-brand-pink">Carta</p>
       <h1 className="mt-4 font-display text-5xl">Picoteo y cócteles</h1>
       <p className="mt-4 max-w-lg text-brand-ink/70">
-        Selección de referencia. La carta completa, con disponibilidad en
-        tiempo real, se activará al conectar el pedido en mesa.
+        Carta completa. Para pedir desde la mesa, escanea el código QR que
+        tienes en ella.
       </p>
 
       <div className="mt-16">
-        <MenuSectionList sections={FOOD_MENU} />
-      </div>
-
-      <div className="mt-24">
-        <p className="text-xs uppercase tracking-widest2 text-brand-pink">Coctelería</p>
-        <h2 className="mt-4 font-display text-4xl">De la barra</h2>
-        <div className="mt-12">
-          <MenuSectionList sections={COCKTAIL_MENU} />
-        </div>
+        <CategoryMenu categorias={categorias} productos={productos} />
       </div>
     </div>
   );

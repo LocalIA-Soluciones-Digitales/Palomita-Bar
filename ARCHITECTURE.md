@@ -1,10 +1,13 @@
 # Palomita Bar — Arquitectura
 
-Estado: **Fase 0 (auditoría), Fase 1 (scaffold) y Fase 3 (migraciones Supabase) completadas.**
-El schema `restaurant` está creado y aplicado en el proyecto compartido, Palomita ya es un
-tenant activo con carta sembrada desde el PDF. Ver §4 para el detalle exacto de lo aplicado.
-Quedan pendientes: conectar el frontend a estas funciones RPC (Fase 4), cocina/Realtime (Fase
-5), Stripe (Fase 6) y administración (Fase 7).
+Estado: **Fase 0, 1, 3 y 4 completadas.** El schema `restaurant` está aplicado en el proyecto
+compartido, Palomita es tenant activo con carta sembrada, y el frontend ya consume las
+funciones RPC en vez de datos estáticos: `/carta` y `/cocteleria` leen la carta real desde
+Supabase, `/pedir?mesa=<identificador>` valida la mesa en servidor y permite construir un
+pedido y confirmarlo (pago en local; pago online queda deshabilitado en la UI hasta la Fase
+6), y `/pedido/[id]` muestra el estado. Pendiente: **añadir las variables de entorno en
+Vercel** (ver §7 — sin ellas el build de `/carta`/`/cocteleria` falla), Realtime en cocina
+(Fase 5), Stripe (Fase 6) y administración (Fase 7).
 
 ---
 
@@ -193,14 +196,34 @@ src/
 
 ## 7. Variables de entorno (`.env.example`)
 
-Ver `.env.example` en la raíz. Ningún secreto real se commitea.
+Ver `.env.example` en la raíz. Ningún secreto real se commitea; `.env.local` (gitignorado)
+tiene los valores reales para desarrollo local.
+
+**Pendiente de acción manual: no tengo forma de escribir variables de entorno en Vercel (solo
+lectura de proyectos/deployments/logs vía MCP).** Hay que añadirlas a mano en el proyecto
+`palomita-bar` de Vercel (Settings → Environment Variables, en Production y Preview) o el
+build de `/carta` y `/cocteleria` seguirá fallando en cuanto intenten llamar a Supabase en
+build time:
+
+```
+NEXT_PUBLIC_SUPABASE_URL=https://ukhfaphloxlszomccgde.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_CalLFpdGIixVv0fV3ic62w_fUH9qLqK
+NEXT_PUBLIC_PALOMITA_SITE_KEY=5a3f0cfb-a01a-4f52-a74e-71dd45c90c52
+NEXT_PUBLIC_SITE_URL=https://palomita-bar.vercel.app
+```
+
+`SUPABASE_SERVICE_ROLE_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` y
+`NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` quedan vacías hasta la Fase 6.
 
 ## 8. Próximos pasos (por fase, según el brief)
 
-- **Fase 1** (en curso ahora): scaffold Next.js/TS/Tailwind, identidad visual base, páginas públicas placeholder. No toca Supabase.
-- **Fase 2**: contenido real de la web pública (home, carta estática de referencia, historia, coctelería, galería, contacto) usando la carta del PDF como dato de partida, editable después desde admin.
-- **Fase 3**: aplicar el plan del §4 en Supabase — **requiere confirmación explícita del usuario antes de ejecutar ninguna migración**.
-- **Fases 4-10**: según el plan original del brief.
+- **Fase 1** ✅: scaffold Next.js/TS/Tailwind, identidad visual base.
+- **Fase 2** ✅ (parcial): páginas públicas (home, historia, galería, contacto) con contenido de referencia. Historia/galería siguen pendientes de contenido real del negocio.
+- **Fase 3** ✅: schema `restaurant` aplicado en Supabase (ver §4.4).
+- **Fase 4** ✅: `/carta`, `/cocteleria` y `/pedir` conectados a las funciones RPC; carrito, checkout (solo pago en local) y `/pedido/[id]` funcionando end-to-end contra Supabase real.
+- **Fase 5**: dashboard de cocina (`/admin/cocina`) + Supabase Realtime, también para que `/pedido/[id]` se actualice solo sin recargar.
+- **Fase 6**: Stripe Checkout + webhook, activar la opción "pagar online" ya presente (deshabilitada) en el carrito.
+- **Fase 7-10**: según el plan original del brief.
 
 ## 9. Datos de contacto públicos (verificados desde el PDF de la carta, sin inventar nada)
 - Dirección: Gernikako Arbola Etorbidea 6A, 48902 Barakaldo, Bizkaia.

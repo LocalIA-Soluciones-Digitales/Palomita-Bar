@@ -26,7 +26,9 @@ Copia `.env.example` a `.env.local` y rellena las variables (ver
 
 ## Estado
 
-En desarrollo. Fase 0 (auditoría) y Fase 1 (scaffold base) completadas. La
-carta pública en `/carta` y `/cocteleria` usa contenido de referencia
-transcrito de la carta en PDF — pasará a estar servida desde Supabase en la
-Fase 3, tras confirmar el plan de migraciones descrito en `ARCHITECTURE.md`.
+En desarrollo. `/carta`, `/cocteleria` y `/pedir?mesa=<identificador>` ya
+funcionan contra el Supabase real (schema `restaurant`), incluyendo carrito
+y creación de pedido (pago en local; pago online pendiente de Stripe, Fase
+6). Ver `ARCHITECTURE.md` para el detalle completo por fases y, muy
+importante, **las variables de entorno que faltan por añadir en Vercel**
+(§7) para que el build no falle.
