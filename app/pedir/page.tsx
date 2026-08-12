@@ -5,12 +5,12 @@ export const metadata: Metadata = {
   robots: { index: false },
 };
 
-export default function PedirPage({
+export default async function PedirPage({
   searchParams,
 }: {
-  searchParams: { mesa?: string };
+  searchParams: Promise<{ mesa?: string }>;
 }) {
-  const mesa = searchParams.mesa;
+  const { mesa } = await searchParams;
 
   return (
     <div className="mx-auto flex min-h-[70vh] max-w-lg flex-col items-center justify-center px-6 py-24 text-center">
