@@ -336,6 +336,18 @@ un futuro `usuarios_negocio` específico de Palomita):
 
 No manual aquí: funciona con la misma sesión de `/admin/cocina`.
 
+### 11.1 Cuenta propia de Palomita (no LocalIA)
+
+Hasta ahora `/admin` solo se podía usar con `admin@developers.local` (o el email personal del
+usuario), la cuenta interna de LocalIA que `is_developer()` reconoce con acceso a **todos**
+los tenants. Se creó una cuenta específica de Palomita (`palomita@bar.local`) y se vinculó en
+`usuarios_negocio` a su `cliente_id`. Al no ser una cuenta `is_developer()`, la RLS
+(`is_developer() OR cliente_id = mi_cliente_id()`) la deja exactamente en el mismo sitio que
+a cualquier `TENANT_ADMIN`: solo ve y puede editar los datos de Palomita, nunca los de otro
+tenant futuro. Pensada como cuenta de pruebas por ahora (contraseña simple) — cuando el bar
+tenga usuarios definitivos, cambiar la contraseña desde el dashboard de Supabase
+(Authentication → Users) o dar de alta cuentas nuevas y vincularlas del mismo modo.
+
 ## 12. Fase 8 — Auditoría de seguridad
 
 - `get_advisors` (security) revisado tras cada migración de esta sesión: **sin hallazgos
@@ -410,7 +422,8 @@ Pendiente, son decisiones/acciones del usuario, no código:
 |---|---|
 | 0-5 | Ya resueltas (variables de Supabase en Vercel, ya añadidas). |
 | 6 (Stripe) | **Sí** — cuenta de Stripe, 3 claves + configurar el webhook en su dashboard (ver §10). |
-| 7 (Admin) | No — funciona con la sesión que ya usas en `/admin/cocina`. |
+| 7 (Admin) | Ya resuelto — cuenta propia de Palomita creada y vinculada (ver §11.1); cambiar su contraseña cuando pase de pruebas a uso real. |
 | 8 (Seguridad) | No. |
 | 9 (Testing) | No. |
 | 10 (Producción) | Opcional — dominio propio y decidir si mover el proyecto a una organización de Vercel de LocalIA (ver §14). |
+| Mesas con nombre | No — ya aplicado (§4.5), editable desde `/admin/mesas`. |
