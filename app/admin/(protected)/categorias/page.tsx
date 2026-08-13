@@ -7,6 +7,7 @@ import {
   upsertCategoriaAdmin,
 } from "@/lib/restaurant/admin-queries";
 import type { CategoriaAdmin } from "@/lib/restaurant/admin-types";
+import { errorMessage } from "@/lib/format";
 
 const COMBINING_MARKS = new RegExp("[\\u0300-\\u036f]", "g");
 
@@ -37,8 +38,8 @@ export default function CategoriasAdminPage() {
   const cargar = async () => {
     try {
       setCategorias(await getCategoriasAdmin());
-    } catch {
-      setError("No se han podido cargar las categorías.");
+    } catch (err) {
+      setError(`No se han podido cargar las categorías: ${errorMessage(err)}`);
     }
   };
 
@@ -61,8 +62,8 @@ export default function CategoriasAdminPage() {
       setForm(FORM_VACIO);
       setEditandoId(null);
       await cargar();
-    } catch {
-      setError("No se ha podido guardar la categoría.");
+    } catch (err) {
+      setError(`No se ha podido guardar la categoría: ${errorMessage(err)}`);
     } finally {
       setGuardando(false);
     }
@@ -80,8 +81,8 @@ export default function CategoriasAdminPage() {
     try {
       await eliminarCategoriaAdmin(id);
       await cargar();
-    } catch {
-      setError("No se ha podido eliminar la categoría.");
+    } catch (err) {
+      setError(`No se ha podido eliminar la categoría: ${errorMessage(err)}`);
     }
   };
 

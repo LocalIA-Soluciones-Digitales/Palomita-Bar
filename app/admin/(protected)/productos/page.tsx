@@ -9,7 +9,7 @@ import {
   upsertProductoAdmin,
 } from "@/lib/restaurant/admin-queries";
 import type { CategoriaAdmin, ProductoAdmin } from "@/lib/restaurant/admin-types";
-import { formatCentimos } from "@/lib/format";
+import { errorMessage, formatCentimos } from "@/lib/format";
 
 const FORM_VACIO = {
   nombre: "",
@@ -36,8 +36,8 @@ export default function ProductosAdminPage() {
       const [p, c] = await Promise.all([getProductosAdmin(), getCategoriasAdmin()]);
       setProductos(p);
       setCategorias(c);
-    } catch {
-      setError("No se han podido cargar los productos.");
+    } catch (err) {
+      setError(`No se han podido cargar los productos: ${errorMessage(err)}`);
     }
   };
 
@@ -51,8 +51,8 @@ export default function ProductosAdminPage() {
     try {
       const url = await subirImagenProducto(file);
       setForm((f) => ({ ...f, imagenUrl: url }));
-    } catch {
-      setError("No se ha podido subir la imagen.");
+    } catch (err) {
+      setError(`No se ha podido subir la imagen: ${errorMessage(err)}`);
     } finally {
       setSubiendoImagen(false);
     }
@@ -82,8 +82,8 @@ export default function ProductosAdminPage() {
       setForm(FORM_VACIO);
       setEditandoId(null);
       await cargar();
-    } catch {
-      setError("No se ha podido guardar el producto.");
+    } catch (err) {
+      setError(`No se ha podido guardar el producto: ${errorMessage(err)}`);
     } finally {
       setGuardando(false);
     }
@@ -117,8 +117,8 @@ export default function ProductosAdminPage() {
         imagenUrl: producto.imagen_url,
       });
       await cargar();
-    } catch {
-      setError("No se ha podido actualizar la disponibilidad.");
+    } catch (err) {
+      setError(`No se ha podido actualizar la disponibilidad: ${errorMessage(err)}`);
     }
   };
 
@@ -127,8 +127,8 @@ export default function ProductosAdminPage() {
     try {
       await eliminarProductoAdmin(id);
       await cargar();
-    } catch {
-      setError("No se ha podido eliminar el producto.");
+    } catch (err) {
+      setError(`No se ha podido eliminar el producto: ${errorMessage(err)}`);
     }
   };
 
