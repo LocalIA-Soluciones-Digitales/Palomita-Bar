@@ -89,6 +89,7 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
   const [mesas, setMesas] = useState<MesaEstadoAdmin[]>(mesasIniciales);
   const [mesaSeleccionadaId, setMesaSeleccionadaId] = useState<string | null>(null);
   const [actualizando, setActualizando] = useState<string | null>(null);
+  const [errorCarga, setErrorCarga] = useState(false);
   const canvasRef = useRef<HTMLDivElement>(null);
   const arrastre = useRef<{
     id: string;
@@ -103,10 +104,17 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
     try {
       const data = await getMesasEstadoAdmin();
       setMesas(data);
+      setErrorCarga(false);
     } catch {
-      // el próximo evento de realtime reintentará
+      setErrorCarga(true);
     }
   }, []);
+
+  useEffect(() => {
+    if (mesasIniciales.length === 0) {
+      refetch();
+    }
+  }, [mesasIniciales.length, refetch]);
 
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
@@ -222,6 +230,21 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
           Arrastra las mesas para colocarlas como en el local. Pulsa una mesa para ver o tomar
           pedidos.
         </p>
+
+        {errorCarga ? (
+          <div className="mt-3 flex items-center justify-between border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+            <span>No se han podido cargar las mesas.</span>
+            <button
+              type="button"
+              onClick={() => refetch()}
+              className="text-xs uppercase tracking-widest2 underline"
+            >
+              Reintentar
+            </button>
+          </div>
+        ) : mesas.length === 0 ? (
+          <p className="mt-3 text-sm text-brand-ink/50">Cargando mesas…</p>
+        ) : null}
 
         <div
           ref={canvasRef}

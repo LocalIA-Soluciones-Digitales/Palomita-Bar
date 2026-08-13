@@ -17,6 +17,12 @@ function pedirUrl(identificador: string): string {
   return `${SITE_URL}/pedir?mesa=${identificador}`;
 }
 
+function mensajeError(base: string, err: unknown): string {
+  const detalle =
+    err && typeof err === "object" && "message" in err ? String((err as { message: unknown }).message) : null;
+  return detalle ? `${base} (${detalle})` : base;
+}
+
 export function MesasGestion() {
   const [mesas, setMesas] = useState<MesaAdmin[] | null>(null);
   const [qrs, setQrs] = useState<Record<string, string>>({});
@@ -34,8 +40,9 @@ export function MesasGestion() {
         data.map(async (mesa) => [mesa.id, await QRCode.toDataURL(pedirUrl(mesa.identificador))] as const),
       );
       setQrs(Object.fromEntries(entries));
-    } catch {
-      setError("No se han podido cargar las mesas.");
+      setError(null);
+    } catch (err) {
+      setError(mensajeError("No se han podido cargar las mesas.", err));
     }
   };
 
@@ -51,8 +58,8 @@ export function MesasGestion() {
       setNuevoNumero("");
       setNuevoNombre("");
       await cargar();
-    } catch {
-      setError("No se ha podido crear la mesa (¿ya existe ese número?).");
+    } catch (err) {
+      setError(mensajeError("No se ha podido crear la mesa (¿ya existe ese número?).", err));
     }
   };
 
@@ -62,8 +69,8 @@ export function MesasGestion() {
     try {
       await actualizarMesaNombreAdmin(mesa.id, nombre);
       await cargar();
-    } catch {
-      setError("No se ha podido guardar el nombre.");
+    } catch (err) {
+      setError(mensajeError("No se ha podido guardar el nombre.", err));
     }
   };
 
@@ -71,8 +78,8 @@ export function MesasGestion() {
     try {
       await actualizarMesaActivaAdmin(mesa.id, !mesa.activa);
       await cargar();
-    } catch {
-      setError("No se ha podido actualizar la mesa.");
+    } catch (err) {
+      setError(mensajeError("No se ha podido actualizar la mesa.", err));
     }
   };
 
@@ -81,8 +88,8 @@ export function MesasGestion() {
     try {
       await regenerarQrMesaAdmin(mesa.id);
       await cargar();
-    } catch {
-      setError("No se ha podido regenerar el QR.");
+    } catch (err) {
+      setError(mensajeError("No se ha podido regenerar el QR.", err));
     }
   };
 
@@ -120,7 +127,18 @@ export function MesasGestion() {
         </button>
       </div>
 
-      {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
+      {error ? (
+        <div className="mt-3 flex items-center justify-between border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          <span>{error}</span>
+          <button
+            type="button"
+            onClick={() => cargar()}
+            className="text-xs uppercase tracking-widest2 underline"
+          >
+            Reintentar
+          </button>
+        </div>
+      ) : null}
 
       <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
         {mesas?.map((mesa) => (
