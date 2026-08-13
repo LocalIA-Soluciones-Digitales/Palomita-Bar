@@ -19,7 +19,11 @@ export default async function CocteleriaPage() {
       <h1 className="mt-4 font-display text-5xl">De la barra</h1>
       <p className="mt-4 max-w-lg text-brand-ink/70">
         Clásicos bien ejecutados y la casa: la Palomita, con jimador
-        reposado, pomelo y soda.
+        reposado, pomelo y soda. ¿Buscas el picoteo? Está en{" "}
+        <a href="/carta" className="underline underline-offset-2">
+          Carta
+        </a>
+        .
       </p>
 
       <div className="mt-16">
