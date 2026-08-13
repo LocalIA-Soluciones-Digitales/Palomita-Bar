@@ -19,8 +19,8 @@ export const SITE = {
 } as const;
 
 export const NAV_LINKS = [
-  { href: "/carta", label: "Carta" },
   { href: "/historia", label: "Historia" },
+  { href: "/carta", label: "Carta" },
   { href: "/cocteleria", label: "Coctelería" },
   { href: "/galeria", label: "Galería" },
   { href: "/contacto", label: "Contacto" },
