@@ -6,8 +6,11 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { formatCentimos } from "@/lib/format";
 import { playNewOrderChime } from "@/lib/notify-sound";
 import {
+  actualizarMesaCapacidadAdmin,
   avanzarPedidoAdmin,
   cambiarMesaAdmin,
+  crearMesaAdmin,
+  eliminarMesaAdmin,
   getCamarerosAdmin,
   getMesasEstadoAdmin,
   getReservasAdmin,
@@ -43,48 +46,63 @@ type EstadoMesa =
 
 const ACTIVOS: EstadoPedido[] = ["RECEIVED", "ACCEPTED", "PREPARING", "READY"];
 
-const ESTILO_MESA: Record<EstadoMesa, { shape: string; badge: string; label: string }> = {
+const ESTILO_MESA: Record<EstadoMesa, { ring: string; badge: string; label: string }> = {
   LIBRE: {
-    shape: "border-brand-black/15 bg-white text-brand-ink/70",
-    badge: "bg-brand-black/10 text-brand-ink/50",
+    ring: "ring-emerald-500",
+    badge: "bg-emerald-500 text-white",
     label: "Libre",
   },
   RESERVADA: {
-    shape: "border-blue-600 bg-blue-500 text-white",
+    ring: "ring-blue-500",
     badge: "bg-blue-500 text-white",
     label: "Reservada",
   },
   OCUPADA: {
-    shape: "border-brand-black bg-brand-black text-brand-cream",
-    badge: "bg-brand-black text-brand-cream",
+    ring: "ring-orange-500",
+    badge: "bg-orange-500 text-white",
     label: "Ocupada",
   },
   ESPERANDO_PEDIDO: {
-    shape: "border-amber-500 bg-amber-400 text-white animate-pulse",
-    badge: "bg-amber-400 text-white",
+    ring: "ring-violet-500",
+    badge: "bg-violet-500 text-white animate-pulse",
     label: "Esperando pedido",
   },
   EN_PREPARACION: {
-    shape: "border-sky-600 bg-sky-500 text-white",
-    badge: "bg-sky-500 text-white",
+    ring: "ring-cyan-500",
+    badge: "bg-cyan-500 text-white",
     label: "En preparación",
   },
   LISTO: {
-    shape: "border-emerald-600 bg-emerald-500 text-white",
-    badge: "bg-emerald-500 text-white",
+    ring: "ring-lime-500",
+    badge: "bg-lime-500 text-brand-ink",
     label: "Listo para servir",
   },
   PAGANDO: {
-    shape: "border-red-600 bg-red-500 text-white",
+    ring: "ring-red-500",
     badge: "bg-red-500 text-white",
     label: "Pagando",
   },
   POR_LIMPIAR: {
-    shape: "border-zinc-400 bg-zinc-300 text-zinc-700",
-    badge: "bg-zinc-300 text-zinc-700",
+    ring: "ring-zinc-400",
+    badge: "bg-zinc-400 text-white",
     label: "Por limpiar",
   },
 };
+
+const MADERA_MESA =
+  "linear-gradient(135deg, #a9713f 0%, #8a5a30 45%, #6d4423 100%)";
+
+function tamanoMesa(capacidad: number): number {
+  return Math.min(128, 60 + Math.max(0, capacidad - 2) * 9);
+}
+
+function posicionesSillas(capacidad: number, radio: number): { x: number; y: number }[] {
+  const n = Math.min(Math.max(capacidad, 1), 10);
+  return Array.from({ length: n }, (_, i) => {
+    const angulo = (i / n) * 2 * Math.PI - Math.PI / 2;
+    return { x: Math.cos(angulo) * radio, y: Math.sin(angulo) * radio };
+  });
+}
 
 const SIGUIENTE_ESTADO: Partial<Record<EstadoPedido, { estado: EstadoPedido; label: string }>> = {
   RECEIVED: { estado: "ACCEPTED", label: "Aceptar" },
@@ -204,7 +222,6 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
   const [clientesForm, setClientesForm] = useState("2");
   const [camareroForm, setCamareroForm] = useState("");
   const [cambiarMesaAbierto, setCambiarMesaAbierto] = useState(false);
-  const [mostrarLightbox, setMostrarLightbox] = useState(false);
 
   const canvasRef = useRef<HTMLDivElement>(null);
   const arrastre = useRef<{ id: string; pointerId: number; moved: boolean } | null>(null);
@@ -451,6 +468,39 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
     }
   };
 
+  const handleCrearMesaRapida = async () => {
+    const siguienteNumero = mesas.reduce((max, m) => Math.max(max, m.numero), 0) + 1;
+    try {
+      const nueva = await crearMesaAdmin(siguienteNumero, undefined, zonaActivaId, 4);
+      await refetch();
+      setMesaSeleccionadaId(nueva.id);
+    } catch {
+      setAccionError("No se ha podido crear la mesa.");
+    }
+  };
+
+  const handleEliminarMesa = async (mesa: MesaEstadoAdmin) => {
+    if (!confirm(`¿Eliminar la mesa ${mesa.numero}? Esta acción no se puede deshacer.`)) return;
+    try {
+      await eliminarMesaAdmin(mesa.id);
+      setMesaSeleccionadaId(null);
+      await refetch();
+    } catch {
+      setAccionError("No se ha podido eliminar la mesa.");
+    }
+  };
+
+  const handleCambiarCapacidad = async (mesa: MesaEstadoAdmin, delta: number) => {
+    const nueva = Math.min(20, Math.max(1, mesa.capacidad + delta));
+    if (nueva === mesa.capacidad) return;
+    try {
+      await actualizarMesaCapacidadAdmin(mesa.id, nueva);
+      await refetch();
+    } catch {
+      setAccionError("No se ha podido cambiar el aforo.");
+    }
+  };
+
   const toggleFiltroEstado = (estado: EstadoMesa) => {
     setEstadosOcultos((prev) => {
       const next = new Set(prev);
@@ -548,11 +598,6 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
               </span>
             ))}
           </div>
-          <p className="mt-2 text-xs text-brand-ink/40">
-            {modoUnion
-              ? "Modo unión: pulsa las mesas que quieres juntar y confirma en el panel."
-              : "Arrastra las mesas para colocarlas como en el local. Pulsa una mesa para ver o tomar pedidos."}
-          </p>
 
           {errorCarga ? (
             <div className="mt-3 flex items-center justify-between border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
@@ -569,13 +614,24 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
             <p className="mt-3 text-sm text-brand-ink/50">Cargando mesas…</p>
           ) : null}
 
+          <div className="mt-4 flex items-center justify-between">
+            <p className="text-xs text-brand-ink/40">
+              {modoUnion
+                ? "Modo unión: pulsa las mesas que quieres juntar y confirma en el panel."
+                : "Arrastra las mesas para colocarlas como en el local. Pulsa una mesa para ver o tomar pedidos."}
+            </p>
+            <button
+              type="button"
+              onClick={handleCrearMesaRapida}
+              className="shrink-0 bg-brand-black px-4 py-2 text-xs uppercase tracking-widest2 text-brand-cream hover:bg-brand-pink"
+            >
+              + Añadir mesa
+            </button>
+          </div>
+
           <div
             ref={canvasRef}
-            className="relative mt-4 h-[560px] select-none overflow-hidden border border-brand-black/10 bg-brand-black bg-cover bg-center"
-            style={{
-              backgroundImage:
-                "linear-gradient(180deg, rgba(20,17,16,0.35), rgba(20,17,16,0.55)), url(/images/admin/plano-salon.jpg)",
-            }}
+            className="relative mt-2 h-[560px] select-none overflow-hidden border border-brand-black/10 bg-[radial-gradient(ellipse_at_center,_#3a3230_0%,_#221c1a_70%,_#141110_100%)]"
           >
             {mesasVisibles.map((mesa, index) => {
               const estado = estadoMesa(mesa, !!reservaDeMesa(mesa.id), esHoy);
@@ -584,6 +640,8 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
               const pos = posicionMesa(mesa, index);
               const pendientes = mesa.pedidos_hoy.filter((p) => p.estado === "RECEIVED").length;
               const enSeleccionUnion = seleccionUnion.includes(mesa.id);
+              const tamano = tamanoMesa(mesa.capacidad);
+              const sillas = posicionesSillas(mesa.capacidad, tamano / 2 + 12);
 
               return (
                 <button
@@ -592,24 +650,42 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
                   onPointerDown={(e) => handlePointerDown(mesa, e)}
                   onPointerMove={handlePointerMove}
                   onPointerUp={handlePointerUp}
-                  style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
-                  className={`absolute flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 cursor-grab flex-col items-center justify-center rounded-full border-2 shadow-lg shadow-black/60 transition-transform active:cursor-grabbing ${estilo.shape} ${
+                  style={{ left: `${pos.x}%`, top: `${pos.y}%`, width: tamano, height: tamano }}
+                  className={`absolute -translate-x-1/2 -translate-y-1/2 cursor-grab transition-transform active:cursor-grabbing ${
                     mesaSeleccionadaId === mesa.id || enSeleccionUnion
-                      ? "ring-4 ring-brand-pink/50"
+                      ? "z-10 scale-105"
                       : ""
                   }`}
                 >
-                  <span className="font-display text-xl leading-none">{mesa.numero}</span>
-                  {mesa.nombre ? (
-                    <span className="mt-0.5 max-w-[4.5rem] truncate text-[9px] uppercase tracking-widest2 opacity-80">
-                      {mesa.nombre}
+                  {sillas.map((silla, i) => (
+                    <span
+                      key={i}
+                      style={{ left: `calc(50% + ${silla.x}px)`, top: `calc(50% + ${silla.y}px)` }}
+                      className="absolute h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-[3px] bg-[#4a3a2c] shadow"
+                    />
+                  ))}
+                  <div
+                    style={{ background: MADERA_MESA }}
+                    className={`relative flex h-full w-full flex-col items-center justify-center rounded-md shadow-lg shadow-black/60 ring-4 ${estilo.ring} ${
+                      mesaSeleccionadaId === mesa.id || enSeleccionUnion ? "ring-offset-2 ring-offset-brand-pink" : ""
+                    }`}
+                  >
+                    <span
+                      className={`absolute -left-2 -top-2 flex h-7 w-7 items-center justify-center rounded-full text-xs font-medium ${estilo.badge}`}
+                    >
+                      {mesa.numero}
                     </span>
-                  ) : null}
-                  {pendientes > 0 ? (
-                    <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-brand-pink text-[10px] font-medium text-white">
-                      {pendientes}
-                    </span>
-                  ) : null}
+                    {mesa.nombre ? (
+                      <span className="max-w-[80%] truncate text-[9px] uppercase tracking-widest2 text-white/80">
+                        {mesa.nombre}
+                      </span>
+                    ) : null}
+                    {pendientes > 0 ? (
+                      <span className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-brand-pink text-[10px] font-medium text-white">
+                        {pendientes}
+                      </span>
+                    ) : null}
+                  </div>
                 </button>
               );
             })}
@@ -653,40 +729,6 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
         </div>
 
         <div className="flex flex-col gap-4">
-          <div className="border border-brand-black/10 bg-white p-3">
-            <div className="flex items-center justify-between">
-              <p className="text-xs uppercase tracking-widest2 text-brand-ink/50">Vista 3D</p>
-              <button
-                type="button"
-                onClick={() => setMostrarLightbox(true)}
-                className="text-[10px] uppercase tracking-widest2 text-brand-ink/50 hover:text-brand-pink"
-              >
-                Ampliar
-              </button>
-            </div>
-            <button
-              type="button"
-              onClick={() => setMostrarLightbox(true)}
-              className="relative mt-2 h-32 w-full overflow-hidden border border-brand-black/10 bg-cover bg-center"
-              style={{
-                backgroundImage:
-                  "linear-gradient(180deg, rgba(20,17,16,0.25), rgba(20,17,16,0.45)), url(/images/admin/plano-salon-mini.jpg)",
-              }}
-            >
-              {mesasVisibles.map((mesa, index) => {
-                const estado = estadoMesa(mesa, !!reservaDeMesa(mesa.id), esHoy);
-                const pos = posicionMesa(mesa, index);
-                return (
-                  <span
-                    key={mesa.id}
-                    style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
-                    className={`absolute h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full ${ESTILO_MESA[estado].badge}`}
-                  />
-                );
-              })}
-            </button>
-          </div>
-
           <div className="border border-brand-black/10 bg-white p-4">
             {!mesaSeleccionada ? (
               <p className="text-sm text-brand-ink/50">
@@ -725,7 +767,23 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
                 <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
                   <div>
                     <p className="text-xs uppercase tracking-widest2 text-brand-ink/40">Capacidad</p>
-                    <p>{mesaSeleccionada.capacidad} personas</p>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleCambiarCapacidad(mesaSeleccionada, -1)}
+                        className="flex h-5 w-5 items-center justify-center border border-brand-black/20 text-xs"
+                      >
+                        −
+                      </button>
+                      <p>{mesaSeleccionada.capacidad} personas</p>
+                      <button
+                        type="button"
+                        onClick={() => handleCambiarCapacidad(mesaSeleccionada, 1)}
+                        className="flex h-5 w-5 items-center justify-center border border-brand-black/20 text-xs"
+                      >
+                        +
+                      </button>
+                    </div>
                   </div>
                   <div>
                     <p className="text-xs uppercase tracking-widest2 text-brand-ink/40">Clientes</p>
@@ -935,6 +993,13 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
                               Marcar como limpia
                             </button>
                           ) : null}
+                          <button
+                            type="button"
+                            onClick={() => handleEliminarMesa(mesaSeleccionada)}
+                            className="block w-full px-2 py-1.5 text-left text-xs uppercase tracking-widest2 text-red-600 hover:bg-red-50"
+                          >
+                            Eliminar mesa
+                          </button>
                         </div>
                       ) : null}
                     </div>
@@ -1048,29 +1113,6 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
             setReservas(data);
           }}
         />
-      ) : null}
-
-      {mostrarLightbox ? (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-brand-black/80 p-6"
-          onClick={() => setMostrarLightbox(false)}
-        >
-          <div className="max-h-[85vh] max-w-3xl">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/images/admin/plano-salon.jpg"
-              alt="Vista del salón de Palomita Bar"
-              className="max-h-[85vh] w-full object-contain"
-            />
-          </div>
-          <button
-            type="button"
-            onClick={() => setMostrarLightbox(false)}
-            className="absolute right-6 top-6 text-xs uppercase tracking-widest2 text-brand-cream"
-          >
-            Cerrar
-          </button>
-        </div>
       ) : null}
     </div>
   );

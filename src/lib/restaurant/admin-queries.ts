@@ -217,6 +217,15 @@ export async function getMesasEstadoAdmin(fecha?: string): Promise<MesaEstadoAdm
   return (data ?? []) as unknown as MesaEstadoAdmin[];
 }
 
+export async function eliminarMesaAdmin(id: string): Promise<void> {
+  const supabase = createSupabaseBrowserClient();
+  const { error } = await supabase.rpc("eliminar_mesa_admin", {
+    p_id: id,
+    p_cliente_id: clienteId(),
+  });
+  if (error) throw error;
+}
+
 export async function actualizarMesaZonaAdmin(id: string, zonaId: string | null): Promise<void> {
   const supabase = createSupabaseBrowserClient();
   const { error } = await supabase.rpc("actualizar_mesa_zona_admin", {
