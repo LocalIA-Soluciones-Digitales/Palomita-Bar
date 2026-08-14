@@ -1,11 +1,15 @@
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import type {
+  CamareroAdmin,
   CategoriaAdmin,
+  EstadoReserva,
   InformeVentas,
   MesaAdmin,
   MesaEstadoAdmin,
   ProductoAdmin,
+  ReservaAdmin,
   VentasHoy,
+  ZonaAdmin,
 } from "@/lib/restaurant/admin-types";
 import type { EstadoPedido } from "@/lib/restaurant/types";
 import type { PedidoCocina } from "@/lib/restaurant/cocina-types";
@@ -127,12 +131,19 @@ export async function getMesasAdmin(): Promise<MesaAdmin[]> {
   return (data ?? []) as unknown as MesaAdmin[];
 }
 
-export async function crearMesaAdmin(numero: number, nombre?: string): Promise<MesaAdmin> {
+export async function crearMesaAdmin(
+  numero: number,
+  nombre?: string,
+  zonaId?: string | null,
+  capacidad?: number,
+): Promise<MesaAdmin> {
   const supabase = createSupabaseBrowserClient();
   const { data, error } = await supabase.rpc("crear_mesa_admin", {
     p_cliente_id: clienteId(),
     p_numero: numero,
     p_nombre: nombre || null,
+    p_zona_id: zonaId ?? null,
+    p_capacidad: capacidad ?? 4,
   });
   if (error) throw error;
   return data as unknown as MesaAdmin;
@@ -196,13 +207,225 @@ export async function actualizarMesaOcupadaAdmin(id: string, ocupada: boolean): 
   return data as unknown as MesaAdmin;
 }
 
-export async function getMesasEstadoAdmin(): Promise<MesaEstadoAdmin[]> {
+export async function getMesasEstadoAdmin(fecha?: string): Promise<MesaEstadoAdmin[]> {
   const supabase = createSupabaseBrowserClient();
   const { data, error } = await supabase.rpc("get_mesas_estado_admin", {
     p_cliente_id: clienteId(),
+    ...(fecha ? { p_fecha: fecha } : {}),
   });
   if (error) throw error;
   return (data ?? []) as unknown as MesaEstadoAdmin[];
+}
+
+export async function actualizarMesaZonaAdmin(id: string, zonaId: string | null): Promise<void> {
+  const supabase = createSupabaseBrowserClient();
+  const { error } = await supabase.rpc("actualizar_mesa_zona_admin", {
+    p_id: id,
+    p_cliente_id: clienteId(),
+    p_zona_id: zonaId,
+  });
+  if (error) throw error;
+}
+
+export async function actualizarMesaCapacidadAdmin(id: string, capacidad: number): Promise<void> {
+  const supabase = createSupabaseBrowserClient();
+  const { error } = await supabase.rpc("actualizar_mesa_capacidad_admin", {
+    p_id: id,
+    p_cliente_id: clienteId(),
+    p_capacidad: capacidad,
+  });
+  if (error) throw error;
+}
+
+export async function sentarMesaAdmin(
+  id: string,
+  clientes: number,
+  camareroId?: string | null,
+): Promise<MesaAdmin> {
+  const supabase = createSupabaseBrowserClient();
+  const { data, error } = await supabase.rpc("sentar_mesa_admin", {
+    p_id: id,
+    p_cliente_id: clienteId(),
+    p_clientes: clientes,
+    p_camarero_id: camareroId ?? null,
+  });
+  if (error) throw error;
+  return data as unknown as MesaAdmin;
+}
+
+export async function liberarMesaAdmin(id: string): Promise<MesaAdmin> {
+  const supabase = createSupabaseBrowserClient();
+  const { data, error } = await supabase.rpc("liberar_mesa_admin", {
+    p_id: id,
+    p_cliente_id: clienteId(),
+  });
+  if (error) throw error;
+  return data as unknown as MesaAdmin;
+}
+
+export async function marcarMesaLimpiaAdmin(id: string): Promise<void> {
+  const supabase = createSupabaseBrowserClient();
+  const { error } = await supabase.rpc("marcar_mesa_limpia_admin", {
+    p_id: id,
+    p_cliente_id: clienteId(),
+  });
+  if (error) throw error;
+}
+
+export async function marcarMesaPagandoAdmin(id: string, pagando: boolean): Promise<void> {
+  const supabase = createSupabaseBrowserClient();
+  const { error } = await supabase.rpc("marcar_mesa_pagando_admin", {
+    p_id: id,
+    p_cliente_id: clienteId(),
+    p_pagando: pagando,
+  });
+  if (error) throw error;
+}
+
+export async function unirMesasAdmin(ids: string[]): Promise<string> {
+  const supabase = createSupabaseBrowserClient();
+  const { data, error } = await supabase.rpc("unir_mesas_admin", {
+    p_ids: ids,
+    p_cliente_id: clienteId(),
+  });
+  if (error) throw error;
+  return data as string;
+}
+
+export async function separarGrupoMesasAdmin(unionGrupoId: string): Promise<void> {
+  const supabase = createSupabaseBrowserClient();
+  const { error } = await supabase.rpc("separar_grupo_mesas_admin", {
+    p_union_grupo_id: unionGrupoId,
+    p_cliente_id: clienteId(),
+  });
+  if (error) throw error;
+}
+
+export async function cambiarMesaAdmin(mesaOrigenId: string, mesaDestinoId: string): Promise<void> {
+  const supabase = createSupabaseBrowserClient();
+  const { error } = await supabase.rpc("cambiar_mesa_admin", {
+    p_mesa_origen_id: mesaOrigenId,
+    p_mesa_destino_id: mesaDestinoId,
+    p_cliente_id: clienteId(),
+  });
+  if (error) throw error;
+}
+
+export async function getZonasAdmin(): Promise<ZonaAdmin[]> {
+  const supabase = createSupabaseBrowserClient();
+  const { data, error } = await supabase.rpc("get_zonas_admin", {
+    p_cliente_id: clienteId(),
+  });
+  if (error) throw error;
+  return (data ?? []) as unknown as ZonaAdmin[];
+}
+
+export async function crearZonaAdmin(nombre: string, orden = 0): Promise<ZonaAdmin> {
+  const supabase = createSupabaseBrowserClient();
+  const { data, error } = await supabase.rpc("crear_zona_admin", {
+    p_cliente_id: clienteId(),
+    p_nombre: nombre,
+    p_orden: orden,
+  });
+  if (error) throw error;
+  return data as unknown as ZonaAdmin;
+}
+
+export async function eliminarZonaAdmin(id: string): Promise<void> {
+  const supabase = createSupabaseBrowserClient();
+  const { error } = await supabase.rpc("eliminar_zona_admin", {
+    p_id: id,
+    p_cliente_id: clienteId(),
+  });
+  if (error) throw error;
+}
+
+export async function getCamarerosAdmin(): Promise<CamareroAdmin[]> {
+  const supabase = createSupabaseBrowserClient();
+  const { data, error } = await supabase.rpc("get_camareros_admin", {
+    p_cliente_id: clienteId(),
+  });
+  if (error) throw error;
+  return (data ?? []) as unknown as CamareroAdmin[];
+}
+
+export async function crearCamareroAdmin(nombre: string): Promise<CamareroAdmin> {
+  const supabase = createSupabaseBrowserClient();
+  const { data, error } = await supabase.rpc("crear_camarero_admin", {
+    p_cliente_id: clienteId(),
+    p_nombre: nombre,
+  });
+  if (error) throw error;
+  return data as unknown as CamareroAdmin;
+}
+
+export async function actualizarCamareroActivoAdmin(id: string, activo: boolean): Promise<void> {
+  const supabase = createSupabaseBrowserClient();
+  const { error } = await supabase.rpc("actualizar_camarero_activo_admin", {
+    p_id: id,
+    p_cliente_id: clienteId(),
+    p_activo: activo,
+  });
+  if (error) throw error;
+}
+
+export async function getReservasAdmin(fecha: string): Promise<ReservaAdmin[]> {
+  const supabase = createSupabaseBrowserClient();
+  const { data, error } = await supabase.rpc("get_reservas_admin", {
+    p_cliente_id: clienteId(),
+    p_fecha: fecha,
+  });
+  if (error) throw error;
+  return (data ?? []) as unknown as ReservaAdmin[];
+}
+
+export async function crearReservaAdmin(input: {
+  nombreCliente: string;
+  numPersonas: number;
+  fecha: string;
+  hora: string;
+  telefono?: string;
+  mesaId?: string | null;
+  zonaId?: string | null;
+  notas?: string;
+}): Promise<ReservaAdmin> {
+  const supabase = createSupabaseBrowserClient();
+  const { data, error } = await supabase.rpc("crear_reserva_admin", {
+    p_cliente_id: clienteId(),
+    p_nombre_cliente: input.nombreCliente,
+    p_num_personas: input.numPersonas,
+    p_fecha: input.fecha,
+    p_hora: input.hora,
+    p_telefono: input.telefono ?? null,
+    p_mesa_id: input.mesaId ?? null,
+    p_zona_id: input.zonaId ?? null,
+    p_notas: input.notas ?? null,
+  });
+  if (error) throw error;
+  return data as unknown as ReservaAdmin;
+}
+
+export async function actualizarReservaEstadoAdmin(
+  id: string,
+  estado: EstadoReserva,
+): Promise<void> {
+  const supabase = createSupabaseBrowserClient();
+  const { error } = await supabase.rpc("actualizar_reserva_estado_admin", {
+    p_id: id,
+    p_cliente_id: clienteId(),
+    p_estado: estado,
+  });
+  if (error) throw error;
+}
+
+export async function asignarMesaReservaAdmin(id: string, mesaId: string | null): Promise<void> {
+  const supabase = createSupabaseBrowserClient();
+  const { error } = await supabase.rpc("asignar_mesa_reserva_admin", {
+    p_id: id,
+    p_cliente_id: clienteId(),
+    p_mesa_id: mesaId,
+  });
+  if (error) throw error;
 }
 
 export async function avanzarPedidoAdmin(pedidoId: string, nuevoEstado: EstadoPedido): Promise<void> {

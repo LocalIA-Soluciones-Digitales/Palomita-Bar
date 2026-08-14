@@ -34,6 +34,45 @@ export interface MesaAdmin {
   ocupada: boolean;
   pos_x: number | null;
   pos_y: number | null;
+  zona_id: string | null;
+  capacidad: number;
+  camarero_id: string | null;
+  clientes_sentados: number;
+  entrada_at: string | null;
+  pagando: boolean;
+  por_limpiar: boolean;
+  union_grupo_id: string | null;
+}
+
+export interface ZonaAdmin {
+  id: string;
+  cliente_id: string;
+  nombre: string;
+  orden: number;
+}
+
+export interface CamareroAdmin {
+  id: string;
+  cliente_id: string;
+  nombre: string;
+  activo: boolean;
+}
+
+export type EstadoReserva = "CONFIRMADA" | "SENTADA" | "CANCELADA" | "NO_SHOW";
+
+export interface ReservaAdmin {
+  id: string;
+  cliente_id: string;
+  mesa_id: string | null;
+  zona_id: string | null;
+  nombre_cliente: string;
+  telefono: string | null;
+  num_personas: number;
+  fecha: string;
+  hora: string;
+  estado: EstadoReserva;
+  notas: string | null;
+  created_at: string;
 }
 
 export interface PedidoMesaItemAdmin {
@@ -63,6 +102,15 @@ export interface MesaEstadoAdmin {
   ocupada: boolean;
   pos_x: number | null;
   pos_y: number | null;
+  zona_id: string | null;
+  capacidad: number;
+  camarero_id: string | null;
+  camarero_nombre: string | null;
+  clientes_sentados: number;
+  entrada_at: string | null;
+  pagando: boolean;
+  por_limpiar: boolean;
+  union_grupo_id: string | null;
   pedidos_hoy: PedidoMesaAdmin[];
 }
 

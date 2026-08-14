@@ -4,12 +4,15 @@ import { useEffect, useState } from "react";
 import QRCode from "qrcode";
 import {
   actualizarMesaActivaAdmin,
+  actualizarMesaCapacidadAdmin,
   actualizarMesaNombreAdmin,
+  actualizarMesaZonaAdmin,
   crearMesaAdmin,
   getMesasAdmin,
+  getZonasAdmin,
   regenerarQrMesaAdmin,
 } from "@/lib/restaurant/admin-queries";
-import type { MesaAdmin } from "@/lib/restaurant/admin-types";
+import type { MesaAdmin, ZonaAdmin } from "@/lib/restaurant/admin-types";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
@@ -25,16 +28,20 @@ function mensajeError(base: string, err: unknown): string {
 
 export function MesasGestion() {
   const [mesas, setMesas] = useState<MesaAdmin[] | null>(null);
+  const [zonas, setZonas] = useState<ZonaAdmin[]>([]);
   const [qrs, setQrs] = useState<Record<string, string>>({});
   const [nuevoNumero, setNuevoNumero] = useState("");
   const [nuevoNombre, setNuevoNombre] = useState("");
+  const [nuevaZonaId, setNuevaZonaId] = useState("");
+  const [nuevaCapacidad, setNuevaCapacidad] = useState("4");
   const [nombreEditado, setNombreEditado] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
 
   const cargar = async () => {
     try {
-      const data = await getMesasAdmin();
+      const [data, zonasData] = await Promise.all([getMesasAdmin(), getZonasAdmin()]);
       setMesas(data);
+      setZonas(zonasData);
       setNombreEditado(Object.fromEntries(data.map((m) => [m.id, m.nombre ?? ""])));
       const entries = await Promise.all(
         data.map(async (mesa) => [mesa.id, await QRCode.toDataURL(pedirUrl(mesa.identificador))] as const),
@@ -54,12 +61,33 @@ export function MesasGestion() {
     const numero = Number(nuevoNumero);
     if (!numero || numero <= 0) return;
     try {
-      await crearMesaAdmin(numero, nuevoNombre.trim());
+      await crearMesaAdmin(numero, nuevoNombre.trim(), nuevaZonaId || null, Number(nuevaCapacidad) || 4);
       setNuevoNumero("");
       setNuevoNombre("");
+      setNuevaCapacidad("4");
       await cargar();
     } catch (err) {
       setError(mensajeError("No se ha podido crear la mesa (¿ya existe ese número?).", err));
+    }
+  };
+
+  const handleCambiarZona = async (mesa: MesaAdmin, zonaId: string) => {
+    try {
+      await actualizarMesaZonaAdmin(mesa.id, zonaId || null);
+      await cargar();
+    } catch (err) {
+      setError(mensajeError("No se ha podido cambiar la zona.", err));
+    }
+  };
+
+  const handleCambiarCapacidad = async (mesa: MesaAdmin, capacidad: string) => {
+    const valor = Number(capacidad);
+    if (!valor || valor <= 0 || valor === mesa.capacidad) return;
+    try {
+      await actualizarMesaCapacidadAdmin(mesa.id, valor);
+      await cargar();
+    } catch (err) {
+      setError(mensajeError("No se ha podido cambiar el aforo.", err));
     }
   };
 
@@ -118,6 +146,31 @@ export function MesasGestion() {
             className="mt-1 w-48 border border-brand-black/20 px-3 py-2 text-sm"
           />
         </div>
+        <div>
+          <label className="text-xs uppercase tracking-widest2 text-brand-ink/50">Zona</label>
+          <select
+            value={nuevaZonaId}
+            onChange={(e) => setNuevaZonaId(e.target.value)}
+            className="mt-1 w-40 border border-brand-black/20 px-3 py-2 text-sm"
+          >
+            <option value="">Sin zona</option>
+            {zonas.map((zona) => (
+              <option key={zona.id} value={zona.id}>
+                {zona.nombre}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="text-xs uppercase tracking-widest2 text-brand-ink/50">Aforo</label>
+          <input
+            type="number"
+            min={1}
+            value={nuevaCapacidad}
+            onChange={(e) => setNuevaCapacidad(e.target.value)}
+            className="mt-1 w-20 border border-brand-black/20 px-3 py-2 text-sm"
+          />
+        </div>
         <button
           type="button"
           onClick={handleCrear}
@@ -169,6 +222,29 @@ export function MesasGestion() {
               placeholder="Nombre (opcional)"
               className="mt-3 w-full border border-brand-black/20 px-2 py-1.5 text-center text-sm"
             />
+
+            <div className="mt-2 flex gap-1.5">
+              <select
+                value={mesa.zona_id ?? ""}
+                onChange={(e) => handleCambiarZona(mesa, e.target.value)}
+                className="w-2/3 border border-brand-black/20 px-2 py-1.5 text-center text-xs"
+              >
+                <option value="">Sin zona</option>
+                {zonas.map((zona) => (
+                  <option key={zona.id} value={zona.id}>
+                    {zona.nombre}
+                  </option>
+                ))}
+              </select>
+              <input
+                type="number"
+                min={1}
+                defaultValue={mesa.capacidad}
+                onBlur={(e) => handleCambiarCapacidad(mesa, e.target.value)}
+                title="Aforo"
+                className="w-1/3 border border-brand-black/20 px-2 py-1.5 text-center text-xs"
+              />
+            </div>
 
             <div className="mt-3 flex flex-col gap-1.5">
               {qrs[mesa.id] ? (

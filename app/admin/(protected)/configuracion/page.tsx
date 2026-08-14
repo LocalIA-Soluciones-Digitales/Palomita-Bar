@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getConfiguracionAdmin, setConfiguracionAdmin } from "@/lib/restaurant/admin-queries";
+import { CamarerosGestion } from "@/components/admin/CamarerosGestion";
 
 export default function ConfiguracionAdminPage() {
   const [horario, setHorario] = useState("");
@@ -61,6 +62,8 @@ export default function ConfiguracionAdminPage() {
           {guardando ? "Guardando…" : "Guardar"}
         </button>
       </div>
+
+      <CamarerosGestion />
     </div>
   );
 }
