@@ -204,6 +204,7 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
   const [clientesForm, setClientesForm] = useState("2");
   const [camareroForm, setCamareroForm] = useState("");
   const [cambiarMesaAbierto, setCambiarMesaAbierto] = useState(false);
+  const [mostrarLightbox, setMostrarLightbox] = useState(false);
 
   const canvasRef = useRef<HTMLDivElement>(null);
   const arrastre = useRef<{ id: string; pointerId: number; moved: boolean } | null>(null);
@@ -570,7 +571,11 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
 
           <div
             ref={canvasRef}
-            className="relative mt-4 h-[560px] select-none overflow-hidden border border-brand-black/10 bg-white bg-[linear-gradient(to_right,rgba(20,17,16,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(20,17,16,0.05)_1px,transparent_1px)] bg-[size:24px_24px]"
+            className="relative mt-4 h-[560px] select-none overflow-hidden border border-brand-black/10 bg-brand-black bg-cover bg-center"
+            style={{
+              backgroundImage:
+                "linear-gradient(180deg, rgba(20,17,16,0.35), rgba(20,17,16,0.55)), url(/images/admin/plano-salon.jpg)",
+            }}
           >
             {mesasVisibles.map((mesa, index) => {
               const estado = estadoMesa(mesa, !!reservaDeMesa(mesa.id), esHoy);
@@ -588,7 +593,7 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
                   onPointerMove={handlePointerMove}
                   onPointerUp={handlePointerUp}
                   style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
-                  className={`absolute flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 cursor-grab flex-col items-center justify-center rounded-full border-2 shadow-sm transition-transform active:cursor-grabbing ${estilo.shape} ${
+                  className={`absolute flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 cursor-grab flex-col items-center justify-center rounded-full border-2 shadow-lg shadow-black/60 transition-transform active:cursor-grabbing ${estilo.shape} ${
                     mesaSeleccionadaId === mesa.id || enSeleccionUnion
                       ? "ring-4 ring-brand-pink/50"
                       : ""
@@ -649,8 +654,25 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
 
         <div className="flex flex-col gap-4">
           <div className="border border-brand-black/10 bg-white p-3">
-            <p className="text-xs uppercase tracking-widest2 text-brand-ink/50">Vista general</p>
-            <div className="relative mt-2 h-32 w-full overflow-hidden border border-brand-black/10 bg-brand-cream">
+            <div className="flex items-center justify-between">
+              <p className="text-xs uppercase tracking-widest2 text-brand-ink/50">Vista 3D</p>
+              <button
+                type="button"
+                onClick={() => setMostrarLightbox(true)}
+                className="text-[10px] uppercase tracking-widest2 text-brand-ink/50 hover:text-brand-pink"
+              >
+                Ampliar
+              </button>
+            </div>
+            <button
+              type="button"
+              onClick={() => setMostrarLightbox(true)}
+              className="relative mt-2 h-32 w-full overflow-hidden border border-brand-black/10 bg-cover bg-center"
+              style={{
+                backgroundImage:
+                  "linear-gradient(180deg, rgba(20,17,16,0.25), rgba(20,17,16,0.45)), url(/images/admin/plano-salon-mini.jpg)",
+              }}
+            >
               {mesasVisibles.map((mesa, index) => {
                 const estado = estadoMesa(mesa, !!reservaDeMesa(mesa.id), esHoy);
                 const pos = posicionMesa(mesa, index);
@@ -662,7 +684,7 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
                   />
                 );
               })}
-            </div>
+            </button>
           </div>
 
           <div className="border border-brand-black/10 bg-white p-4">
@@ -1026,6 +1048,29 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
             setReservas(data);
           }}
         />
+      ) : null}
+
+      {mostrarLightbox ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-brand-black/80 p-6"
+          onClick={() => setMostrarLightbox(false)}
+        >
+          <div className="max-h-[85vh] max-w-3xl">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/images/admin/plano-salon.jpg"
+              alt="Vista del salón de Palomita Bar"
+              className="max-h-[85vh] w-full object-contain"
+            />
+          </div>
+          <button
+            type="button"
+            onClick={() => setMostrarLightbox(false)}
+            className="absolute right-6 top-6 text-xs uppercase tracking-widest2 text-brand-cream"
+          >
+            Cerrar
+          </button>
+        </div>
       ) : null}
     </div>
   );
