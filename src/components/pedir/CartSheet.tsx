@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/components/cart/cart-context";
 import { formatCentimos } from "@/lib/format";
-import { crearPedido } from "@/lib/restaurant/queries";
+import { crearPedido, validarMesaPorNumero } from "@/lib/restaurant/queries";
 import type { PaymentMethod } from "@/lib/restaurant/types";
 
 export function CartSheet({
@@ -18,14 +18,28 @@ export function CartSheet({
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("LOCAL");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [resolvedMesaIdentificador, setResolvedMesaIdentificador] = useState<string | undefined>();
+  const [needsTableNumber, setNeedsTableNumber] = useState(false);
+  const [tableNumberInput, setTableNumberInput] = useState("");
+  const [tableError, setTableError] = useState<string | null>(null);
+  const [resolvingTable, setResolvingTable] = useState(false);
   const router = useRouter();
 
-  const handleCheckout = async () => {
+  const effectiveMesaIdentificador = mesaIdentificador ?? resolvedMesaIdentificador;
+
+  const handleCheckout = async (mesaOverride?: string) => {
+    const mesaParaPedido = mesaOverride ?? effectiveMesaIdentificador;
+
+    if (!mesaParaPedido) {
+      setNeedsTableNumber(true);
+      return;
+    }
+
     setSubmitting(true);
     setError(null);
     try {
       const pedidoId = await crearPedido({
-        mesaIdentificador,
+        mesaIdentificador: mesaParaPedido,
         paymentMethod,
         items: lines.map((l) => ({
           producto_id: l.producto.id,
@@ -58,6 +72,28 @@ export function CartSheet({
       );
       setSubmitting(false);
     }
+  };
+
+  const handleConfirmTableNumber = async () => {
+    const numero = Number.parseInt(tableNumberInput, 10);
+    if (!Number.isInteger(numero) || numero <= 0) {
+      setTableError("Introduce un número de mesa válido.");
+      return;
+    }
+
+    setResolvingTable(true);
+    setTableError(null);
+    const mesa = await validarMesaPorNumero(numero);
+    setResolvingTable(false);
+
+    if (!mesa) {
+      setTableError("No encontramos esa mesa. Comprueba el número e inténtalo de nuevo.");
+      return;
+    }
+
+    setResolvedMesaIdentificador(mesa.identificador);
+    setNeedsTableNumber(false);
+    await handleCheckout(mesa.identificador);
   };
 
   return (
@@ -156,18 +192,48 @@ export function CartSheet({
 
         {error ? <p className="mt-4 text-sm text-red-600">{error}</p> : null}
 
-        <button
-          type="button"
-          onClick={handleCheckout}
-          disabled={submitting || lines.length === 0}
-          className="mt-6 w-full bg-brand-pink py-4 text-sm uppercase tracking-widest2 text-white transition-colors hover:bg-brand-pink-dark disabled:opacity-50"
-        >
-          {submitting
-            ? "Enviando pedido…"
-            : paymentMethod === "ONLINE"
-              ? "Ir a pagar"
-              : "Confirmar pedido"}
-        </button>
+        {needsTableNumber ? (
+          <div className="mt-6 border-t border-brand-black/10 pt-4">
+            <p className="text-xs uppercase tracking-widest2 text-brand-ink/50">
+              ¿En qué mesa estás?
+            </p>
+            <p className="mt-1 text-sm text-brand-ink/60">
+              No hemos detectado tu mesa. Indica su número para que cocina pueda entregarte el
+              pedido.
+            </p>
+            <input
+              type="number"
+              inputMode="numeric"
+              min={1}
+              value={tableNumberInput}
+              onChange={(event) => setTableNumberInput(event.target.value)}
+              placeholder="Nº de mesa"
+              className="mt-3 w-full border border-brand-black/20 px-4 py-3 text-sm"
+            />
+            {tableError ? <p className="mt-2 text-sm text-red-600">{tableError}</p> : null}
+            <button
+              type="button"
+              onClick={handleConfirmTableNumber}
+              disabled={resolvingTable || submitting || tableNumberInput.trim() === ""}
+              className="mt-3 w-full bg-brand-black py-4 text-sm uppercase tracking-widest2 text-brand-cream transition-colors disabled:opacity-50"
+            >
+              {resolvingTable || submitting ? "Comprobando…" : "Confirmar mesa"}
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => handleCheckout()}
+            disabled={submitting || lines.length === 0}
+            className="mt-6 w-full bg-brand-pink py-4 text-sm uppercase tracking-widest2 text-white transition-colors hover:bg-brand-pink-dark disabled:opacity-50"
+          >
+            {submitting
+              ? "Enviando pedido…"
+              : paymentMethod === "ONLINE"
+                ? "Ir a pagar"
+                : "Confirmar pedido"}
+          </button>
+        )}
       </div>
     </div>
   );
