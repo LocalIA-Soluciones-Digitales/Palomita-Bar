@@ -338,3 +338,89 @@ export function PencilIcon({ className }: { className?: string }) {
     </svg>
   );
 }
+
+export function EyeIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} className={className}>
+      <path
+        d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+export function AlertIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} className={className}>
+      <path
+        d="M12 3.5 2.5 20h19L12 3.5z"
+        strokeLinejoin="round"
+      />
+      <path d="M12 10v4.5" strokeLinecap="round" />
+      <circle cx="12" cy="17.3" r="0.9" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+export function GaugeIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} className={className}>
+      <path d="M4 15a8 8 0 1 1 16 0" strokeLinecap="round" />
+      <path d="M12 15l4-5" strokeLinecap="round" />
+      <circle cx="12" cy="15" r="1.1" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+export function ProteinIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} className={className}>
+      <path
+        d="M6 21c-1.4-2-1.6-4 .2-6.4-1-1.7-.8-3.4.6-4.6 1.6-1.4 1.2-3 .2-4.4 2-1 3.9-.4 5 1.4 2-.6 3.7.2 4.4 2 1.4 1 1.6 2.8.4 4.2 1.6 1.4 1.8 3.4.4 5.2-1.6 2-4.4 2.4-6.4.8-2.2 2-3.6 2.2-4.8 1.8Z"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function WheatIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} className={className}>
+      <path d="M12 21V5" strokeLinecap="round" />
+      <path d="M12 6c-1.6 0-2.8-1.1-2.8-2.8C10.9 3.1 12 4.4 12 6ZM12 6c1.6 0 2.8-1.1 2.8-2.8C13.1 3.1 12 4.4 12 6Z" />
+      <path d="M12 10.2c-1.6 0-2.8-1.1-2.8-2.8 1.7.1 2.8 1.4 2.8 2.8ZM12 10.2c1.6 0 2.8-1.1 2.8-2.8-1.7.1-2.8 1.4-2.8 2.8Z" />
+      <path d="M12 14.4c-1.6 0-2.8-1.1-2.8-2.8 1.7.1 2.8 1.4 2.8 2.8ZM12 14.4c1.6 0 2.8-1.1 2.8-2.8-1.7.1-2.8 1.4-2.8 2.8Z" />
+      <path d="M9.2 21c0-1.8 1.2-3 2.8-3s2.8 1.2 2.8 3" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function DropletIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} className={className}>
+      <path
+        d="M12 3s6 6.8 6 11a6 6 0 1 1-12 0c0-4.2 6-11 6-11Z"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function ChevronLeftIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className={className}>
+      <path d="M15 6l-6 6 6 6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function ChevronRightIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className={className}>
+      <path d="M9 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
