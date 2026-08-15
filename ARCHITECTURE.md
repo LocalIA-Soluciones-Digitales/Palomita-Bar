@@ -448,7 +448,7 @@ scroll; menú móvil a pantalla completa. Se mantiene la tipografía existente
 ### 16.2 Imágenes
 Las 34 fotos de producto de Readdy (readdy.ai) y 6 imágenes de sitio (hero,
 "nosotros", 4 de ambiente) se descargaron y se subieron a Supabase Storage
-(bucket `restaurant-media`, carpeta `<cliente_id>/carta/` y
+(bucket `palomita-bar`, carpeta `<cliente_id>/carta/` y
 `<cliente_id>/site/`) mediante una Edge Function temporal
 (`migracion-imagenes-readdy`, **pendiente de borrar a mano** desde el dashboard
 de Supabase — no hay herramienta MCP para borrarla). Los 34 productos reales de
@@ -530,7 +530,7 @@ Sobre lo descrito en §16.1-16.4 se añadió:
 - **Selección rápida de comensal ya existente** al entrar en modo "separado" (en vez de escribir el nombre siempre a mano), usando la lista en vivo de `sesionPublica.participantes`.
 - **Notificaciones** ("Ana ha compartido contigo: Nachos") cuando aparece un reparto nuevo pendiente para ti que no venga de tu propio pedido.
 - **Detección de cambio de precio antes de confirmar**: `CartDrawer` vuelve a pedir la carta justo antes de confirmar, compara contra lo que hay en el carrito y, si algo cambió (o dejó de estar disponible), obliga a revisar/aceptar antes de poder pedir — nunca envía un reparto calculado con un precio caducado.
-- **Editor de imágenes de sitio en `/admin/configuracion`**: hero, "nosotros" y las 4 de ambiente, con subida de archivo real (mismo bucket/política `restaurant-media` que ya usaba `/admin/productos`, no la Edge Function temporal).
+- **Editor de imágenes de sitio en `/admin/configuracion`**: hero, "nosotros" y las 4 de ambiente, con subida de archivo real (mismo bucket/política `palomita-bar` que ya usaba `/admin/productos`, no la Edge Function temporal).
 - **`/admin/ventas`** desglosa pedidos "juntos" vs "separado"; **`SalonBoard`** marca con un punto morado y una etiqueta las mesas que están pidiendo por separado.
 - **Tipografía propia de la web pública** (Cormorant Garamond) sin afectar a `/admin`: se redefine `--font-display` solo dentro de `app/(public)/layout.tsx`, que es descendiente de `<html>` pero no del subárbol de `/admin`.
 - Se centralizó el sondeo de `get_sesion_publica` (antes duplicado) en `TableSessionProvider`, consumido tanto por el carrito como por la cuenta de la mesa y las notificaciones.

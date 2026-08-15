@@ -101,15 +101,15 @@ export async function upsertProductoAdmin(input: {
 export async function subirImagenProducto(file: File): Promise<string> {
   const supabase = createSupabaseBrowserClient();
   const extension = file.name.split(".").pop() ?? "jpg";
-  const path = `${clienteId()}/products/${crypto.randomUUID()}.${extension}`;
+  const path = `${clienteId()}/carta/${crypto.randomUUID()}.${extension}`;
 
-  const { error } = await supabase.storage.from("restaurant-media").upload(path, file, {
+  const { error } = await supabase.storage.from("palomita-bar").upload(path, file, {
     cacheControl: "3600",
     upsert: false,
   });
   if (error) throw error;
 
-  const { data } = supabase.storage.from("restaurant-media").getPublicUrl(path);
+  const { data } = supabase.storage.from("palomita-bar").getPublicUrl(path);
   return data.publicUrl;
 }
 
@@ -517,12 +517,12 @@ export async function subirImagenSitio(file: File, carpeta: string): Promise<str
   const extension = file.name.split(".").pop() ?? "jpg";
   const path = `${clienteId()}/site/${carpeta}-${crypto.randomUUID()}.${extension}`;
 
-  const { error } = await supabase.storage.from("restaurant-media").upload(path, file, {
+  const { error } = await supabase.storage.from("palomita-bar").upload(path, file, {
     cacheControl: "3600",
     upsert: false,
   });
   if (error) throw error;
 
-  const { data } = supabase.storage.from("restaurant-media").getPublicUrl(path);
+  const { data } = supabase.storage.from("palomita-bar").getPublicUrl(path);
   return data.publicUrl;
 }
