@@ -14,7 +14,7 @@ export function LocationSection({ horario }: { horario: string | null }) {
   const mapsEmbedUrl = `https://maps.google.com/maps?q=${mapQuery}&z=16&output=embed`;
 
   return (
-    <section className="border-t border-noche-border bg-noche-bg px-6 py-28">
+    <section id="contacto" className="border-t border-noche-border bg-noche-bg px-6 py-28">
       <div
         ref={ref}
         className={`mx-auto max-w-7xl transition-all duration-700 ${
@@ -108,7 +108,7 @@ export function LocationSection({ horario }: { horario: string | null }) {
               title="Ubicación de Palomita Bar"
               src={mapsEmbedUrl}
               loading="lazy"
-              className="h-full w-full grayscale invert-[0.92] contrast-[0.9]"
+              className="h-full w-full"
             />
           </div>
         </div>

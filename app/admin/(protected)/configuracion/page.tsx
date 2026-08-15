@@ -81,7 +81,7 @@ export default function ConfiguracionAdminPage() {
 
       <div className="mt-6 rounded-lg border border-noche-border bg-noche-surface p-4">
         <label className="text-xs uppercase tracking-widest2 text-noche-ink-muted">
-          Horario (se muestra en /contacto)
+          Horario (se muestra en la sección de contacto de la home)
         </label>
         <textarea
           value={horario}

@@ -24,5 +24,5 @@ export const NAV_LINKS = [
   { href: "/carta", label: "Carta" },
   { href: "/cocteleria", label: "Coctelería" },
   { href: "/galeria", label: "Galería" },
-  { href: "/contacto", label: "Contacto" },
+  { href: "/#contacto", label: "Contacto" },
 ] as const;
