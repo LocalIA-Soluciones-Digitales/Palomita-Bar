@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { formatCentimos } from "@/lib/format";
 import {
   ChevronLeftIcon,
@@ -110,6 +110,18 @@ export function ProductDetailModal({
   const goPrev = () => onNavigate((activeIndex - 1 + items.length) % items.length);
   const goNext = () => onNavigate((activeIndex + 1) % items.length);
 
+  const [flipped, setFlipped] = useState(false);
+  useEffect(() => {
+    let raf2 = 0;
+    const raf1 = requestAnimationFrame(() => {
+      raf2 = requestAnimationFrame(() => setFlipped(true));
+    });
+    return () => {
+      cancelAnimationFrame(raf1);
+      cancelAnimationFrame(raf2);
+    };
+  }, []);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -133,7 +145,7 @@ export function ProductDetailModal({
       onClick={onClose}
       className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-noche-bg/90 p-4 backdrop-blur-md"
     >
-      <div className="flex w-full max-w-5xl items-center justify-center gap-2 sm:gap-4">
+      <div className="flex w-full max-w-5xl items-center justify-center gap-2 [perspective:2000px] sm:gap-4">
         {items.length > 1 ? (
           <button
             type="button"
@@ -150,7 +162,9 @@ export function ProductDetailModal({
 
         <div
           onClick={(e) => e.stopPropagation()}
-          className="relative w-full max-w-3xl overflow-y-auto rounded-2xl border border-noche-primary/40 bg-noche-surface p-5 shadow-[0_0_60px_-15px_oklch(var(--noche-primary)/0.5)] sm:p-8"
+          className={`relative flex w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-noche-primary/40 bg-noche-surface shadow-[0_0_60px_-15px_oklch(var(--noche-primary)/0.5)] transition-all duration-500 ease-out [transform-style:preserve-3d] ${
+            flipped ? "opacity-100 [transform:rotateY(0deg)]" : "opacity-0 [transform:rotateY(-100deg)]"
+          }`}
           style={{ maxHeight: "min(85vh, 720px)" }}
         >
           <button
@@ -162,6 +176,7 @@ export function ProductDetailModal({
             <CloseIcon className="h-4 w-4" />
           </button>
 
+          <div className="overflow-y-auto p-5 sm:p-8">
           <div className="grid gap-6 sm:gap-8 md:grid-cols-2">
             <div className="flex flex-col">
               <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-noche-primary px-3 py-1 text-[10px] font-medium uppercase tracking-widest2 text-white">
@@ -170,7 +185,7 @@ export function ProductDetailModal({
               </span>
 
               {producto.imagen_url ? (
-                <div className="relative mt-4 aspect-square w-full overflow-hidden rounded-xl bg-noche-surface-2">
+                <div className="relative mt-4 h-48 w-full shrink-0 overflow-hidden rounded-xl bg-noche-surface-2 sm:h-56">
                   <Image
                     src={producto.imagen_url}
                     alt={producto.nombre}
@@ -180,7 +195,7 @@ export function ProductDetailModal({
                   />
                 </div>
               ) : (
-                <div className="mt-4 aspect-square w-full rounded-xl bg-noche-surface-2" />
+                <div className="mt-4 h-48 w-full shrink-0 rounded-xl bg-noche-surface-2 sm:h-56" />
               )}
 
               <h2 className="mt-5 font-display text-3xl text-noche-ink">{producto.nombre}</h2>
@@ -332,22 +347,23 @@ export function ProductDetailModal({
             </div>
           </div>
 
-          {items.length > 1 ? (
-            <div className="mt-6 flex items-center justify-center gap-2">
-              {items.map((item, i) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => onNavigate(i)}
-                  aria-label={`Ver ${item.nombre}`}
-                  aria-current={i === activeIndex}
-                  className={`h-1.5 rounded-full transition-all ${
-                    i === activeIndex ? "w-6 bg-noche-primary" : "w-1.5 bg-noche-border"
-                  }`}
-                />
-              ))}
-            </div>
-          ) : null}
+            {items.length > 1 ? (
+              <div className="mt-6 flex items-center justify-center gap-2">
+                {items.map((item, i) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => onNavigate(i)}
+                    aria-label={`Ver ${item.nombre}`}
+                    aria-current={i === activeIndex}
+                    className={`h-1.5 rounded-full transition-all ${
+                      i === activeIndex ? "w-6 bg-noche-primary" : "w-1.5 bg-noche-border"
+                    }`}
+                  />
+                ))}
+              </div>
+            ) : null}
+          </div>
         </div>
 
         {items.length > 1 ? (
