@@ -101,7 +101,8 @@ export function ProductDetailModal({
   onNavigate: (index: number) => void;
   cart?: MenuCartControls;
 }) {
-  const producto = items[activeIndex];
+  // `items` is guaranteed non-empty and `activeIndex` in range by the caller.
+  const producto = items[activeIndex]!;
   const cantidad = cart?.getQuantity(producto.id) ?? 0;
   const macros = useMemo(() => macroBreakdown(producto), [producto]);
   const tieneNutricion = producto.ingredientes.length > 0 || producto.calorias != null;
