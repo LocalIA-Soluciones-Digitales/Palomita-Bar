@@ -69,7 +69,7 @@ export function LocationSection({ horario }: { horario: string | null }) {
             </div>
 
             <p className="mt-8 text-sm font-medium text-noche-primary">Horario</p>
-            <p className="mt-3 flex items-start gap-2 text-noche-ink/80">
+            <p className="mt-3 flex items-start gap-2 whitespace-pre-line text-noche-ink/80">
               <ClockIcon className="mt-0.5 h-4 w-4 shrink-0 text-noche-primary" />
               {horario ?? SITE.hoursNote}
             </p>
