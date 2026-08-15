@@ -25,6 +25,22 @@ import {
 } from "@/lib/restaurant/admin-queries";
 import { PedidoRapidoForm } from "@/components/admin/PedidoRapidoForm";
 import { ReservaModal } from "@/components/admin/ReservaModal";
+import {
+  CheckIcon,
+  ClockIcon,
+  CloseIcon,
+  LinkIcon,
+  LogoutIcon,
+  MinusIcon,
+  MoreIcon,
+  PlusIcon,
+  PrinterIcon,
+  RefreshIcon,
+  SwapIcon,
+  TrashIcon,
+  UnlinkIcon,
+  UsersIcon,
+} from "@/components/icons";
 import type {
   CamareroAdmin,
   MesaEstadoAdmin,
@@ -74,12 +90,12 @@ const ESTILO_MESA: Record<EstadoMesa, { ring: string; badge: string; label: stri
   },
   LISTO: {
     ring: "ring-lime-500",
-    badge: "bg-lime-500 text-brand-ink",
+    badge: "bg-lime-500 text-zinc-950",
     label: "Listo para servir",
   },
   PAGANDO: {
-    ring: "ring-red-500",
-    badge: "bg-red-500 text-white",
+    ring: "ring-noche-danger",
+    badge: "bg-noche-danger text-white",
     label: "Pagando",
   },
   POR_LIMPIAR: {
@@ -517,10 +533,10 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
           <button
             type="button"
             onClick={() => setZonaActivaId(null)}
-            className={`px-4 py-2 text-xs uppercase tracking-widest2 transition-colors ${
+            className={`rounded-lg px-4 py-2 text-xs uppercase tracking-widest2 transition-colors ${
               zonaActivaId === null
-                ? "bg-brand-black text-brand-cream"
-                : "border border-brand-black/20 text-brand-ink/60"
+                ? "bg-noche-primary/15 text-noche-primary"
+                : "border border-noche-border text-noche-ink-muted"
             }`}
           >
             Todas
@@ -530,10 +546,10 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
               key={zona.id}
               type="button"
               onClick={() => setZonaActivaId(zona.id)}
-              className={`px-4 py-2 text-xs uppercase tracking-widest2 transition-colors ${
+              className={`rounded-lg px-4 py-2 text-xs uppercase tracking-widest2 transition-colors ${
                 zonaActivaId === zona.id
-                  ? "bg-brand-black text-brand-cream"
-                  : "border border-brand-black/20 text-brand-ink/60"
+                  ? "bg-noche-primary/15 text-noche-primary"
+                  : "border border-noche-border text-noche-ink-muted"
               }`}
             >
               {zona.nombre}
@@ -546,26 +562,26 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
             type="date"
             value={fecha}
             onChange={(e) => setFecha(e.target.value || todayISO())}
-            className="border border-brand-black/20 px-3 py-2 text-xs"
+            className="rounded-lg border border-noche-border bg-noche-surface px-3 py-2 text-xs text-noche-ink"
           />
           <input
             type="time"
             value={hora}
             onChange={(e) => setHora(e.target.value)}
-            className="border border-brand-black/20 px-3 py-2 text-xs"
+            className="rounded-lg border border-noche-border bg-noche-surface px-3 py-2 text-xs text-noche-ink"
           />
           <div className="relative">
             <button
               type="button"
               onClick={() => setFiltrosAbiertos((v) => !v)}
-              className="border border-brand-black/20 px-4 py-2 text-xs uppercase tracking-widest2 text-brand-ink/60"
+              className="rounded-lg border border-noche-border px-4 py-2 text-xs uppercase tracking-widest2 text-noche-ink-muted"
             >
               Filtros{estadosOcultos.size > 0 ? ` (${estadosOcultos.size})` : ""}
             </button>
             {filtrosAbiertos ? (
-              <div className="absolute right-0 z-10 mt-1 w-56 border border-brand-black/10 bg-white p-3 shadow-lg">
+              <div className="absolute right-0 z-10 mt-1 w-56 rounded-lg border border-noche-border bg-noche-surface p-3 shadow-lg">
                 {(Object.keys(ESTILO_MESA) as EstadoMesa[]).map((estado) => (
-                  <label key={estado} className="flex items-center gap-2 py-1 text-xs">
+                  <label key={estado} className="flex items-center gap-2 py-1 text-xs text-noche-ink">
                     <input
                       type="checkbox"
                       checked={!estadosOcultos.has(estado)}
@@ -581,16 +597,17 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
           <button
             type="button"
             onClick={() => setMostrarReserva(true)}
-            className="bg-brand-pink px-4 py-2 text-xs uppercase tracking-widest2 text-white hover:bg-brand-pink-dark"
+            className="flex items-center gap-1.5 rounded-lg bg-noche-primary px-4 py-2 text-xs uppercase tracking-widest2 text-noche-ink hover:bg-noche-primary-dark"
           >
-            + Nueva reserva
+            <PlusIcon className="h-3.5 w-3.5" />
+            Nueva reserva
           </button>
         </div>
       </div>
 
       <div className="mt-4 grid gap-6 lg:grid-cols-[1fr_360px]">
         <div>
-          <div className="flex flex-wrap gap-4 text-xs uppercase tracking-widest2 text-brand-ink/60">
+          <div className="flex flex-wrap gap-4 text-xs uppercase tracking-widest2 text-noche-ink-muted">
             {(Object.keys(ESTILO_MESA) as EstadoMesa[]).map((estado) => (
               <span key={estado} className="flex items-center gap-1.5">
                 <span className={`h-2.5 w-2.5 rounded-full border ${ESTILO_MESA[estado].badge}`} />
@@ -600,22 +617,23 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
           </div>
 
           {errorCarga ? (
-            <div className="mt-3 flex items-center justify-between border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+            <div className="mt-3 flex items-center justify-between rounded-lg border border-noche-danger/30 bg-noche-danger/10 px-3 py-2 text-sm text-noche-danger">
               <span>No se han podido cargar las mesas.</span>
               <button
                 type="button"
                 onClick={() => refetch()}
-                className="text-xs uppercase tracking-widest2 underline"
+                className="flex items-center gap-1 text-xs uppercase tracking-widest2 underline"
               >
+                <RefreshIcon className="h-3 w-3" />
                 Reintentar
               </button>
             </div>
           ) : mesas.length === 0 ? (
-            <p className="mt-3 text-sm text-brand-ink/50">Cargando mesas…</p>
+            <p className="mt-3 text-sm text-noche-ink-muted">Cargando mesas…</p>
           ) : null}
 
           <div className="mt-4 flex items-center justify-between">
-            <p className="text-xs text-brand-ink/40">
+            <p className="text-xs text-noche-ink-faint">
               {modoUnion
                 ? "Modo unión: pulsa las mesas que quieres juntar y confirma en el panel."
                 : "Arrastra las mesas para colocarlas como en el local. Pulsa una mesa para ver o tomar pedidos."}
@@ -623,15 +641,16 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
             <button
               type="button"
               onClick={handleCrearMesaRapida}
-              className="shrink-0 bg-brand-black px-4 py-2 text-xs uppercase tracking-widest2 text-brand-cream hover:bg-brand-pink"
+              className="flex shrink-0 items-center gap-1.5 rounded-lg bg-noche-primary px-4 py-2 text-xs uppercase tracking-widest2 text-noche-ink hover:bg-noche-primary-dark"
             >
-              + Añadir mesa
+              <PlusIcon className="h-3.5 w-3.5" />
+              Añadir mesa
             </button>
           </div>
 
           <div
             ref={canvasRef}
-            className="relative mt-2 h-[560px] select-none overflow-hidden border border-brand-black/10 bg-[radial-gradient(ellipse_at_center,_#3a3230_0%,_#221c1a_70%,_#141110_100%)]"
+            className="relative mt-2 h-[560px] select-none overflow-hidden rounded-lg border border-noche-border bg-[radial-gradient(ellipse_at_center,_oklch(var(--noche-surface-2))_0%,_oklch(var(--noche-surface))_70%,_oklch(var(--noche-bg))_100%)]"
           >
             {mesasVisibles.map((mesa, index) => {
               const estado = estadoMesa(mesa, !!reservaDeMesa(mesa.id), esHoy);
@@ -667,7 +686,7 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
                   <div
                     style={{ background: MADERA_MESA }}
                     className={`relative flex h-full w-full flex-col items-center justify-center rounded-md shadow-lg shadow-black/60 ring-4 ${estilo.ring} ${
-                      mesaSeleccionadaId === mesa.id || enSeleccionUnion ? "ring-offset-2 ring-offset-brand-pink" : ""
+                      mesaSeleccionadaId === mesa.id || enSeleccionUnion ? "ring-offset-2 ring-offset-noche-primary" : ""
                     }`}
                   >
                     <span
@@ -687,7 +706,7 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
                       />
                     ) : null}
                     {pendientes > 0 ? (
-                      <span className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-brand-pink text-[10px] font-medium text-white">
+                      <span className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-noche-primary text-[10px] font-medium text-noche-ink">
                         {pendientes}
                       </span>
                     ) : null}
@@ -697,60 +716,60 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
             })}
           </div>
 
-          <div className="mt-4 grid grid-cols-3 gap-3 border border-brand-black/10 bg-white p-4 sm:grid-cols-6">
+          <div className="mt-4 grid grid-cols-3 gap-3 rounded-lg border border-noche-border bg-noche-surface p-4 sm:grid-cols-6">
             <div>
-              <p className="text-xs uppercase tracking-widest2 text-brand-ink/50">Total mesas</p>
-              <p className="font-display text-2xl">{stats.total}</p>
+              <p className="text-xs uppercase tracking-widest2 text-noche-ink-muted">Total mesas</p>
+              <p className="font-display text-2xl text-noche-ink">{stats.total}</p>
             </div>
             <div>
-              <p className="text-xs uppercase tracking-widest2 text-brand-ink/50">Libres</p>
-              <p className="font-display text-2xl text-emerald-600">{stats.libres}</p>
+              <p className="text-xs uppercase tracking-widest2 text-noche-ink-muted">Libres</p>
+              <p className="font-display text-2xl text-noche-positive">{stats.libres}</p>
             </div>
             <div>
-              <p className="text-xs uppercase tracking-widest2 text-brand-ink/50">Ocupadas</p>
-              <p className="font-display text-2xl">{stats.ocupadas}</p>
+              <p className="text-xs uppercase tracking-widest2 text-noche-ink-muted">Ocupadas</p>
+              <p className="font-display text-2xl text-noche-ink">{stats.ocupadas}</p>
             </div>
             <div>
-              <p className="text-xs uppercase tracking-widest2 text-brand-ink/50">Reservadas</p>
-              <p className="font-display text-2xl text-blue-600">{stats.reservadas}</p>
+              <p className="text-xs uppercase tracking-widest2 text-noche-ink-muted">Reservadas</p>
+              <p className="font-display text-2xl text-blue-400">{stats.reservadas}</p>
             </div>
             <div>
-              <p className="text-xs uppercase tracking-widest2 text-brand-ink/50">Clientes</p>
-              <p className="font-display text-2xl">{stats.clientes}</p>
+              <p className="text-xs uppercase tracking-widest2 text-noche-ink-muted">Clientes</p>
+              <p className="font-display text-2xl text-noche-ink">{stats.clientes}</p>
             </div>
             <div className="flex items-center gap-3">
               <div
                 className="relative h-12 w-12 shrink-0 rounded-full"
                 style={{
-                  background: `conic-gradient(#141110 ${stats.ocupacionPct}%, #F1EAE0 ${stats.ocupacionPct}%)`,
+                  background: `conic-gradient(oklch(var(--noche-primary)) ${stats.ocupacionPct}%, oklch(var(--noche-surface-2)) ${stats.ocupacionPct}%)`,
                 }}
               >
-                <div className="absolute inset-1 flex items-center justify-center rounded-full bg-brand-cream text-[10px] font-medium">
+                <div className="absolute inset-1 flex items-center justify-center rounded-full bg-noche-surface text-[10px] font-medium text-noche-ink">
                   {stats.ocupacionPct}%
                 </div>
               </div>
-              <p className="text-xs uppercase tracking-widest2 text-brand-ink/50">Ocupación</p>
+              <p className="text-xs uppercase tracking-widest2 text-noche-ink-muted">Ocupación</p>
             </div>
           </div>
         </div>
 
         <div className="flex flex-col gap-4">
-          <div className="border border-brand-black/10 bg-white p-4">
+          <div className="rounded-lg border border-noche-border bg-noche-surface p-4">
             {!mesaSeleccionada ? (
-              <p className="text-sm text-brand-ink/50">
+              <p className="text-sm text-noche-ink-muted">
                 Selecciona una mesa para ver sus pedidos de hoy o tomar un pedido nuevo.
               </p>
             ) : (
               <div>
                 <div className="flex items-center justify-between">
                   <div>
-                    <h2 className="font-display text-xl">
+                    <h2 className="font-display text-xl text-noche-ink">
                       Mesa {mesaSeleccionada.numero}
                       {mesaSeleccionada.nombre ? ` · ${mesaSeleccionada.nombre}` : ""}
                     </h2>
                     <div className="mt-1 flex flex-wrap items-center gap-1.5">
                       <span
-                        className={`inline-block px-2 py-0.5 text-[10px] uppercase tracking-widest2 ${
+                        className={`inline-block rounded-full px-2 py-0.5 text-[10px] uppercase tracking-widest2 ${
                           ESTILO_MESA[estadoMesa(mesaSeleccionada, !!reservaDeMesa(mesaSeleccionada.id), esHoy)]
                             .badge
                         }`}
@@ -762,7 +781,7 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
                         }
                       </span>
                       {mesaSeleccionada.sesion_modo === "SEPARADO" ? (
-                        <span className="inline-block bg-violet-100 px-2 py-0.5 text-[10px] uppercase tracking-widest2 text-violet-800">
+                        <span className="inline-block rounded-full bg-violet-500/15 px-2 py-0.5 text-[10px] uppercase tracking-widest2 text-violet-300">
                           Cada uno por separado
                         </span>
                       ) : null}
@@ -771,39 +790,39 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
                   <button
                     type="button"
                     onClick={() => setMesaSeleccionadaId(null)}
-                    className="text-xs uppercase tracking-widest2 text-brand-ink/40 hover:text-brand-pink"
+                    className="flex h-7 w-7 items-center justify-center rounded-full text-noche-ink-faint hover:bg-noche-surface-2 hover:text-noche-ink"
                   >
-                    Cerrar
+                    <CloseIcon className="h-4 w-4" />
                   </button>
                 </div>
 
-                <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
+                <div className="mt-4 grid grid-cols-2 gap-2 text-sm text-noche-ink">
                   <div>
-                    <p className="text-xs uppercase tracking-widest2 text-brand-ink/40">Capacidad</p>
+                    <p className="text-xs uppercase tracking-widest2 text-noche-ink-faint">Capacidad</p>
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
                         onClick={() => handleCambiarCapacidad(mesaSeleccionada, -1)}
-                        className="flex h-5 w-5 items-center justify-center border border-brand-black/20 text-xs"
+                        className="flex h-5 w-5 items-center justify-center rounded-full border border-noche-border text-xs"
                       >
-                        −
+                        <MinusIcon className="h-3 w-3" />
                       </button>
                       <p>{mesaSeleccionada.capacidad} personas</p>
                       <button
                         type="button"
                         onClick={() => handleCambiarCapacidad(mesaSeleccionada, 1)}
-                        className="flex h-5 w-5 items-center justify-center border border-brand-black/20 text-xs"
+                        className="flex h-5 w-5 items-center justify-center rounded-full border border-noche-border text-xs"
                       >
-                        +
+                        <PlusIcon className="h-3 w-3" />
                       </button>
                     </div>
                   </div>
                   <div>
-                    <p className="text-xs uppercase tracking-widest2 text-brand-ink/40">Clientes</p>
+                    <p className="text-xs uppercase tracking-widest2 text-noche-ink-faint">Clientes</p>
                     <p>{mesaSeleccionada.clientes_sentados}</p>
                   </div>
                   <div>
-                    <p className="text-xs uppercase tracking-widest2 text-brand-ink/40">Entrada</p>
+                    <p className="text-xs uppercase tracking-widest2 text-noche-ink-faint">Entrada</p>
                     <p>
                       {mesaSeleccionada.entrada_at
                         ? new Date(mesaSeleccionada.entrada_at).toLocaleTimeString("es-ES", {
@@ -814,22 +833,22 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs uppercase tracking-widest2 text-brand-ink/40">Camarero</p>
+                    <p className="text-xs uppercase tracking-widest2 text-noche-ink-faint">Camarero</p>
                     <p>{mesaSeleccionada.camarero_nombre ?? "-"}</p>
                   </div>
                 </div>
 
-                {accionError ? <p className="mt-3 text-sm text-red-600">{accionError}</p> : null}
+                {accionError ? <p className="mt-3 text-sm text-noche-danger">{accionError}</p> : null}
 
                 {!esHoy ? (
-                  <p className="mt-3 text-xs text-brand-ink/50">
+                  <p className="mt-3 text-xs text-noche-ink-muted">
                     Estás viendo otra fecha: solo puedes crear reservas, no gestionar el servicio en vivo.
                   </p>
                 ) : null}
 
                 {esHoy && modoUnion ? (
-                  <div className="mt-4 border border-brand-pink/40 bg-brand-pink/5 p-3">
-                    <p className="text-xs">
+                  <div className="mt-4 rounded-lg border border-noche-primary/40 bg-noche-primary/5 p-3">
+                    <p className="text-xs text-noche-ink">
                       Mesas seleccionadas: {seleccionUnion.length > 0 ? seleccionUnion.length : 0}
                     </p>
                     <div className="mt-2 flex gap-2">
@@ -837,8 +856,9 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
                         type="button"
                         onClick={handleConfirmarUnion}
                         disabled={seleccionUnion.length < 2}
-                        className="flex-1 bg-brand-black py-2 text-xs uppercase tracking-widest2 text-brand-cream disabled:opacity-50"
+                        className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-noche-primary py-2 text-xs uppercase tracking-widest2 text-noche-ink disabled:opacity-50"
                       >
+                        <CheckIcon className="h-3.5 w-3.5" />
                         Confirmar unión
                       </button>
                       <button
@@ -847,7 +867,7 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
                           setModoUnion(false);
                           setSeleccionUnion([]);
                         }}
-                        className="flex-1 border border-brand-black/20 py-2 text-xs uppercase tracking-widest2"
+                        className="flex-1 rounded-lg border border-noche-border py-2 text-xs uppercase tracking-widest2 text-noche-ink"
                       >
                         Cancelar
                       </button>
@@ -856,8 +876,8 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
                 ) : null}
 
                 {esHoy && sentarForm ? (
-                  <div className="mt-4 border border-brand-black/10 p-3">
-                    <p className="text-xs uppercase tracking-widest2 text-brand-ink/50">
+                  <div className="mt-4 rounded-lg border border-noche-border p-3">
+                    <p className="text-xs uppercase tracking-widest2 text-noche-ink-muted">
                       Sentar clientes
                     </p>
                     <div className="mt-2 flex gap-2">
@@ -867,12 +887,12 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
                         value={clientesForm}
                         onChange={(e) => setClientesForm(e.target.value)}
                         placeholder="Clientes"
-                        className="w-20 border border-brand-black/20 px-2 py-1.5 text-sm"
+                        className="w-20 rounded-lg border border-noche-border bg-noche-surface-2 px-2 py-1.5 text-sm text-noche-ink"
                       />
                       <select
                         value={camareroForm}
                         onChange={(e) => setCamareroForm(e.target.value)}
-                        className="flex-1 border border-brand-black/20 px-2 py-1.5 text-sm"
+                        className="flex-1 rounded-lg border border-noche-border bg-noche-surface-2 px-2 py-1.5 text-sm text-noche-ink"
                       >
                         <option value="">Sin camarero</option>
                         {camareros
@@ -887,22 +907,23 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
                     <button
                       type="button"
                       onClick={() => handleSentarConfirmar(mesaSeleccionada)}
-                      className="mt-2 w-full bg-brand-black py-2 text-xs uppercase tracking-widest2 text-brand-cream"
+                      className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg bg-noche-primary py-2 text-xs uppercase tracking-widest2 text-noche-ink"
                     >
+                      <CheckIcon className="h-3.5 w-3.5" />
                       Confirmar
                     </button>
                   </div>
                 ) : null}
 
                 {esHoy && cambiarMesaAbierto ? (
-                  <div className="mt-4 border border-brand-black/10 p-3">
-                    <p className="text-xs uppercase tracking-widest2 text-brand-ink/50">
+                  <div className="mt-4 rounded-lg border border-noche-border p-3">
+                    <p className="text-xs uppercase tracking-widest2 text-noche-ink-muted">
                       Mover a mesa libre
                     </p>
                     <select
                       onChange={(e) => e.target.value && handleCambiarMesa(mesaSeleccionada, e.target.value)}
                       defaultValue=""
-                      className="mt-2 w-full border border-brand-black/20 px-2 py-1.5 text-sm"
+                      className="mt-2 w-full rounded-lg border border-noche-border bg-noche-surface-2 px-2 py-1.5 text-sm text-noche-ink"
                     >
                       <option value="" disabled>
                         Selecciona una mesa
@@ -924,24 +945,27 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
                       <button
                         type="button"
                         onClick={() => handleLiberar(mesaSeleccionada)}
-                        className="border border-brand-black/20 py-2 text-xs uppercase tracking-widest2 hover:bg-brand-sand"
+                        className="flex items-center justify-center gap-1.5 rounded-lg bg-noche-surface-2 py-2 text-xs uppercase tracking-widest2 text-noche-ink hover:bg-noche-surface-3"
                       >
+                        <LogoutIcon className="h-3.5 w-3.5" />
                         Liberar mesa
                       </button>
                     ) : (
                       <button
                         type="button"
                         onClick={() => setSentarForm((v) => !v)}
-                        className="bg-brand-black py-2 text-xs uppercase tracking-widest2 text-brand-cream"
+                        className="flex items-center justify-center gap-1.5 rounded-lg bg-noche-primary/10 py-2 text-xs uppercase tracking-widest2 text-noche-primary hover:bg-noche-primary/15"
                       >
+                        <UsersIcon className="h-3.5 w-3.5" />
                         Sentar clientes
                       </button>
                     )}
                     <button
                       type="button"
                       onClick={() => setMostrarReserva(true)}
-                      className="border border-brand-black/20 py-2 text-xs uppercase tracking-widest2 hover:bg-brand-sand"
+                      className="flex items-center justify-center gap-1.5 rounded-lg bg-noche-surface-2 py-2 text-xs uppercase tracking-widest2 text-noche-ink hover:bg-noche-surface-3"
                     >
+                      <ClockIcon className="h-3.5 w-3.5" />
                       Reservar
                     </button>
 
@@ -949,8 +973,9 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
                       <button
                         type="button"
                         onClick={() => handleSepararGrupo(mesaSeleccionada)}
-                        className="border border-brand-black/20 py-2 text-xs uppercase tracking-widest2 hover:bg-brand-sand"
+                        className="flex items-center justify-center gap-1.5 rounded-lg bg-noche-surface-2 py-2 text-xs uppercase tracking-widest2 text-noche-ink hover:bg-noche-surface-3"
                       >
+                        <UnlinkIcon className="h-3.5 w-3.5" />
                         Separar mesas
                       </button>
                     ) : (
@@ -960,40 +985,44 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
                           setModoUnion(true);
                           setSeleccionUnion([mesaSeleccionada.id]);
                         }}
-                        className="border border-brand-black/20 py-2 text-xs uppercase tracking-widest2 hover:bg-brand-sand"
+                        className="flex items-center justify-center gap-1.5 rounded-lg bg-noche-surface-2 py-2 text-xs uppercase tracking-widest2 text-noche-ink hover:bg-noche-surface-3"
                       >
+                        <LinkIcon className="h-3.5 w-3.5" />
                         Unir mesas
                       </button>
                     )}
                     <button
                       type="button"
                       onClick={() => setCambiarMesaAbierto((v) => !v)}
-                      className="border border-brand-black/20 py-2 text-xs uppercase tracking-widest2 hover:bg-brand-sand"
+                      className="flex items-center justify-center gap-1.5 rounded-lg bg-noche-surface-2 py-2 text-xs uppercase tracking-widest2 text-noche-ink hover:bg-noche-surface-3"
                     >
+                      <SwapIcon className="h-3.5 w-3.5" />
                       Cambiar mesa
                     </button>
 
                     <button
                       type="button"
                       onClick={() => imprimirCuentaMesa(mesaSeleccionada)}
-                      className="border border-brand-black/20 py-2 text-xs uppercase tracking-widest2 hover:bg-brand-sand"
+                      className="flex items-center justify-center gap-1.5 rounded-lg bg-noche-surface-2 py-2 text-xs uppercase tracking-widest2 text-noche-ink hover:bg-noche-surface-3"
                     >
+                      <PrinterIcon className="h-3.5 w-3.5" />
                       Imprimir cuenta
                     </button>
                     <div className="relative">
                       <button
                         type="button"
                         onClick={() => setMenuAbierto((v) => !v)}
-                        className="w-full border border-brand-black/20 py-2 text-xs uppercase tracking-widest2 hover:bg-brand-sand"
+                        className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-noche-surface-2 py-2 text-xs uppercase tracking-widest2 text-noche-ink hover:bg-noche-surface-3"
                       >
+                        <MoreIcon className="h-3.5 w-3.5" />
                         Más opciones
                       </button>
                       {menuAbierto ? (
-                        <div className="absolute right-0 z-10 mt-1 w-48 border border-brand-black/10 bg-white p-2 shadow-lg">
+                        <div className="absolute right-0 z-10 mt-1 w-48 rounded-lg border border-noche-border bg-noche-surface p-2 shadow-lg">
                           <button
                             type="button"
                             onClick={() => handleTogglePagando(mesaSeleccionada)}
-                            className="block w-full px-2 py-1.5 text-left text-xs uppercase tracking-widest2 hover:bg-brand-sand"
+                            className="block w-full rounded-lg px-2 py-1.5 text-left text-xs uppercase tracking-widest2 text-noche-ink hover:bg-noche-surface-2"
                           >
                             {mesaSeleccionada.pagando ? "Quitar cobro" : "Marcar pagando"}
                           </button>
@@ -1001,7 +1030,7 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
                             <button
                               type="button"
                               onClick={() => handleMarcarLimpia(mesaSeleccionada)}
-                              className="block w-full px-2 py-1.5 text-left text-xs uppercase tracking-widest2 hover:bg-brand-sand"
+                              className="block w-full rounded-lg px-2 py-1.5 text-left text-xs uppercase tracking-widest2 text-noche-ink hover:bg-noche-surface-2"
                             >
                               Marcar como limpia
                             </button>
@@ -1009,8 +1038,9 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
                           <button
                             type="button"
                             onClick={() => handleEliminarMesa(mesaSeleccionada)}
-                            className="block w-full px-2 py-1.5 text-left text-xs uppercase tracking-widest2 text-red-600 hover:bg-red-50"
+                            className="flex w-full items-center gap-1.5 rounded-lg px-2 py-1.5 text-left text-xs uppercase tracking-widest2 text-noche-danger hover:bg-noche-danger/10"
                           >
+                            <TrashIcon className="h-3.5 w-3.5" />
                             Eliminar mesa
                           </button>
                         </div>
@@ -1021,14 +1051,15 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
                   <button
                     type="button"
                     onClick={() => setMostrarReserva(true)}
-                    className="mt-4 w-full bg-brand-pink py-2 text-xs uppercase tracking-widest2 text-white hover:bg-brand-pink-dark"
+                    className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-lg bg-noche-primary py-2 text-xs uppercase tracking-widest2 text-noche-ink hover:bg-noche-primary-dark"
                   >
+                    <ClockIcon className="h-3.5 w-3.5" />
                     Reservar esta mesa
                   </button>
                 )}
 
                 {esHoy && mesaSeleccionada.pedidos_hoy.length === 0 ? (
-                  <p className="mt-4 text-sm text-brand-ink/50">Sin pedidos hoy en esta mesa.</p>
+                  <p className="mt-4 text-sm text-noche-ink-muted">Sin pedidos hoy en esta mesa.</p>
                 ) : esHoy ? (
                   <div className="mt-4 space-y-4">
                     {mesaSeleccionada.pedidos_hoy.map((pedido: PedidoMesaAdmin) => {
@@ -1039,26 +1070,26 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
                       });
 
                       return (
-                        <div key={pedido.id} className="border border-brand-black/10 p-3">
+                        <div key={pedido.id} className="rounded-lg border border-noche-border p-3">
                           <div className="flex items-center justify-between text-xs">
-                            <span className="uppercase tracking-widest2 text-brand-ink/50">
+                            <span className="uppercase tracking-widest2 text-noche-ink-muted">
                               {ESTADO_LABEL[pedido.estado]}
                             </span>
-                            <span className="text-brand-ink/50">{hora2}</span>
+                            <span className="text-noche-ink-muted">{hora2}</span>
                           </div>
                           {pedido.participante_nombre ? (
-                            <p className="text-xs text-brand-ink/50">
+                            <p className="text-xs text-noche-ink-muted">
                               Pedido de {pedido.participante_nombre}
                             </p>
                           ) : null}
 
-                          <ul className="mt-2 space-y-1 text-sm">
+                          <ul className="mt-2 space-y-1 text-sm text-noche-ink">
                             {pedido.items.map((item, index) => (
                               <li key={index} className="flex justify-between">
                                 <span>
                                   {item.cantidad} × {item.producto_nombre}
                                   {item.notas ? (
-                                    <span className="block text-xs text-brand-ink/50">
+                                    <span className="block text-xs text-noche-ink-muted">
                                       {item.notas}
                                     </span>
                                   ) : null}
@@ -1071,10 +1102,10 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
                           </ul>
 
                           {pedido.notas ? (
-                            <p className="mt-2 text-xs text-brand-ink/60">Notas: {pedido.notas}</p>
+                            <p className="mt-2 text-xs text-noche-ink-muted">Notas: {pedido.notas}</p>
                           ) : null}
 
-                          <div className="mt-2 flex items-center justify-between border-t border-brand-black/10 pt-2 text-sm font-medium">
+                          <div className="mt-2 flex items-center justify-between border-t border-noche-border pt-2 text-sm font-medium text-noche-ink">
                             <span>Total</span>
                             <span>{formatCentimos(pedido.total_centimos)} €</span>
                           </div>
@@ -1084,7 +1115,7 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
                               type="button"
                               disabled={actualizando === pedido.id}
                               onClick={() => avanzar(pedido.id, siguiente.estado)}
-                              className="mt-3 w-full bg-brand-black py-2 text-xs uppercase tracking-widest2 text-brand-cream transition-colors hover:bg-brand-pink disabled:opacity-50"
+                              className="mt-3 w-full rounded-lg bg-noche-primary py-2 text-xs uppercase tracking-widest2 text-noche-ink transition-colors hover:bg-noche-primary-dark disabled:opacity-50"
                             >
                               {actualizando === pedido.id ? "…" : siguiente.label}
                             </button>
@@ -1093,7 +1124,7 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
                       );
                     })}
 
-                    <div className="flex items-center justify-between border-t border-brand-black/10 pt-3 font-display text-lg">
+                    <div className="flex items-center justify-between border-t border-noche-border pt-3 font-display text-lg text-noche-ink">
                       <span>Cuenta de la mesa</span>
                       <span>
                         {formatCentimos(

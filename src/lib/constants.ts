@@ -13,6 +13,7 @@ export const SITE = {
     handle: "@palomita_bar",
     url: "https://www.instagram.com/palomita_bar",
   },
+  googleReviewsUrl: "https://www.google.com/search?q=Palomita+Bar+Barakaldo+reseñas",
   // Horario provisional: pendiente de confirmar con el negocio.
   // Editable desde /admin/configuracion en fases posteriores.
   hoursNote: "Horario disponible próximamente",

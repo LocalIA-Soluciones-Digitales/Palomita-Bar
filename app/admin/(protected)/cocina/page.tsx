@@ -18,7 +18,7 @@ export default async function CocinaPage() {
 
   return (
     <div>
-      <h1 className="font-display text-2xl text-brand-ink">Cocina</h1>
+      <h1 className="font-display text-2xl text-noche-ink">Cocina</h1>
       <CocinaTabs pedidosIniciales={pedidosIniciales} />
     </div>
   );

@@ -5,6 +5,7 @@ import { useTableSession } from "@/components/mesa/table-session-context";
 import { asumirReparto } from "@/lib/restaurant/queries";
 import { formatCentimos } from "@/lib/format";
 import { CloseIcon } from "@/components/icons";
+import { PaymentStatusBadge } from "@/components/mesa/StatusBadge";
 
 interface LineaReparto {
   id: string;
@@ -109,9 +110,13 @@ export function CuentaMesaDrawer({ onClose }: { onClose: () => void }) {
         </div>
 
         {miResumen ? (
-          <div className="mt-6 border border-noche-border bg-noche-surface p-4">
-            <p className="text-xs uppercase tracking-widest2 text-noche-primary">Mi parte</p>
-            <div className="mt-3 grid grid-cols-3 gap-3 text-center">
+          <div className="mt-6 rounded-lg border border-noche-border bg-noche-surface p-4">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-xs uppercase tracking-widest2 text-noche-primary">Mi parte</p>
+              <PaymentStatusBadge debe={miResumen.debe} pagado={miResumen.pagado} />
+            </div>
+
+            <div className="mt-3 grid grid-cols-3 gap-3 rounded-lg border border-noche-border bg-noche-surface-2/50 p-3 text-center">
               <div>
                 <p className="text-xs text-noche-ink-muted">Debo</p>
                 <p className="mt-1 font-display text-lg text-noche-ink">
@@ -132,11 +137,24 @@ export function CuentaMesaDrawer({ onClose }: { onClose: () => void }) {
               </div>
             </div>
 
+            <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-noche-surface-2">
+              <div
+                className="h-full rounded-full bg-noche-positive transition-all"
+                style={{
+                  width: `${
+                    miResumen.debe > 0
+                      ? Math.min(100, Math.round((miResumen.pagado / miResumen.debe) * 100))
+                      : 100
+                  }%`,
+                }}
+              />
+            </div>
+
             {miResumen.pendiente > 0 ? (
               <button
                 type="button"
                 onClick={handlePagarMiParte}
-                className="mt-4 w-full bg-noche-primary py-3 text-sm uppercase tracking-widest2 text-white transition-colors hover:bg-noche-primary-dark"
+                className="mt-4 w-full rounded-lg bg-noche-primary py-3 text-sm uppercase tracking-widest2 text-white transition-colors hover:bg-noche-primary-dark"
               >
                 Pagar mi parte · {formatCentimos(miResumen.pendiente)} €
               </button>
@@ -158,14 +176,15 @@ export function CuentaMesaDrawer({ onClose }: { onClose: () => void }) {
               .map((r) => (
                 <div
                   key={r.participante.id}
-                  className="flex items-center justify-between border border-noche-border px-4 py-3 text-sm"
+                  className="flex items-center justify-between gap-3 rounded-lg border border-noche-border px-4 py-3 text-sm"
                 >
                   <span className="text-noche-ink">{r.participante.nombre}</span>
-                  <span className={r.pendiente > 0 ? "text-noche-primary" : "text-noche-positive"}>
-                    {r.pendiente > 0
-                      ? `${formatCentimos(r.pendiente)} € pendiente`
-                      : "Al día"}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    {r.pendiente > 0 ? (
+                      <span className="text-noche-danger">{formatCentimos(r.pendiente)} €</span>
+                    ) : null}
+                    <PaymentStatusBadge debe={r.debe} pagado={r.pagado} />
+                  </div>
                 </div>
               ))}
             {resumenPorParticipante.length <= 1 ? (
@@ -187,7 +206,7 @@ export function CuentaMesaDrawer({ onClose }: { onClose: () => void }) {
                 return (
                   <div
                     key={`${r.repartoId}-${index}`}
-                    className="flex items-center justify-between border border-noche-border px-4 py-3 text-sm"
+                    className="flex items-center justify-between rounded-lg border border-noche-border px-4 py-3 text-sm"
                   >
                     <div className="min-w-0">
                       <p className="truncate text-noche-ink">{r.productoNombre}</p>
@@ -199,7 +218,7 @@ export function CuentaMesaDrawer({ onClose }: { onClose: () => void }) {
                       type="button"
                       onClick={() => handleAsumir(r.repartoId)}
                       disabled={asumiendoId === r.repartoId}
-                      className="shrink-0 border border-noche-primary px-3 py-1.5 text-xs uppercase tracking-widest2 text-noche-primary transition-colors hover:bg-noche-primary hover:text-white disabled:opacity-50"
+                      className="shrink-0 rounded-lg border border-noche-primary px-3 py-1.5 text-xs uppercase tracking-widest2 text-noche-primary transition-colors hover:bg-noche-primary hover:text-white disabled:opacity-50"
                     >
                       {asumiendoId === r.repartoId ? "…" : "Asumir"}
                     </button>
@@ -210,7 +229,7 @@ export function CuentaMesaDrawer({ onClose }: { onClose: () => void }) {
           </div>
         ) : null}
 
-        {error ? <p className="mt-4 text-sm text-red-400">{error}</p> : null}
+        {error ? <p className="mt-4 text-sm text-noche-danger">{error}</p> : null}
       </div>
     </div>
   );

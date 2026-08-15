@@ -4,15 +4,7 @@ import { useEffect, useState } from "react";
 import { getVentasHoyAdmin } from "@/lib/restaurant/admin-queries";
 import type { VentasHoy } from "@/lib/restaurant/admin-types";
 import { formatCentimos } from "@/lib/format";
-
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="border border-brand-black/10 bg-white p-4">
-      <p className="text-xs uppercase tracking-widest2 text-brand-ink/50">{label}</p>
-      <p className="mt-2 font-display text-3xl">{value}</p>
-    </div>
-  );
-}
+import { Stat } from "@/components/admin/Stat";
 
 export default function VentasAdminPage() {
   const [ventas, setVentas] = useState<VentasHoy | null>(null);
@@ -24,12 +16,12 @@ export default function VentasAdminPage() {
       .catch(() => setError("No se han podido cargar las ventas de hoy."));
   }, []);
 
-  if (error) return <p className="text-sm text-red-600">{error}</p>;
-  if (!ventas) return <p className="text-sm text-brand-ink/50">Cargando…</p>;
+  if (error) return <p className="text-sm text-noche-danger">{error}</p>;
+  if (!ventas) return <p className="text-sm text-noche-ink-muted">Cargando…</p>;
 
   return (
     <div className="max-w-4xl">
-      <h1 className="font-display text-2xl">Ventas de hoy</h1>
+      <h1 className="font-display text-2xl text-noche-ink">Ventas de hoy</h1>
 
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Stat label="Pedidos hoy" value={String(ventas.pedidos_hoy)} />
@@ -42,38 +34,38 @@ export default function VentasAdminPage() {
       </div>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
-        <div className="border border-brand-black/10 bg-white p-4">
-          <p className="text-xs uppercase tracking-widest2 text-brand-ink/50">Pago</p>
-          <div className="mt-3 flex justify-between text-sm">
+        <div className="rounded-lg border border-noche-border bg-noche-surface p-4">
+          <p className="text-xs uppercase tracking-widest2 text-noche-ink-muted">Pago</p>
+          <div className="mt-3 flex justify-between text-sm text-noche-ink">
             <span>En local</span>
             <span>{ventas.pagos_local}</span>
           </div>
-          <div className="mt-1 flex justify-between text-sm">
+          <div className="mt-1 flex justify-between text-sm text-noche-ink">
             <span>Online</span>
             <span>{ventas.pagos_online}</span>
           </div>
         </div>
 
-        <div className="border border-brand-black/10 bg-white p-4">
-          <p className="text-xs uppercase tracking-widest2 text-brand-ink/50">Modo de pedido</p>
-          <div className="mt-3 flex justify-between text-sm">
+        <div className="rounded-lg border border-noche-border bg-noche-surface p-4">
+          <p className="text-xs uppercase tracking-widest2 text-noche-ink-muted">Modo de pedido</p>
+          <div className="mt-3 flex justify-between text-sm text-noche-ink">
             <span>Juntos</span>
             <span>{ventas.pedidos_juntos}</span>
           </div>
-          <div className="mt-1 flex justify-between text-sm">
+          <div className="mt-1 flex justify-between text-sm text-noche-ink">
             <span>Cada uno por separado</span>
             <span>{ventas.pedidos_separado}</span>
           </div>
         </div>
 
-        <div className="border border-brand-black/10 bg-white p-4 sm:col-span-2">
-          <p className="text-xs uppercase tracking-widest2 text-brand-ink/50">Más vendidos hoy</p>
+        <div className="rounded-lg border border-noche-border bg-noche-surface p-4 sm:col-span-2">
+          <p className="text-xs uppercase tracking-widest2 text-noche-ink-muted">Más vendidos hoy</p>
           <div className="mt-3 space-y-1">
             {ventas.top_productos.length === 0 ? (
-              <p className="text-sm text-brand-ink/40">Todavía no hay pedidos hoy.</p>
+              <p className="text-sm text-noche-ink-faint">Todavía no hay pedidos hoy.</p>
             ) : (
               ventas.top_productos.map((p) => (
-                <div key={p.nombre} className="flex justify-between text-sm">
+                <div key={p.nombre} className="flex justify-between text-sm text-noche-ink">
                   <span>{p.nombre}</span>
                   <span>{p.cantidad}</span>
                 </div>

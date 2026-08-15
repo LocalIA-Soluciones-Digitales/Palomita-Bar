@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { getPedidoPublico } from "@/lib/restaurant/queries";
 import { formatCentimos } from "@/lib/format";
+import { CheckIcon } from "@/components/icons";
+import { StatusBadge } from "@/components/mesa/StatusBadge";
 import type { EstadoPedido, PedidoPublico } from "@/lib/restaurant/types";
 
 const PASOS: { estado: EstadoPedido; label: string }[] = [
@@ -46,11 +48,12 @@ export function PedidoStatus({ pedidoInicial }: { pedidoInicial: PedidoPublico }
         Pedido #{pedido.id.slice(0, 8)}
       </h1>
 
-      {pedido.payment_method === "LOCAL" ? (
-        <p className="mt-4 inline-block bg-noche-surface-2 px-3 py-1 text-xs uppercase tracking-widest2 text-noche-ink">
-          Pago en local
-        </p>
-      ) : null}
+      <div className="mt-4">
+        <StatusBadge
+          label={pedido.payment_method === "LOCAL" ? "Pago en local" : "Pago online"}
+          variant="neutral"
+        />
+      </div>
 
       {cancelado ? (
         <p className="mt-8 text-noche-ink-muted">Este pedido ha sido cancelado.</p>
@@ -61,9 +64,13 @@ export function PedidoStatus({ pedidoInicial }: { pedidoInicial: PedidoPublico }
             return (
               <li key={paso.estado} className="flex items-center gap-3">
                 <span
-                  className={`h-2 w-2 rounded-full ${alcanzado ? "bg-noche-primary" : "bg-noche-border"}`}
-                />
-                <span className={alcanzado ? "text-noche-ink" : "text-noche-ink-muted"}>
+                  className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${
+                    alcanzado ? "bg-noche-primary text-white" : "bg-noche-surface-2 text-noche-ink-faint"
+                  }`}
+                >
+                  {alcanzado ? <CheckIcon className="h-4 w-4" /> : null}
+                </span>
+                <span className={alcanzado ? "text-noche-ink" : "text-noche-ink-faint"}>
                   {paso.label}
                 </span>
               </li>
@@ -78,7 +85,7 @@ export function PedidoStatus({ pedidoInicial }: { pedidoInicial: PedidoPublico }
         </p>
       ) : null}
 
-      <div className="mt-12 border-t border-noche-border pt-6">
+      <div className="mt-12 rounded-lg border border-noche-border bg-noche-surface/40 p-4">
         <ul className="space-y-2">
           {pedido.items.map((item, index) => (
             <li key={index} className="flex justify-between text-sm text-noche-ink/90">

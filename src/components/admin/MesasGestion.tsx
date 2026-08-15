@@ -13,6 +13,7 @@ import {
   regenerarQrMesaAdmin,
 } from "@/lib/restaurant/admin-queries";
 import type { MesaAdmin, ZonaAdmin } from "@/lib/restaurant/admin-types";
+import { DownloadIcon, PlusIcon, RefreshIcon } from "@/components/icons";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
@@ -123,35 +124,35 @@ export function MesasGestion() {
 
   return (
     <div className="max-w-4xl">
-      <div className="flex flex-wrap items-end gap-3 border border-brand-black/10 bg-white p-4">
+      <div className="flex flex-wrap items-end gap-3 rounded-lg border border-noche-border bg-noche-surface p-4">
         <div>
-          <label className="text-xs uppercase tracking-widest2 text-brand-ink/50">
+          <label className="text-xs uppercase tracking-widest2 text-noche-ink-muted">
             Número de mesa
           </label>
           <input
             type="number"
             value={nuevoNumero}
             onChange={(e) => setNuevoNumero(e.target.value)}
-            className="mt-1 w-24 border border-brand-black/20 px-3 py-2 text-sm"
+            className="mt-1 w-24 rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2 text-sm text-noche-ink"
           />
         </div>
         <div>
-          <label className="text-xs uppercase tracking-widest2 text-brand-ink/50">
+          <label className="text-xs uppercase tracking-widest2 text-noche-ink-muted">
             Nombre (opcional)
           </label>
           <input
             value={nuevoNombre}
             onChange={(e) => setNuevoNombre(e.target.value)}
             placeholder="Ej: Terraza 1, Barra..."
-            className="mt-1 w-48 border border-brand-black/20 px-3 py-2 text-sm"
+            className="mt-1 w-48 rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2 text-sm text-noche-ink"
           />
         </div>
         <div>
-          <label className="text-xs uppercase tracking-widest2 text-brand-ink/50">Zona</label>
+          <label className="text-xs uppercase tracking-widest2 text-noche-ink-muted">Zona</label>
           <select
             value={nuevaZonaId}
             onChange={(e) => setNuevaZonaId(e.target.value)}
-            className="mt-1 w-40 border border-brand-black/20 px-3 py-2 text-sm"
+            className="mt-1 w-40 rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2 text-sm text-noche-ink"
           >
             <option value="">Sin zona</option>
             {zonas.map((zona) => (
@@ -162,32 +163,34 @@ export function MesasGestion() {
           </select>
         </div>
         <div>
-          <label className="text-xs uppercase tracking-widest2 text-brand-ink/50">Aforo</label>
+          <label className="text-xs uppercase tracking-widest2 text-noche-ink-muted">Aforo</label>
           <input
             type="number"
             min={1}
             value={nuevaCapacidad}
             onChange={(e) => setNuevaCapacidad(e.target.value)}
-            className="mt-1 w-20 border border-brand-black/20 px-3 py-2 text-sm"
+            className="mt-1 w-20 rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2 text-sm text-noche-ink"
           />
         </div>
         <button
           type="button"
           onClick={handleCrear}
-          className="bg-brand-black px-4 py-2 text-xs uppercase tracking-widest2 text-brand-cream"
+          className="flex items-center gap-1.5 rounded-lg bg-noche-primary px-4 py-2 text-xs uppercase tracking-widest2 text-noche-ink"
         >
+          <PlusIcon className="h-3.5 w-3.5" />
           Crear mesa
         </button>
       </div>
 
       {error ? (
-        <div className="mt-3 flex items-center justify-between border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+        <div className="mt-3 flex items-center justify-between rounded-lg border border-noche-danger/30 bg-noche-danger/10 px-3 py-2 text-sm text-noche-danger">
           <span>{error}</span>
           <button
             type="button"
             onClick={() => cargar()}
-            className="text-xs uppercase tracking-widest2 underline"
+            className="flex items-center gap-1 text-xs uppercase tracking-widest2 underline"
           >
+            <RefreshIcon className="h-3 w-3" />
             Reintentar
           </button>
         </div>
@@ -195,21 +198,21 @@ export function MesasGestion() {
 
       <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
         {mesas?.map((mesa) => (
-          <div key={mesa.id} className="border border-brand-black/10 bg-white p-4 text-center">
-            <p className="font-display text-xl">Mesa {mesa.numero}</p>
+          <div key={mesa.id} className="rounded-lg border border-noche-border bg-noche-surface p-4 text-center">
+            <p className="font-display text-xl text-noche-ink">Mesa {mesa.numero}</p>
 
             {qrs[mesa.id] ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={qrs[mesa.id]}
                 alt={`QR de la mesa ${mesa.numero}`}
-                className="mx-auto mt-3 h-32 w-32"
+                className="mx-auto mt-3 h-32 w-32 rounded-lg bg-white p-1"
               />
             ) : (
-              <div className="mx-auto mt-3 h-32 w-32 bg-brand-sand" />
+              <div className="mx-auto mt-3 h-32 w-32 rounded-lg bg-noche-surface-2" />
             )}
 
-            <p className="mt-2 text-xs uppercase tracking-widest2 text-brand-ink/50">
+            <p className="mt-2 text-xs uppercase tracking-widest2 text-noche-ink-muted">
               Escanea · Pide · Disfruta
             </p>
 
@@ -220,14 +223,14 @@ export function MesasGestion() {
               }
               onBlur={() => handleGuardarNombre(mesa)}
               placeholder="Nombre (opcional)"
-              className="mt-3 w-full border border-brand-black/20 px-2 py-1.5 text-center text-sm"
+              className="mt-3 w-full rounded-lg border border-noche-border bg-noche-surface-2 px-2 py-1.5 text-center text-sm text-noche-ink"
             />
 
             <div className="mt-2 flex gap-1.5">
               <select
                 value={mesa.zona_id ?? ""}
                 onChange={(e) => handleCambiarZona(mesa, e.target.value)}
-                className="w-2/3 border border-brand-black/20 px-2 py-1.5 text-center text-xs"
+                className="w-2/3 rounded-lg border border-noche-border bg-noche-surface-2 px-2 py-1.5 text-center text-xs text-noche-ink"
               >
                 <option value="">Sin zona</option>
                 {zonas.map((zona) => (
@@ -242,7 +245,7 @@ export function MesasGestion() {
                 defaultValue={mesa.capacidad}
                 onBlur={(e) => handleCambiarCapacidad(mesa, e.target.value)}
                 title="Aforo"
-                className="w-1/3 border border-brand-black/20 px-2 py-1.5 text-center text-xs"
+                className="w-1/3 rounded-lg border border-noche-border bg-noche-surface-2 px-2 py-1.5 text-center text-xs text-noche-ink"
               />
             </div>
 
@@ -251,8 +254,9 @@ export function MesasGestion() {
                 <a
                   href={qrs[mesa.id]}
                   download={`mesa-${mesa.numero}-qr.png`}
-                  className="text-xs uppercase tracking-widest2 text-brand-ink/70 hover:text-brand-pink"
+                  className="flex items-center justify-center gap-1 text-xs uppercase tracking-widest2 text-noche-ink-muted hover:text-noche-primary"
                 >
+                  <DownloadIcon className="h-3 w-3" />
                   Descargar
                 </a>
               ) : null}
@@ -260,7 +264,7 @@ export function MesasGestion() {
                 type="button"
                 onClick={() => handleToggleActiva(mesa)}
                 className={`text-xs uppercase tracking-widest2 ${
-                  mesa.activa ? "text-green-700" : "text-brand-ink/40"
+                  mesa.activa ? "text-noche-positive" : "text-noche-ink-faint"
                 }`}
               >
                 {mesa.activa ? "Activa" : "Inactiva (activar)"}
@@ -268,8 +272,9 @@ export function MesasGestion() {
               <button
                 type="button"
                 onClick={() => handleRegenerar(mesa)}
-                className="text-xs uppercase tracking-widest2 text-brand-ink/40 hover:text-red-600"
+                className="flex items-center justify-center gap-1 text-xs uppercase tracking-widest2 text-noche-ink-faint hover:text-noche-danger"
               >
+                <RefreshIcon className="h-3 w-3" />
                 Regenerar QR
               </button>
             </div>

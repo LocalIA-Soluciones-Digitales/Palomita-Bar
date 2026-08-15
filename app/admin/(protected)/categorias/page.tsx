@@ -8,6 +8,7 @@ import {
 } from "@/lib/restaurant/admin-queries";
 import type { CategoriaAdmin } from "@/lib/restaurant/admin-types";
 import { errorMessage } from "@/lib/format";
+import { PencilIcon, PlusIcon, TrashIcon } from "@/components/icons";
 
 const COMBINING_MARKS = new RegExp("[\\u0300-\\u036f]", "g");
 
@@ -88,45 +89,46 @@ export default function CategoriasAdminPage() {
 
   return (
     <div className="max-w-3xl">
-      <h1 className="font-display text-2xl">Categorías</h1>
+      <h1 className="font-display text-2xl text-noche-ink">Categorías</h1>
 
-      <div className="mt-6 flex flex-wrap items-end gap-3 border border-brand-black/10 bg-white p-4">
+      <div className="mt-6 flex flex-wrap items-end gap-3 rounded-lg border border-noche-border bg-noche-surface p-4">
         <div className="flex-1">
-          <label className="text-xs uppercase tracking-widest2 text-brand-ink/50">Nombre</label>
+          <label className="text-xs uppercase tracking-widest2 text-noche-ink-muted">Nombre</label>
           <input
             value={form.nombre}
             onChange={(e) => setForm((f) => ({ ...f, nombre: e.target.value }))}
-            className="mt-1 w-full border border-brand-black/20 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2 text-sm text-noche-ink"
           />
         </div>
         <div>
-          <label className="text-xs uppercase tracking-widest2 text-brand-ink/50">Tipo</label>
+          <label className="text-xs uppercase tracking-widest2 text-noche-ink-muted">Tipo</label>
           <select
             value={form.tipo}
             onChange={(e) =>
               setForm((f) => ({ ...f, tipo: e.target.value as "comida" | "bebida" }))
             }
-            className="mt-1 border border-brand-black/20 px-3 py-2 text-sm"
+            className="mt-1 rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2 text-sm text-noche-ink"
           >
             <option value="comida">Comida</option>
             <option value="bebida">Bebida</option>
           </select>
         </div>
         <div>
-          <label className="text-xs uppercase tracking-widest2 text-brand-ink/50">Orden</label>
+          <label className="text-xs uppercase tracking-widest2 text-noche-ink-muted">Orden</label>
           <input
             type="number"
             value={form.orden}
             onChange={(e) => setForm((f) => ({ ...f, orden: Number(e.target.value) }))}
-            className="mt-1 w-20 border border-brand-black/20 px-3 py-2 text-sm"
+            className="mt-1 w-20 rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2 text-sm text-noche-ink"
           />
         </div>
         <button
           type="button"
           onClick={handleGuardar}
           disabled={guardando}
-          className="bg-brand-black px-4 py-2 text-xs uppercase tracking-widest2 text-brand-cream disabled:opacity-50"
+          className="flex items-center gap-1.5 rounded-lg bg-noche-primary px-4 py-2 text-xs uppercase tracking-widest2 text-noche-ink disabled:opacity-50"
         >
+          <PlusIcon className="h-3.5 w-3.5" />
           {editandoId ? "Guardar cambios" : "Añadir"}
         </button>
         {editandoId ? (
@@ -136,18 +138,18 @@ export default function CategoriasAdminPage() {
               setEditandoId(null);
               setForm(FORM_VACIO);
             }}
-            className="text-xs uppercase tracking-widest2 text-brand-ink/50"
+            className="text-xs uppercase tracking-widest2 text-noche-ink-muted"
           >
             Cancelar
           </button>
         ) : null}
       </div>
 
-      {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
+      {error ? <p className="mt-3 text-sm text-noche-danger">{error}</p> : null}
 
-      <table className="mt-6 w-full border-collapse bg-white text-sm">
+      <table className="mt-6 w-full border-collapse overflow-hidden rounded-lg bg-noche-surface text-sm text-noche-ink">
         <thead>
-          <tr className="border-b border-brand-black/10 text-left text-xs uppercase tracking-widest2 text-brand-ink/50">
+          <tr className="border-b border-noche-border text-left text-xs uppercase tracking-widest2 text-noche-ink-muted">
             <th className="p-3">Nombre</th>
             <th className="p-3">Tipo</th>
             <th className="p-3">Orden</th>
@@ -156,7 +158,7 @@ export default function CategoriasAdminPage() {
         </thead>
         <tbody>
           {categorias?.map((categoria) => (
-            <tr key={categoria.id} className="border-b border-brand-black/5">
+            <tr key={categoria.id} className="border-b border-noche-border/50">
               <td className="p-3">{categoria.nombre}</td>
               <td className="p-3 capitalize">{categoria.tipo}</td>
               <td className="p-3">{categoria.orden}</td>
@@ -164,15 +166,17 @@ export default function CategoriasAdminPage() {
                 <button
                   type="button"
                   onClick={() => handleEditar(categoria)}
-                  className="mr-3 text-xs uppercase tracking-widest2 text-brand-ink/60 hover:text-brand-pink"
+                  className="mr-3 inline-flex items-center gap-1 text-xs uppercase tracking-widest2 text-noche-ink-muted hover:text-noche-primary"
                 >
+                  <PencilIcon className="h-3 w-3" />
                   Editar
                 </button>
                 <button
                   type="button"
                   onClick={() => handleEliminar(categoria.id)}
-                  className="text-xs uppercase tracking-widest2 text-brand-ink/60 hover:text-red-600"
+                  className="inline-flex items-center gap-1 text-xs uppercase tracking-widest2 text-noche-ink-muted hover:text-noche-danger"
                 >
+                  <TrashIcon className="h-3 w-3" />
                   Eliminar
                 </button>
               </td>

@@ -16,12 +16,12 @@ const ESTADO_LABEL: Record<EstadoPedido, string> = {
 };
 
 const ESTADO_COLOR: Record<EstadoPedido, string> = {
-  RECEIVED: "bg-amber-100 text-amber-800",
-  ACCEPTED: "bg-amber-100 text-amber-800",
-  PREPARING: "bg-amber-100 text-amber-800",
-  READY: "bg-brand-pink/10 text-brand-pink",
-  DELIVERED: "bg-green-100 text-green-800",
-  CANCELLED: "bg-red-100 text-red-700",
+  RECEIVED: "bg-noche-warning/15 text-noche-warning",
+  ACCEPTED: "bg-noche-warning/15 text-noche-warning",
+  PREPARING: "bg-noche-warning/15 text-noche-warning",
+  READY: "bg-noche-primary/15 text-noche-primary",
+  DELIVERED: "bg-noche-positive/15 text-noche-positive",
+  CANCELLED: "bg-noche-danger/15 text-noche-danger",
 };
 
 const RANGOS = [
@@ -50,10 +50,10 @@ export function HistorialPedidos() {
             key={r.dias}
             type="button"
             onClick={() => setDias(r.dias)}
-            className={`px-3 py-1.5 text-xs uppercase tracking-widest2 ${
+            className={`rounded-lg px-3 py-1.5 text-xs uppercase tracking-widest2 ${
               dias === r.dias
-                ? "bg-brand-black text-brand-cream"
-                : "border border-brand-black/10 bg-white text-brand-ink/60"
+                ? "bg-noche-primary/15 text-noche-primary"
+                : "border border-noche-border bg-noche-surface text-noche-ink-muted"
             }`}
           >
             {r.label}
@@ -61,12 +61,12 @@ export function HistorialPedidos() {
         ))}
       </div>
 
-      {error ? <p className="mt-4 text-sm text-red-600">{error}</p> : null}
+      {error ? <p className="mt-4 text-sm text-noche-danger">{error}</p> : null}
 
       {!pedidos ? (
-        <p className="mt-4 text-sm text-brand-ink/50">Cargando…</p>
+        <p className="mt-4 text-sm text-noche-ink-muted">Cargando…</p>
       ) : pedidos.length === 0 ? (
-        <p className="mt-4 text-sm text-brand-ink/50">Sin pedidos en este periodo.</p>
+        <p className="mt-4 text-sm text-noche-ink-muted">Sin pedidos en este periodo.</p>
       ) : (
         <div className="mt-4 space-y-3">
           {pedidos.map((pedido) => {
@@ -78,9 +78,9 @@ export function HistorialPedidos() {
             });
 
             return (
-              <div key={pedido.id} className="border border-brand-black/10 bg-white p-3">
+              <div key={pedido.id} className="rounded-lg border border-noche-border bg-noche-surface p-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="font-display text-lg">
+                  <span className="font-display text-lg text-noche-ink">
                     {pedido.mesa_numero
                       ? pedido.mesa_nombre
                         ? `${pedido.mesa_nombre} (Mesa ${pedido.mesa_numero})`
@@ -89,15 +89,15 @@ export function HistorialPedidos() {
                   </span>
                   <div className="flex items-center gap-2">
                     <span
-                      className={`px-2 py-0.5 text-[10px] uppercase tracking-widest2 ${ESTADO_COLOR[pedido.estado]}`}
+                      className={`rounded-full px-2 py-0.5 text-[10px] uppercase tracking-widest2 ${ESTADO_COLOR[pedido.estado]}`}
                     >
                       {ESTADO_LABEL[pedido.estado]}
                     </span>
-                    <span className="text-xs text-brand-ink/50">{fecha}</span>
+                    <span className="text-xs text-noche-ink-muted">{fecha}</span>
                   </div>
                 </div>
 
-                <ul className="mt-2 space-y-1 text-sm text-brand-ink/80">
+                <ul className="mt-2 space-y-1 text-sm text-noche-ink-muted">
                   {pedido.items.map((item, index) => (
                     <li key={index}>
                       {item.cantidad} × {item.producto_nombre}
@@ -105,7 +105,7 @@ export function HistorialPedidos() {
                   ))}
                 </ul>
 
-                <div className="mt-2 flex justify-between border-t border-brand-black/10 pt-2 text-sm font-medium">
+                <div className="mt-2 flex justify-between border-t border-noche-border pt-2 text-sm font-medium text-noche-ink">
                   <span>Total</span>
                   <span>{formatCentimos(pedido.total_centimos)} €</span>
                 </div>

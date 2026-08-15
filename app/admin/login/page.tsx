@@ -34,12 +34,12 @@ export default function AdminLoginPage() {
 
   return (
     <div className="mx-auto flex min-h-[70vh] max-w-sm flex-col justify-center px-6 py-24">
-      <p className="text-xs uppercase tracking-widest2 text-brand-pink">Palomita</p>
-      <h1 className="mt-4 font-display text-3xl">Acceso equipo</h1>
+      <p className="text-xs uppercase tracking-widest2 text-noche-primary">Palomita</p>
+      <h1 className="mt-4 font-display text-3xl text-noche-ink">Acceso equipo</h1>
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-4">
         <div>
-          <label htmlFor="email" className="text-xs uppercase tracking-widest2 text-brand-ink/50">
+          <label htmlFor="email" className="text-xs uppercase tracking-widest2 text-noche-ink-muted">
             Email
           </label>
           <input
@@ -49,14 +49,14 @@ export default function AdminLoginPage() {
             autoComplete="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            className="mt-1 w-full border border-brand-black/20 bg-transparent px-3 py-2.5 text-sm outline-none focus:border-brand-pink"
+            className="mt-1 w-full rounded-lg border border-noche-border bg-noche-surface px-3 py-2.5 text-sm text-noche-ink outline-none focus:border-noche-primary"
           />
         </div>
 
         <div>
           <label
             htmlFor="password"
-            className="text-xs uppercase tracking-widest2 text-brand-ink/50"
+            className="text-xs uppercase tracking-widest2 text-noche-ink-muted"
           >
             Contraseña
           </label>
@@ -67,16 +67,16 @@ export default function AdminLoginPage() {
             autoComplete="current-password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            className="mt-1 w-full border border-brand-black/20 bg-transparent px-3 py-2.5 text-sm outline-none focus:border-brand-pink"
+            className="mt-1 w-full rounded-lg border border-noche-border bg-noche-surface px-3 py-2.5 text-sm text-noche-ink outline-none focus:border-noche-primary"
           />
         </div>
 
-        {error ? <p className="text-sm text-red-600">{error}</p> : null}
+        {error ? <p className="text-sm text-noche-danger">{error}</p> : null}
 
         <button
           type="submit"
           disabled={submitting}
-          className="w-full bg-brand-black py-3 text-sm uppercase tracking-widest2 text-brand-cream transition-colors hover:bg-brand-pink disabled:opacity-50"
+          className="w-full rounded-lg bg-noche-primary py-3 text-sm uppercase tracking-widest2 text-noche-ink transition-colors hover:bg-noche-primary-dark disabled:opacity-50"
         >
           {submitting ? "Entrando…" : "Entrar"}
         </button>

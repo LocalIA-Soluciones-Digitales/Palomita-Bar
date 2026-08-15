@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { crearReservaAdmin } from "@/lib/restaurant/admin-queries";
 import type { MesaEstadoAdmin, ZonaAdmin } from "@/lib/restaurant/admin-types";
+import { CloseIcon } from "@/components/icons";
 
 export function ReservaModal({
   fechaInicial,
@@ -65,72 +66,72 @@ export function ReservaModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-brand-black/40 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
       onClick={onClose}
     >
       <div
-        className="max-h-[90vh] w-full max-w-md overflow-y-auto bg-brand-cream p-6"
+        className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-lg border border-noche-border bg-noche-surface p-6"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between">
-          <h2 className="font-display text-xl">Nueva reserva</h2>
+          <h2 className="font-display text-xl text-noche-ink">Nueva reserva</h2>
           <button
             type="button"
             onClick={onClose}
-            className="text-xs uppercase tracking-widest2 text-brand-ink/60"
+            className="flex h-7 w-7 items-center justify-center rounded-full text-noche-ink-muted hover:bg-noche-surface-2 hover:text-noche-ink"
           >
-            Cerrar
+            <CloseIcon className="h-4 w-4" />
           </button>
         </div>
 
         <div className="mt-4 space-y-3">
           <div>
-            <label className="text-xs uppercase tracking-widest2 text-brand-ink/50">
+            <label className="text-xs uppercase tracking-widest2 text-noche-ink-muted">
               Nombre del cliente
             </label>
             <input
               value={nombreCliente}
               onChange={(e) => setNombreCliente(e.target.value)}
-              className="mt-1 w-full border border-brand-black/20 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2 text-sm text-noche-ink"
             />
           </div>
 
           <div>
-            <label className="text-xs uppercase tracking-widest2 text-brand-ink/50">
+            <label className="text-xs uppercase tracking-widest2 text-noche-ink-muted">
               Teléfono (opcional)
             </label>
             <input
               value={telefono}
               onChange={(e) => setTelefono(e.target.value)}
-              className="mt-1 w-full border border-brand-black/20 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2 text-sm text-noche-ink"
             />
           </div>
 
           <div className="flex gap-3">
             <div className="flex-1">
-              <label className="text-xs uppercase tracking-widest2 text-brand-ink/50">
+              <label className="text-xs uppercase tracking-widest2 text-noche-ink-muted">
                 Fecha
               </label>
               <input
                 type="date"
                 value={fecha}
                 onChange={(e) => setFecha(e.target.value)}
-                className="mt-1 w-full border border-brand-black/20 px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2 text-sm text-noche-ink"
               />
             </div>
             <div className="flex-1">
-              <label className="text-xs uppercase tracking-widest2 text-brand-ink/50">
+              <label className="text-xs uppercase tracking-widest2 text-noche-ink-muted">
                 Hora
               </label>
               <input
                 type="time"
                 value={hora}
                 onChange={(e) => setHora(e.target.value)}
-                className="mt-1 w-full border border-brand-black/20 px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2 text-sm text-noche-ink"
               />
             </div>
             <div className="w-24">
-              <label className="text-xs uppercase tracking-widest2 text-brand-ink/50">
+              <label className="text-xs uppercase tracking-widest2 text-noche-ink-muted">
                 Pers.
               </label>
               <input
@@ -138,14 +139,14 @@ export function ReservaModal({
                 min={1}
                 value={numPersonas}
                 onChange={(e) => setNumPersonas(e.target.value)}
-                className="mt-1 w-full border border-brand-black/20 px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2 text-sm text-noche-ink"
               />
             </div>
           </div>
 
           <div className="flex gap-3">
             <div className="flex-1">
-              <label className="text-xs uppercase tracking-widest2 text-brand-ink/50">
+              <label className="text-xs uppercase tracking-widest2 text-noche-ink-muted">
                 Zona (opcional)
               </label>
               <select
@@ -154,7 +155,7 @@ export function ReservaModal({
                   setZonaId(e.target.value);
                   setMesaId("");
                 }}
-                className="mt-1 w-full border border-brand-black/20 px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2 text-sm text-noche-ink"
               >
                 <option value="">Cualquiera</option>
                 {zonas.map((zona) => (
@@ -165,13 +166,13 @@ export function ReservaModal({
               </select>
             </div>
             <div className="flex-1">
-              <label className="text-xs uppercase tracking-widest2 text-brand-ink/50">
+              <label className="text-xs uppercase tracking-widest2 text-noche-ink-muted">
                 Mesa (opcional)
               </label>
               <select
                 value={mesaId}
                 onChange={(e) => setMesaId(e.target.value)}
-                className="mt-1 w-full border border-brand-black/20 px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2 text-sm text-noche-ink"
               >
                 <option value="">Sin asignar</option>
                 {mesasFiltradas.map((mesa) => (
@@ -184,25 +185,25 @@ export function ReservaModal({
           </div>
 
           <div>
-            <label className="text-xs uppercase tracking-widest2 text-brand-ink/50">
+            <label className="text-xs uppercase tracking-widest2 text-noche-ink-muted">
               Notas (opcional)
             </label>
             <textarea
               value={notas}
               onChange={(e) => setNotas(e.target.value)}
               rows={2}
-              className="mt-1 w-full border border-brand-black/20 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2 text-sm text-noche-ink"
             />
           </div>
         </div>
 
-        {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
+        {error ? <p className="mt-3 text-sm text-noche-danger">{error}</p> : null}
 
         <button
           type="button"
           onClick={handleGuardar}
           disabled={guardando}
-          className="mt-5 w-full bg-brand-black py-3 text-sm uppercase tracking-widest2 text-brand-cream disabled:opacity-50"
+          className="mt-5 w-full rounded-lg bg-noche-primary py-3 text-sm uppercase tracking-widest2 text-noche-ink disabled:opacity-50"
         >
           {guardando ? "Guardando…" : "Guardar reserva"}
         </button>

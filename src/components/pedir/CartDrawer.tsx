@@ -7,7 +7,7 @@ import { useTableSession } from "@/components/mesa/table-session-context";
 import { formatCentimos } from "@/lib/format";
 import { splitEqually } from "@/lib/restaurant/split";
 import { crearPedido, getCarta, validarMesaPorNumero } from "@/lib/restaurant/queries";
-import { CloseIcon, ShareIcon } from "@/components/icons";
+import { CloseIcon, MinusIcon, PlusIcon, ShareIcon, TrashIcon } from "@/components/icons";
 import type { PaymentMethod, RepartoInput } from "@/lib/restaurant/types";
 
 interface CambioPrecio {
@@ -234,9 +234,12 @@ export function CartDrawer({
           </p>
         ) : null}
 
-        <ul className="mt-6 divide-y divide-noche-border">
+        <ul className="mt-6 space-y-3">
           {lines.map((line) => (
-            <li key={line.producto.id} className="py-3">
+            <li
+              key={line.producto.id}
+              className="rounded-lg border border-noche-border bg-noche-surface/40 p-4"
+            >
               <div className="flex items-center justify-between gap-4">
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-noche-ink">{line.producto.nombre}</p>
@@ -253,9 +256,9 @@ export function CartDrawer({
                       descartarCambiosPrecio();
                     }}
                     aria-label="Quitar una unidad"
-                    className="flex h-8 w-8 items-center justify-center border border-noche-border text-noche-ink"
+                    className="flex h-8 w-8 items-center justify-center rounded-full border border-noche-border text-noche-ink transition-colors hover:border-noche-primary hover:text-noche-primary"
                   >
-                    −
+                    <MinusIcon className="h-3.5 w-3.5" />
                   </button>
                   <span className="w-4 text-center text-sm text-noche-ink">{line.cantidad}</span>
                   <button
@@ -265,9 +268,9 @@ export function CartDrawer({
                       descartarCambiosPrecio();
                     }}
                     aria-label="Añadir una unidad"
-                    className="flex h-8 w-8 items-center justify-center border border-noche-border text-noche-ink"
+                    className="flex h-8 w-8 items-center justify-center rounded-full border border-noche-border text-noche-ink transition-colors hover:border-noche-primary hover:text-noche-primary"
                   >
-                    +
+                    <PlusIcon className="h-3.5 w-3.5" />
                   </button>
                   <button
                     type="button"
@@ -276,15 +279,15 @@ export function CartDrawer({
                       descartarCambiosPrecio();
                     }}
                     aria-label="Eliminar producto del pedido"
-                    className="ml-1 text-noche-ink-muted hover:text-noche-primary"
+                    className="ml-1 flex h-8 w-8 items-center justify-center rounded-full text-noche-ink-muted transition-colors hover:bg-noche-danger/10 hover:text-noche-danger"
                   >
-                    <CloseIcon className="h-4 w-4" />
+                    <TrashIcon className="h-4 w-4" />
                   </button>
                 </div>
               </div>
 
               {separado ? (
-                <div className="mt-2">
+                <div className="mt-3">
                   <button
                     type="button"
                     onClick={() =>
@@ -301,22 +304,48 @@ export function CartDrawer({
                   </button>
 
                   {sharingProductId === line.producto.id ? (
-                    <div className="mt-2 border border-noche-border bg-noche-surface p-3">
+                    <div className="mt-2 rounded-lg border border-noche-border bg-noche-surface p-3">
                       {otrosParticipantes.length === 0 ? (
                         <p className="text-xs text-noche-ink-muted">
                           Todavía no hay más comensales en la mesa.
                         </p>
                       ) : (
-                        otrosParticipantes.map((p) => (
-                          <label key={p.id} className="flex items-center gap-2 py-1 text-sm text-noche-ink">
-                            <input
-                              type="checkbox"
-                              checked={line.compartidoCon.includes(p.id)}
-                              onChange={() => toggleShare(line.producto.id, p.id)}
-                            />
-                            {p.nombre}
-                          </label>
-                        ))
+                        <>
+                          <div className="space-y-1">
+                            {otrosParticipantes.map((p) => {
+                              const checked = line.compartidoCon.includes(p.id);
+                              return (
+                                <label
+                                  key={p.id}
+                                  className={`flex items-center gap-2 rounded-lg border px-2 py-1.5 text-sm transition-colors ${
+                                    checked
+                                      ? "border-noche-primary/40 bg-noche-primary/10 text-noche-ink"
+                                      : "border-transparent text-noche-ink hover:bg-noche-surface-2/60"
+                                  }`}
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={checked}
+                                    onChange={() => toggleShare(line.producto.id, p.id)}
+                                    className="accent-noche-primary"
+                                  />
+                                  {p.nombre}
+                                </label>
+                              );
+                            })}
+                          </div>
+                          {line.compartidoCon.length > 0 ? (
+                            <p className="mt-2 text-xs text-noche-ink-muted">
+                              {formatCentimos(
+                                splitEqually(
+                                  line.producto.precio_centimos * line.cantidad,
+                                  line.compartidoCon.length + 1,
+                                )[0] ?? 0,
+                              )}{" "}
+                              € por persona
+                            </p>
+                          ) : null}
+                        </>
                       )}
                     </div>
                   ) : null}
@@ -326,17 +355,20 @@ export function CartDrawer({
           ))}
         </ul>
 
-        <div className="mt-6 flex items-center justify-between border-t border-noche-border pt-4">
+        <div className="mt-6 flex items-center justify-between rounded-lg border border-noche-border bg-noche-surface-2/50 px-4 py-4">
           <span className="text-sm uppercase tracking-widest2 text-noche-ink-muted">
             {separado ? "Mi parte" : "Total"}
           </span>
-          <span className="font-display text-2xl text-noche-ink">
+          <span
+            className={`font-display text-2xl ${separado ? "text-noche-primary" : "text-noche-ink"}`}
+          >
             {formatCentimos(miParteCentimos)} €
           </span>
         </div>
         {separado && miParteCentimos !== totalCentimos ? (
           <p className="mt-1 text-right text-xs text-noche-ink-muted">
-            Total de la mesa para este pedido: {formatCentimos(totalCentimos)} €
+            Total de la mesa para este pedido:{" "}
+            <span className="text-noche-ink">{formatCentimos(totalCentimos)} €</span>
           </p>
         ) : null}
 
@@ -346,7 +378,7 @@ export function CartDrawer({
             <button
               type="button"
               onClick={() => setPaymentMethod("LOCAL")}
-              className={`flex-1 border px-4 py-3 text-center text-sm transition-colors ${
+              className={`flex-1 rounded-lg border px-4 py-3 text-center text-sm transition-colors ${
                 paymentMethod === "LOCAL"
                   ? "border-noche-ink bg-noche-ink text-noche-bg"
                   : "border-noche-border text-noche-ink-muted"
@@ -357,7 +389,7 @@ export function CartDrawer({
             <button
               type="button"
               onClick={() => setPaymentMethod("ONLINE")}
-              className={`flex-1 border px-4 py-3 text-center text-sm transition-colors ${
+              className={`flex-1 rounded-lg border px-4 py-3 text-center text-sm transition-colors ${
                 paymentMethod === "ONLINE"
                   ? "border-noche-ink bg-noche-ink text-noche-bg"
                   : "border-noche-border text-noche-ink-muted"
@@ -368,10 +400,10 @@ export function CartDrawer({
           </div>
         </div>
 
-        {error ? <p className="mt-4 text-sm text-red-400">{error}</p> : null}
+        {error ? <p className="mt-4 text-sm text-noche-danger">{error}</p> : null}
 
         {cambiosPrecio && cambiosPrecio.length > 0 ? (
-          <div className="mt-4 border border-noche-primary/60 bg-noche-primary/10 p-4">
+          <div className="mt-4 rounded-lg border border-noche-primary/60 bg-noche-primary/10 p-4">
             <p className="text-sm font-medium text-noche-ink">
               Algunos precios han cambiado desde que abriste la carta
             </p>
@@ -415,14 +447,14 @@ export function CartDrawer({
               value={tableNumberInput}
               onChange={(event) => setTableNumberInput(event.target.value)}
               placeholder="Nº de mesa"
-              className="mt-3 w-full border border-noche-border bg-noche-surface px-4 py-3 text-sm text-noche-ink"
+              className="mt-3 w-full rounded-lg border border-noche-border bg-noche-surface px-4 py-3 text-sm text-noche-ink"
             />
-            {tableError ? <p className="mt-2 text-sm text-red-400">{tableError}</p> : null}
+            {tableError ? <p className="mt-2 text-sm text-noche-danger">{tableError}</p> : null}
             <button
               type="button"
               onClick={handleConfirmTableNumber}
               disabled={resolvingTable || submitting || tableNumberInput.trim() === ""}
-              className="mt-3 w-full bg-noche-ink py-4 text-sm uppercase tracking-widest2 text-noche-bg transition-colors disabled:opacity-50"
+              className="mt-3 w-full rounded-lg bg-noche-ink py-4 text-sm uppercase tracking-widest2 text-noche-bg transition-colors disabled:opacity-50"
             >
               {resolvingTable || submitting ? "Comprobando…" : "Confirmar mesa"}
             </button>
@@ -437,7 +469,7 @@ export function CartDrawer({
               lines.length === 0 ||
               (cambiosPrecio !== null && cambiosPrecio.length > 0 && !preciosAceptados)
             }
-            className="mt-6 w-full bg-noche-primary py-4 text-sm uppercase tracking-widest2 text-white transition-colors hover:bg-noche-primary-dark disabled:opacity-50"
+            className="mt-6 w-full rounded-lg bg-noche-primary py-4 text-sm uppercase tracking-widest2 text-white transition-colors hover:bg-noche-primary-dark disabled:opacity-50"
           >
             {comprobandoPrecios
               ? "Comprobando precios…"

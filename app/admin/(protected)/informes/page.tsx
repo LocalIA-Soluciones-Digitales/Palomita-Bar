@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 export default function InformesPage() {
   return (
     <div>
-      <h1 className="font-display text-2xl text-brand-ink print:hidden">Informes</h1>
+      <h1 className="font-display text-2xl text-noche-ink print:hidden">Informes</h1>
       <InformeVentas />
     </div>
   );

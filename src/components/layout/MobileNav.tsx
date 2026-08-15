@@ -52,16 +52,9 @@ export function MobileNav() {
             <Link
               href="/pedir"
               onClick={() => setOpen(false)}
-              className="mt-4 inline-flex w-fit items-center bg-noche-primary px-6 py-3 text-sm uppercase tracking-widest2 text-white"
+              className="mt-4 inline-flex w-fit items-center rounded-full bg-noche-primary px-6 py-3 text-sm font-medium text-white"
             >
               Pedir
-            </Link>
-            <Link
-              href="/admin"
-              onClick={() => setOpen(false)}
-              className="text-xs uppercase tracking-widest2 text-noche-ink-muted"
-            >
-              Equipo
             </Link>
           </nav>
         </div>

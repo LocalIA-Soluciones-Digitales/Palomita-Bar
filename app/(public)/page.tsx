@@ -2,6 +2,7 @@ import { getCarta, getCategorias, getHorarioPublico, getSiteImages } from "@/lib
 import { HeroSection } from "@/components/home/HeroSection";
 import { AboutSection } from "@/components/home/AboutSection";
 import { CuratedSection } from "@/components/home/CuratedSection";
+import { ReviewsSection } from "@/components/home/ReviewsSection";
 import { AmbienceSection } from "@/components/home/AmbienceSection";
 import { LocationSection } from "@/components/home/LocationSection";
 
@@ -22,6 +23,7 @@ export default async function HomePage() {
       <HeroSection image={siteImages?.hero ?? null} />
       <AboutSection image={siteImages?.about ?? null} />
       <CuratedSection productos={destacados} categorias={categorias} />
+      <ReviewsSection />
       <AmbienceSection images={siteImages?.ambiente ?? []} />
       <LocationSection horario={horario} />
     </>

@@ -10,6 +10,7 @@ import {
 } from "@/lib/restaurant/admin-queries";
 import type { CategoriaAdmin, ProductoAdmin } from "@/lib/restaurant/admin-types";
 import { errorMessage, formatCentimos } from "@/lib/format";
+import { PencilIcon, PlusIcon, TrashIcon } from "@/components/icons";
 
 const FORM_VACIO = {
   nombre: "",
@@ -134,36 +135,36 @@ export default function ProductosAdminPage() {
 
   return (
     <div className="max-w-4xl">
-      <h1 className="font-display text-2xl">Productos</h1>
+      <h1 className="font-display text-2xl text-noche-ink">Productos</h1>
 
-      <div className="mt-6 grid grid-cols-2 gap-3 border border-brand-black/10 bg-white p-4 sm:grid-cols-4">
+      <div className="mt-6 grid grid-cols-2 gap-3 rounded-lg border border-noche-border bg-noche-surface p-4 sm:grid-cols-4">
         <div className="col-span-2">
-          <label className="text-xs uppercase tracking-widest2 text-brand-ink/50">Nombre</label>
+          <label className="text-xs uppercase tracking-widest2 text-noche-ink-muted">Nombre</label>
           <input
             value={form.nombre}
             onChange={(e) => setForm((f) => ({ ...f, nombre: e.target.value }))}
-            className="mt-1 w-full border border-brand-black/20 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2 text-sm text-noche-ink"
           />
         </div>
         <div>
-          <label className="text-xs uppercase tracking-widest2 text-brand-ink/50">
+          <label className="text-xs uppercase tracking-widest2 text-noche-ink-muted">
             Precio (€)
           </label>
           <input
             value={form.precio}
             onChange={(e) => setForm((f) => ({ ...f, precio: e.target.value }))}
             placeholder="6,50"
-            className="mt-1 w-full border border-brand-black/20 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2 text-sm text-noche-ink"
           />
         </div>
         <div>
-          <label className="text-xs uppercase tracking-widest2 text-brand-ink/50">
+          <label className="text-xs uppercase tracking-widest2 text-noche-ink-muted">
             Categoría
           </label>
           <select
             value={form.categoriaId}
             onChange={(e) => setForm((f) => ({ ...f, categoriaId: e.target.value }))}
-            className="mt-1 w-full border border-brand-black/20 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2 text-sm text-noche-ink"
           >
             <option value="">Sin categoría</option>
             {categorias.map((c) => (
@@ -174,28 +175,28 @@ export default function ProductosAdminPage() {
           </select>
         </div>
         <div className="col-span-2 sm:col-span-4">
-          <label className="text-xs uppercase tracking-widest2 text-brand-ink/50">
+          <label className="text-xs uppercase tracking-widest2 text-noche-ink-muted">
             Descripción
           </label>
           <input
             value={form.descripcion}
             onChange={(e) => setForm((f) => ({ ...f, descripcion: e.target.value }))}
-            className="mt-1 w-full border border-brand-black/20 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2 text-sm text-noche-ink"
           />
         </div>
 
         <div className="col-span-2 sm:col-span-4">
-          <label className="text-xs uppercase tracking-widest2 text-brand-ink/50">Foto</label>
+          <label className="text-xs uppercase tracking-widest2 text-noche-ink-muted">Foto</label>
           <div className="mt-1 flex items-center gap-3">
             {form.imagenUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={form.imagenUrl}
                 alt=""
-                className="h-16 w-16 shrink-0 border border-brand-black/10 object-cover"
+                className="h-16 w-16 shrink-0 rounded-lg border border-noche-border object-cover"
               />
             ) : (
-              <div className="h-16 w-16 shrink-0 border border-dashed border-brand-black/20 bg-brand-sand" />
+              <div className="h-16 w-16 shrink-0 rounded-lg border border-dashed border-noche-border bg-noche-surface-2" />
             )}
             <input
               type="file"
@@ -205,16 +206,16 @@ export default function ProductosAdminPage() {
                 const file = e.target.files?.[0];
                 if (file) handleSubirImagen(file);
               }}
-              className="text-xs"
+              className="text-xs text-noche-ink-muted"
             />
             {subiendoImagen ? (
-              <span className="text-xs text-brand-ink/50">Subiendo…</span>
+              <span className="text-xs text-noche-ink-muted">Subiendo…</span>
             ) : null}
             {form.imagenUrl ? (
               <button
                 type="button"
                 onClick={() => setForm((f) => ({ ...f, imagenUrl: null }))}
-                className="text-xs uppercase tracking-widest2 text-brand-ink/40 hover:text-red-600"
+                className="text-xs uppercase tracking-widest2 text-noche-ink-faint hover:text-noche-danger"
               >
                 Quitar
               </button>
@@ -222,7 +223,7 @@ export default function ProductosAdminPage() {
           </div>
         </div>
 
-        <label className="flex items-center gap-2 text-sm">
+        <label className="flex items-center gap-2 text-sm text-noche-ink">
           <input
             type="checkbox"
             checked={form.disponible}
@@ -230,7 +231,7 @@ export default function ProductosAdminPage() {
           />
           Disponible
         </label>
-        <label className="flex items-center gap-2 text-sm">
+        <label className="flex items-center gap-2 text-sm text-noche-ink">
           <input
             type="checkbox"
             checked={form.destacado}
@@ -244,8 +245,9 @@ export default function ProductosAdminPage() {
             type="button"
             onClick={handleGuardar}
             disabled={guardando || subiendoImagen}
-            className="bg-brand-black px-4 py-2 text-xs uppercase tracking-widest2 text-brand-cream disabled:opacity-50"
+            className="flex items-center gap-1.5 rounded-lg bg-noche-primary px-4 py-2 text-xs uppercase tracking-widest2 text-noche-ink disabled:opacity-50"
           >
+            <PlusIcon className="h-3.5 w-3.5" />
             {editandoId ? "Guardar cambios" : "Añadir producto"}
           </button>
           {editandoId ? (
@@ -255,7 +257,7 @@ export default function ProductosAdminPage() {
                 setEditandoId(null);
                 setForm(FORM_VACIO);
               }}
-              className="text-xs uppercase tracking-widest2 text-brand-ink/50"
+              className="text-xs uppercase tracking-widest2 text-noche-ink-muted"
             >
               Cancelar
             </button>
@@ -263,11 +265,11 @@ export default function ProductosAdminPage() {
         </div>
       </div>
 
-      {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
+      {error ? <p className="mt-3 text-sm text-noche-danger">{error}</p> : null}
 
-      <table className="mt-6 w-full border-collapse bg-white text-sm">
+      <table className="mt-6 w-full border-collapse overflow-hidden rounded-lg bg-noche-surface text-sm text-noche-ink">
         <thead>
-          <tr className="border-b border-brand-black/10 text-left text-xs uppercase tracking-widest2 text-brand-ink/50">
+          <tr className="border-b border-noche-border text-left text-xs uppercase tracking-widest2 text-noche-ink-muted">
             <th className="p-3" />
             <th className="p-3">Nombre</th>
             <th className="p-3">Categoría</th>
@@ -278,17 +280,17 @@ export default function ProductosAdminPage() {
         </thead>
         <tbody>
           {productos?.map((producto) => (
-            <tr key={producto.id} className="border-b border-brand-black/5">
+            <tr key={producto.id} className="border-b border-noche-border/50">
               <td className="p-3">
                 {producto.imagen_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={producto.imagen_url}
                     alt=""
-                    className="h-10 w-10 object-cover"
+                    className="h-10 w-10 rounded-lg object-cover"
                   />
                 ) : (
-                  <div className="h-10 w-10 bg-brand-sand" />
+                  <div className="h-10 w-10 rounded-lg bg-noche-surface-2" />
                 )}
               </td>
               <td className="p-3">{producto.nombre}</td>
@@ -300,8 +302,8 @@ export default function ProductosAdminPage() {
                   onClick={() => handleToggleDisponible(producto)}
                   className={
                     producto.disponible
-                      ? "bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800"
-                      : "bg-brand-black/10 px-2 py-0.5 text-xs font-medium text-brand-ink/50"
+                      ? "rounded-full bg-noche-positive/15 px-2 py-0.5 text-xs font-medium text-noche-positive"
+                      : "rounded-full bg-noche-surface-2 px-2 py-0.5 text-xs font-medium text-noche-ink-muted"
                   }
                 >
                   {producto.disponible ? "Sí" : "No"}
@@ -311,15 +313,17 @@ export default function ProductosAdminPage() {
                 <button
                   type="button"
                   onClick={() => handleEditar(producto)}
-                  className="mr-3 text-xs uppercase tracking-widest2 text-brand-ink/60 hover:text-brand-pink"
+                  className="mr-3 inline-flex items-center gap-1 text-xs uppercase tracking-widest2 text-noche-ink-muted hover:text-noche-primary"
                 >
+                  <PencilIcon className="h-3 w-3" />
                   Editar
                 </button>
                 <button
                   type="button"
                   onClick={() => handleEliminar(producto.id)}
-                  className="text-xs uppercase tracking-widest2 text-brand-ink/60 hover:text-red-600"
+                  className="inline-flex items-center gap-1 text-xs uppercase tracking-widest2 text-noche-ink-muted hover:text-noche-danger"
                 >
+                  <TrashIcon className="h-3 w-3" />
                   Eliminar
                 </button>
               </td>

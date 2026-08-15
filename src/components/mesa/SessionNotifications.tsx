@@ -61,7 +61,7 @@ export function SessionNotifications() {
       {toasts.map((toast) => (
         <div
           key={toast.id}
-          className="max-w-sm border border-noche-border bg-noche-surface px-4 py-3 text-center text-sm text-noche-ink shadow-lg shadow-noche-bg/40"
+          className="max-w-sm rounded-lg border border-noche-border bg-noche-surface px-4 py-3 text-center text-sm text-noche-ink shadow-lg shadow-noche-bg/40"
         >
           {toast.mensaje}
         </div>

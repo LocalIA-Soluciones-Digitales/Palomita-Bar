@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { getInformeVentasAdmin } from "@/lib/restaurant/admin-queries";
 import { formatCentimos } from "@/lib/format";
 import type { InformeVentas } from "@/lib/restaurant/admin-types";
+import { Stat } from "@/components/admin/Stat";
+import { PrinterIcon } from "@/components/icons";
 
 type RangoId = "hoy" | "7d" | "30d" | "mes" | "mes_anterior";
 
@@ -87,10 +89,10 @@ export function InformeVentas() {
               key={r.id}
               type="button"
               onClick={() => setRango(r.id)}
-              className={`px-3 py-1.5 text-xs uppercase tracking-widest2 ${
+              className={`rounded-lg px-3 py-1.5 text-xs uppercase tracking-widest2 ${
                 rango === r.id
-                  ? "bg-brand-black text-brand-cream"
-                  : "border border-brand-black/10 bg-white text-brand-ink/60"
+                  ? "bg-noche-primary/15 text-noche-primary"
+                  : "border border-noche-border bg-noche-surface text-noche-ink-muted"
               }`}
             >
               {r.label}
@@ -100,21 +102,22 @@ export function InformeVentas() {
         <button
           type="button"
           onClick={() => window.print()}
-          className="border border-brand-black px-4 py-2 text-xs uppercase tracking-widest2 hover:bg-brand-black hover:text-brand-cream"
+          className="flex items-center gap-1.5 rounded-lg border border-noche-border px-4 py-2 text-xs uppercase tracking-widest2 text-noche-ink hover:bg-noche-surface-2"
         >
+          <PrinterIcon className="h-3.5 w-3.5" />
           Imprimir / Guardar PDF
         </button>
       </div>
 
       <div className="mt-6 hidden print:block">
-        <p className="text-xs uppercase tracking-widest2 text-brand-pink">Palomita Bar</p>
+        <p className="text-xs uppercase tracking-widest2 text-noche-primary">Palomita Bar</p>
         <h1 className="mt-1 font-display text-2xl">Informe de ventas — {etiqueta}</h1>
       </div>
 
-      {error ? <p className="mt-4 text-sm text-red-600">{error}</p> : null}
+      {error ? <p className="mt-4 text-sm text-noche-danger">{error}</p> : null}
 
       {!informe ? (
-        <p className="mt-6 text-sm text-brand-ink/50">Cargando…</p>
+        <p className="mt-6 text-sm text-noche-ink-muted">Cargando…</p>
       ) : (
         <div className="mt-6 space-y-8">
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -128,15 +131,15 @@ export function InformeVentas() {
           </div>
 
           <div>
-            <h2 className="font-display text-lg">Ventas por día</h2>
+            <h2 className="font-display text-lg text-noche-ink">Ventas por día</h2>
             {informe.por_dia.length === 0 ? (
-              <p className="mt-2 text-sm text-brand-ink/50">Sin pedidos en este periodo.</p>
+              <p className="mt-2 text-sm text-noche-ink-muted">Sin pedidos en este periodo.</p>
             ) : (
-              <div className="mt-3 flex h-32 items-end gap-1 border-b border-brand-black/10 pb-1">
+              <div className="mt-3 flex h-32 items-end gap-1 border-b border-noche-border pb-1">
                 {informe.por_dia.map((dia) => (
                   <div
                     key={dia.fecha}
-                    className="group relative flex-1 bg-brand-pink/70 transition-colors hover:bg-brand-pink"
+                    className="group relative flex-1 rounded-t-md bg-noche-primary/70 transition-colors hover:bg-noche-primary"
                     style={{
                       height: `${Math.max(4, (dia.ventas_centimos / maxVentasDia) * 100)}%`,
                     }}
@@ -148,43 +151,43 @@ export function InformeVentas() {
           </div>
 
           <div>
-            <h2 className="font-display text-lg">Por categoría</h2>
+            <h2 className="font-display text-lg text-noche-ink">Por categoría</h2>
             <div className="mt-3 space-y-2">
               {informe.por_categoria
                 .filter((c) => c.unidades > 0)
                 .map((cat) => (
-                  <div key={cat.categoria} className="flex items-center gap-3 text-sm">
+                  <div key={cat.categoria} className="flex items-center gap-3 text-sm text-noche-ink">
                     <span className="w-40 shrink-0 truncate">{cat.categoria}</span>
-                    <div className="h-3 flex-1 bg-brand-sand">
+                    <div className="h-3 flex-1 rounded-full bg-noche-surface-2">
                       <div
-                        className="h-3 bg-brand-pink"
+                        className="h-3 rounded-full bg-noche-primary"
                         style={{ width: `${(cat.unidades / maxUnidadesCategoria) * 100}%` }}
                       />
                     </div>
-                    <span className="w-24 shrink-0 text-right text-brand-ink/60">
+                    <span className="w-24 shrink-0 text-right text-noche-ink-muted">
                       {cat.unidades} uds · {formatCentimos(cat.ventas_centimos)} €
                     </span>
                   </div>
                 ))}
               {informe.por_categoria.every((c) => c.unidades === 0) ? (
-                <p className="text-sm text-brand-ink/50">Sin pedidos en este periodo.</p>
+                <p className="text-sm text-noche-ink-muted">Sin pedidos en este periodo.</p>
               ) : null}
             </div>
           </div>
 
           <div className="grid gap-6 sm:grid-cols-2">
             <div>
-              <h2 className="font-display text-lg">Platos más pedidos</h2>
+              <h2 className="font-display text-lg text-noche-ink">Platos más pedidos</h2>
               {masPedidos.length === 0 ? (
-                <p className="mt-2 text-sm text-brand-ink/50">Sin pedidos en este periodo.</p>
+                <p className="mt-2 text-sm text-noche-ink-muted">Sin pedidos en este periodo.</p>
               ) : (
-                <ol className="mt-3 space-y-1 text-sm">
+                <ol className="mt-3 space-y-1 text-sm text-noche-ink">
                   {masPedidos.map((p, i) => (
                     <li key={p.producto_id} className="flex justify-between gap-3">
                       <span className="truncate">
                         {i + 1}. {p.nombre}
                       </span>
-                      <span className="shrink-0 text-brand-ink/60">{p.unidades} uds</span>
+                      <span className="shrink-0 text-noche-ink-muted">{p.unidades} uds</span>
                     </li>
                   ))}
                 </ol>
@@ -192,20 +195,20 @@ export function InformeVentas() {
             </div>
 
             <div>
-              <h2 className="font-display text-lg">Sin movimiento</h2>
-              <p className="mt-1 text-xs text-brand-ink/50">
+              <h2 className="font-display text-lg text-noche-ink">Sin movimiento</h2>
+              <p className="mt-1 text-xs text-noche-ink-muted">
                 No se han pedido en este periodo — candidatos a destacar, cambiar de receta o
                 quitar de la carta.
               </p>
               {sinMovimiento.length === 0 ? (
-                <p className="mt-2 text-sm text-brand-ink/50">
+                <p className="mt-2 text-sm text-noche-ink-muted">
                   Todos los platos han tenido movimiento.
                 </p>
               ) : (
-                <ul className="mt-3 space-y-1 text-sm text-brand-ink/70">
+                <ul className="mt-3 space-y-1 text-sm text-noche-ink-muted">
                   {sinMovimiento.map((p) => (
                     <li key={p.producto_id}>
-                      {p.nombre} <span className="text-brand-ink/40">· {p.categoria}</span>
+                      {p.nombre} <span className="text-noche-ink-faint">· {p.categoria}</span>
                     </li>
                   ))}
                 </ul>
@@ -214,15 +217,6 @@ export function InformeVentas() {
           </div>
         </div>
       )}
-    </div>
-  );
-}
-
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="border border-brand-black/10 bg-white p-4">
-      <p className="text-xs uppercase tracking-widest2 text-brand-ink/50">{label}</p>
-      <p className="mt-2 font-display text-3xl">{value}</p>
     </div>
   );
 }

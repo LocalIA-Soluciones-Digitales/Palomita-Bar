@@ -17,16 +17,16 @@ export function MesasTabs({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin[
 
   return (
     <div>
-      <div className="mt-4 flex gap-1 border-b border-brand-black/10">
+      <div className="mt-4 flex gap-1 overflow-x-auto border-b border-noche-border">
         {TABS.map((t) => (
           <button
             key={t.id}
             type="button"
             onClick={() => setTab(t.id)}
-            className={`px-4 py-2 text-xs uppercase tracking-widest2 ${
+            className={`shrink-0 px-4 py-2 text-xs uppercase tracking-widest2 ${
               tab === t.id
-                ? "border-b-2 border-brand-pink text-brand-ink"
-                : "text-brand-ink/40 hover:text-brand-ink"
+                ? "border-b-2 border-noche-primary text-noche-ink"
+                : "text-noche-ink-faint hover:text-noche-ink"
             }`}
           >
             {t.label}

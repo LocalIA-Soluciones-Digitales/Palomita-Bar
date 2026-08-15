@@ -20,7 +20,7 @@ export default async function MesasAdminPage() {
 
   return (
     <div>
-      <h1 className="font-display text-2xl text-brand-ink">Mesas</h1>
+      <h1 className="font-display text-2xl text-noche-ink">Mesas</h1>
       <MesasTabs mesasIniciales={mesasIniciales} />
     </div>
   );

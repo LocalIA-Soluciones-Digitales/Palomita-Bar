@@ -7,6 +7,7 @@ import {
   getCamarerosAdmin,
 } from "@/lib/restaurant/admin-queries";
 import type { CamareroAdmin } from "@/lib/restaurant/admin-types";
+import { PlusIcon, UsersIcon } from "@/components/icons";
 
 function mensajeError(base: string, err: unknown): string {
   const detalle =
@@ -55,11 +56,12 @@ export function CamarerosGestion() {
   };
 
   return (
-    <div className="mt-6 border border-brand-black/10 bg-white p-4">
-      <p className="text-xs uppercase tracking-widest2 text-brand-ink/50">
+    <div className="mt-6 rounded-lg border border-noche-border bg-noche-surface p-4">
+      <p className="flex items-center gap-1.5 text-xs uppercase tracking-widest2 text-noche-ink-muted">
+        <UsersIcon className="h-3.5 w-3.5" />
         Personal (camareros)
       </p>
-      <p className="mt-1 text-xs text-brand-ink/40">
+      <p className="mt-1 text-xs text-noche-ink-faint">
         Se usan para asignar quién atiende cada mesa en el plano de Salón.
       </p>
 
@@ -69,30 +71,31 @@ export function CamarerosGestion() {
           onChange={(e) => setNuevoNombre(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleCrear()}
           placeholder="Nombre del camarero"
-          className="flex-1 border border-brand-black/20 px-3 py-2 text-sm"
+          className="flex-1 rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2 text-sm text-noche-ink"
         />
         <button
           type="button"
           onClick={handleCrear}
-          className="bg-brand-black px-4 py-2 text-xs uppercase tracking-widest2 text-brand-cream"
+          className="flex items-center gap-1.5 rounded-lg bg-noche-primary px-4 py-2 text-xs uppercase tracking-widest2 text-noche-ink"
         >
+          <PlusIcon className="h-3.5 w-3.5" />
           Añadir
         </button>
       </div>
 
-      {error ? <p className="mt-2 text-sm text-red-600">{error}</p> : null}
+      {error ? <p className="mt-2 text-sm text-noche-danger">{error}</p> : null}
 
-      <ul className="mt-4 divide-y divide-brand-black/10">
+      <ul className="mt-4 divide-y divide-noche-border">
         {camareros?.map((camarero) => (
           <li key={camarero.id} className="flex items-center justify-between py-2 text-sm">
-            <span className={camarero.activo ? "" : "text-brand-ink/40 line-through"}>
+            <span className={camarero.activo ? "text-noche-ink" : "text-noche-ink-faint line-through"}>
               {camarero.nombre}
             </span>
             <button
               type="button"
               onClick={() => handleToggleActivo(camarero)}
               className={`text-xs uppercase tracking-widest2 ${
-                camarero.activo ? "text-brand-ink/60 hover:text-red-600" : "text-green-700"
+                camarero.activo ? "text-noche-ink-muted hover:text-noche-danger" : "text-noche-positive"
               }`}
             >
               {camarero.activo ? "Dar de baja" : "Reactivar"}
@@ -100,7 +103,7 @@ export function CamarerosGestion() {
           </li>
         ))}
         {camareros?.length === 0 ? (
-          <li className="py-2 text-sm text-brand-ink/50">Todavía no hay personal dado de alta.</li>
+          <li className="py-2 text-sm text-noche-ink-muted">Todavía no hay personal dado de alta.</li>
         ) : null}
       </ul>
     </div>

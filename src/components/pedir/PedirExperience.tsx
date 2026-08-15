@@ -37,7 +37,7 @@ export function PedirExperience({
             <button
               type="button"
               onClick={() => setCuentaAbierta(true)}
-              className="mt-1 shrink-0 border border-noche-border px-4 py-2 text-xs uppercase tracking-widest2 text-noche-ink-muted transition-colors hover:border-noche-primary hover:text-noche-primary"
+              className="mt-1 shrink-0 rounded-lg border border-noche-border px-4 py-2 text-xs uppercase tracking-widest2 text-noche-ink-muted transition-colors hover:border-noche-primary hover:text-noche-primary"
             >
               Ver cuenta
             </button>

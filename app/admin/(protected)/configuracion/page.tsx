@@ -11,6 +11,7 @@ import {
 import { CamarerosGestion } from "@/components/admin/CamarerosGestion";
 import { errorMessage } from "@/lib/format";
 import type { SiteImages } from "@/lib/restaurant/types";
+import { CheckIcon } from "@/components/icons";
 
 const SITE_IMAGES_VACIO: SiteImages = {
   hero: "",
@@ -72,14 +73,14 @@ export default function ConfiguracionAdminPage() {
     }
   };
 
-  if (cargando) return <p className="text-sm text-brand-ink/50">Cargando…</p>;
+  if (cargando) return <p className="text-sm text-noche-ink-muted">Cargando…</p>;
 
   return (
     <div className="max-w-lg">
-      <h1 className="font-display text-2xl">Configuración</h1>
+      <h1 className="font-display text-2xl text-noche-ink">Configuración</h1>
 
-      <div className="mt-6 border border-brand-black/10 bg-white p-4">
-        <label className="text-xs uppercase tracking-widest2 text-brand-ink/50">
+      <div className="mt-6 rounded-lg border border-noche-border bg-noche-surface p-4">
+        <label className="text-xs uppercase tracking-widest2 text-noche-ink-muted">
           Horario (se muestra en /contacto)
         </label>
         <textarea
@@ -87,12 +88,12 @@ export default function ConfiguracionAdminPage() {
           onChange={(e) => setHorario(e.target.value)}
           rows={4}
           placeholder="Ej: Martes a domingo, 18:00 - 01:00"
-          className="mt-1 w-full border border-brand-black/20 px-3 py-2 text-sm"
+          className="mt-1 w-full rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2 text-sm text-noche-ink"
         />
       </div>
 
-      <div className="mt-6 space-y-6 border border-brand-black/10 bg-white p-4">
-        <p className="text-xs uppercase tracking-widest2 text-brand-ink/50">
+      <div className="mt-6 space-y-6 rounded-lg border border-noche-border bg-noche-surface p-4">
+        <p className="text-xs uppercase tracking-widest2 text-noche-ink-muted">
           Imágenes de la web pública
         </p>
 
@@ -121,7 +122,7 @@ export default function ConfiguracionAdminPage() {
         />
 
         <div>
-          <p className="text-xs uppercase tracking-widest2 text-brand-ink/50">
+          <p className="text-xs uppercase tracking-widest2 text-noche-ink-muted">
             Galería de ambiente (hasta 4 fotos)
           </p>
           <div className="mt-2 grid grid-cols-2 gap-3">
@@ -152,14 +153,19 @@ export default function ConfiguracionAdminPage() {
         </div>
       </div>
 
-      {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
-      {guardado ? <p className="mt-3 text-sm text-green-700">Guardado.</p> : null}
+      {error ? <p className="mt-3 text-sm text-noche-danger">{error}</p> : null}
+      {guardado ? (
+        <p className="mt-3 flex items-center gap-1.5 text-sm text-noche-positive">
+          <CheckIcon className="h-3.5 w-3.5" />
+          Guardado.
+        </p>
+      ) : null}
 
       <button
         type="button"
         onClick={handleGuardar}
         disabled={guardando || subiendoClave !== null}
-        className="mt-4 bg-brand-black px-4 py-2 text-xs uppercase tracking-widest2 text-brand-cream disabled:opacity-50"
+        className="mt-4 rounded-lg bg-noche-primary px-4 py-2 text-xs uppercase tracking-widest2 text-noche-ink disabled:opacity-50"
       >
         {guardando ? "Guardando…" : "Guardar"}
       </button>
@@ -186,18 +192,18 @@ function ImagenField({
 }) {
   return (
     <div>
-      <label className="text-xs uppercase tracking-widest2 text-brand-ink/50">{label}</label>
+      <label className="text-xs uppercase tracking-widest2 text-noche-ink-muted">{label}</label>
       <div className="mt-1 flex items-center gap-3">
         {url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={url}
             alt=""
-            className={`shrink-0 border border-brand-black/10 object-cover ${compacto ? "h-12 w-12" : "h-16 w-16"}`}
+            className={`shrink-0 rounded-lg border border-noche-border object-cover ${compacto ? "h-12 w-12" : "h-16 w-16"}`}
           />
         ) : (
           <div
-            className={`shrink-0 border border-dashed border-brand-black/20 bg-brand-sand ${compacto ? "h-12 w-12" : "h-16 w-16"}`}
+            className={`shrink-0 rounded-lg border border-dashed border-noche-border bg-noche-surface-2 ${compacto ? "h-12 w-12" : "h-16 w-16"}`}
           />
         )}
         <input
@@ -208,14 +214,14 @@ function ImagenField({
             const file = e.target.files?.[0];
             if (file) onSubir(file);
           }}
-          className="text-xs"
+          className="text-xs text-noche-ink-muted"
         />
-        {subiendo ? <span className="text-xs text-brand-ink/50">Subiendo…</span> : null}
+        {subiendo ? <span className="text-xs text-noche-ink-muted">Subiendo…</span> : null}
         {url ? (
           <button
             type="button"
             onClick={onQuitar}
-            className="text-xs uppercase tracking-widest2 text-brand-ink/40 hover:text-red-600"
+            className="text-xs uppercase tracking-widest2 text-noche-ink-faint hover:text-noche-danger"
           >
             Quitar
           </button>

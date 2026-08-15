@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { getCarta, getCategorias, crearPedido } from "@/lib/restaurant/queries";
 import { formatCentimos } from "@/lib/format";
 import type { Categoria, Producto } from "@/lib/restaurant/types";
+import { MinusIcon, PlusIcon } from "@/components/icons";
 
 export function PedidoRapidoForm({
   mesaIdentificador,
@@ -74,9 +75,10 @@ export function PedidoRapidoForm({
       <button
         type="button"
         onClick={() => setAbierto(true)}
-        className="mt-3 w-full border border-brand-black/20 py-2 text-xs uppercase tracking-widest2 text-brand-ink/70 hover:border-brand-black hover:text-brand-ink"
+        className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg border border-noche-border py-2 text-xs uppercase tracking-widest2 text-noche-ink-muted hover:border-noche-primary hover:text-noche-ink"
       >
-        + Nuevo pedido (barra)
+        <PlusIcon className="h-3.5 w-3.5" />
+        Nuevo pedido (barra)
       </button>
     );
   }
@@ -84,20 +86,20 @@ export function PedidoRapidoForm({
   const productosCategoria = productos.filter((p) => p.categoria_id === categoriaActiva);
 
   return (
-    <div className="mt-3 border border-brand-black/20 bg-brand-sand/40 p-3">
+    <div className="mt-3 rounded-lg border border-noche-border bg-noche-surface-2/60 p-3">
       <div className="flex items-center justify-between">
-        <p className="text-xs uppercase tracking-widest2 text-brand-ink/60">Nuevo pedido</p>
+        <p className="text-xs uppercase tracking-widest2 text-noche-ink-muted">Nuevo pedido</p>
         <button
           type="button"
           onClick={() => setAbierto(false)}
-          className="text-xs text-brand-ink/40 hover:text-brand-pink"
+          className="text-xs text-noche-ink-faint hover:text-noche-primary"
         >
           Cancelar
         </button>
       </div>
 
       {categorias.length === 0 ? (
-        <p className="mt-3 text-sm text-brand-ink/50">Cargando carta…</p>
+        <p className="mt-3 text-sm text-noche-ink-muted">Cargando carta…</p>
       ) : (
         <>
           <div className="mt-3 flex flex-wrap gap-1">
@@ -106,10 +108,10 @@ export function PedidoRapidoForm({
                 key={c.id}
                 type="button"
                 onClick={() => setCategoriaActiva(c.id)}
-                className={`px-2.5 py-1 text-[11px] uppercase tracking-widest2 ${
+                className={`rounded-lg px-2.5 py-1 text-[11px] uppercase tracking-widest2 ${
                   categoriaActiva === c.id
-                    ? "bg-brand-black text-brand-cream"
-                    : "bg-white text-brand-ink/60"
+                    ? "bg-noche-primary/15 text-noche-primary"
+                    : "bg-noche-surface text-noche-ink-muted"
                 }`}
               >
                 {c.nombre}
@@ -123,8 +125,8 @@ export function PedidoRapidoForm({
               return (
                 <div key={producto.id} className="flex items-center justify-between gap-2 py-1">
                   <div className="min-w-0">
-                    <p className="truncate text-sm">{producto.nombre}</p>
-                    <p className="text-xs text-brand-ink/50">
+                    <p className="truncate text-sm text-noche-ink">{producto.nombre}</p>
+                    <p className="text-xs text-noche-ink-muted">
                       {formatCentimos(producto.precio_centimos)} €
                     </p>
                   </div>
@@ -133,17 +135,17 @@ export function PedidoRapidoForm({
                       type="button"
                       onClick={() => setCantidad(producto.id, -1)}
                       disabled={cantidad === 0}
-                      className="flex h-7 w-7 items-center justify-center border border-brand-black/20 text-sm disabled:opacity-30"
+                      className="flex h-7 w-7 items-center justify-center rounded-full border border-noche-border text-noche-ink disabled:opacity-30"
                     >
-                      −
+                      <MinusIcon className="h-3 w-3" />
                     </button>
-                    <span className="w-4 text-center text-sm">{cantidad}</span>
+                    <span className="w-4 text-center text-sm text-noche-ink">{cantidad}</span>
                     <button
                       type="button"
                       onClick={() => setCantidad(producto.id, 1)}
-                      className="flex h-7 w-7 items-center justify-center border border-brand-black/20 text-sm"
+                      className="flex h-7 w-7 items-center justify-center rounded-full border border-noche-border text-noche-ink"
                     >
-                      +
+                      <PlusIcon className="h-3 w-3" />
                     </button>
                   </div>
                 </div>
@@ -151,15 +153,15 @@ export function PedidoRapidoForm({
             })}
           </div>
 
-          {error ? <p className="mt-2 text-xs text-red-600">{error}</p> : null}
+          {error ? <p className="mt-2 text-xs text-noche-danger">{error}</p> : null}
 
-          <div className="mt-3 flex items-center justify-between border-t border-brand-black/10 pt-2">
-            <span className="text-sm font-medium">{formatCentimos(totalCentimos)} €</span>
+          <div className="mt-3 flex items-center justify-between border-t border-noche-border pt-2">
+            <span className="text-sm font-medium text-noche-ink">{formatCentimos(totalCentimos)} €</span>
             <button
               type="button"
               disabled={lineas.length === 0 || enviando}
               onClick={handleEnviar}
-              className="bg-brand-pink px-4 py-2 text-xs uppercase tracking-widest2 text-white disabled:opacity-40"
+              className="rounded-lg bg-noche-primary px-4 py-2 text-xs uppercase tracking-widest2 text-noche-ink disabled:opacity-40"
             >
               {enviando ? "Enviando…" : "Enviar a cocina"}
             </button>
