@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   eliminarProductoAdmin,
   getCategoriasAdmin,
@@ -29,6 +29,7 @@ export default function ProductosAdminPage() {
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState(FORM_VACIO);
   const [editandoId, setEditandoId] = useState<string | null>(null);
+  const [formAbierto, setFormAbierto] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [subiendoImagen, setSubiendoImagen] = useState(false);
 
@@ -45,6 +46,28 @@ export default function ProductosAdminPage() {
   useEffect(() => {
     cargar();
   }, []);
+
+  const grupos = useMemo(() => {
+    if (!productos) return [];
+    const porCategoria = new Map<string, ProductoAdmin[]>();
+    for (const producto of productos) {
+      const clave = producto.categoria_id ?? "__sin_categoria__";
+      const lista = porCategoria.get(clave) ?? [];
+      lista.push(producto);
+      porCategoria.set(clave, lista);
+    }
+
+    const categoriasOrdenadas = [...categorias].sort((a, b) => a.orden - b.orden);
+    const resultado = categoriasOrdenadas
+      .filter((c) => porCategoria.has(c.id))
+      .map((c) => ({ id: c.id, nombre: c.nombre, productos: porCategoria.get(c.id)! }));
+
+    const sinCategoria = porCategoria.get("__sin_categoria__");
+    if (sinCategoria) {
+      resultado.push({ id: "__sin_categoria__", nombre: "Sin categoría", productos: sinCategoria });
+    }
+    return resultado;
+  }, [productos, categorias]);
 
   const handleSubirImagen = async (file: File) => {
     setSubiendoImagen(true);
@@ -82,6 +105,7 @@ export default function ProductosAdminPage() {
       });
       setForm(FORM_VACIO);
       setEditandoId(null);
+      setFormAbierto(false);
       await cargar();
     } catch (err) {
       setError(`No se ha podido guardar el producto: ${errorMessage(err)}`);
@@ -102,6 +126,13 @@ export default function ProductosAdminPage() {
       orden: producto.orden,
       imagenUrl: producto.imagen_url,
     });
+    setFormAbierto(true);
+  };
+
+  const handleCancelar = () => {
+    setEditandoId(null);
+    setForm(FORM_VACIO);
+    setFormAbierto(false);
   };
 
   const handleToggleDisponible = async (producto: ProductoAdmin) => {
@@ -135,202 +166,241 @@ export default function ProductosAdminPage() {
 
   return (
     <div className="max-w-4xl">
-      <h1 className="font-display text-2xl text-noche-ink">Productos</h1>
-
-      <div className="mt-6 grid grid-cols-2 gap-3 rounded-lg border border-noche-border bg-noche-surface p-4 sm:grid-cols-4">
-        <div className="col-span-2">
-          <label className="text-xs uppercase tracking-widest2 text-noche-ink-muted">Nombre</label>
-          <input
-            value={form.nombre}
-            onChange={(e) => setForm((f) => ({ ...f, nombre: e.target.value }))}
-            className="mt-1 w-full rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2 text-sm text-noche-ink"
-          />
-        </div>
-        <div>
-          <label className="text-xs uppercase tracking-widest2 text-noche-ink-muted">
-            Precio (€)
-          </label>
-          <input
-            value={form.precio}
-            onChange={(e) => setForm((f) => ({ ...f, precio: e.target.value }))}
-            placeholder="6,50"
-            className="mt-1 w-full rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2 text-sm text-noche-ink"
-          />
-        </div>
-        <div>
-          <label className="text-xs uppercase tracking-widest2 text-noche-ink-muted">
-            Categoría
-          </label>
-          <select
-            value={form.categoriaId}
-            onChange={(e) => setForm((f) => ({ ...f, categoriaId: e.target.value }))}
-            className="mt-1 w-full rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2 text-sm text-noche-ink"
-          >
-            <option value="">Sin categoría</option>
-            {categorias.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.nombre}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="col-span-2 sm:col-span-4">
-          <label className="text-xs uppercase tracking-widest2 text-noche-ink-muted">
-            Descripción
-          </label>
-          <input
-            value={form.descripcion}
-            onChange={(e) => setForm((f) => ({ ...f, descripcion: e.target.value }))}
-            className="mt-1 w-full rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2 text-sm text-noche-ink"
-          />
-        </div>
-
-        <div className="col-span-2 sm:col-span-4">
-          <label className="text-xs uppercase tracking-widest2 text-noche-ink-muted">Foto</label>
-          <div className="mt-1 flex items-center gap-3">
-            {form.imagenUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={form.imagenUrl}
-                alt=""
-                className="h-16 w-16 shrink-0 rounded-lg border border-noche-border object-cover"
-              />
-            ) : (
-              <div className="h-16 w-16 shrink-0 rounded-lg border border-dashed border-noche-border bg-noche-surface-2" />
-            )}
-            <input
-              type="file"
-              accept="image/*"
-              disabled={subiendoImagen}
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) handleSubirImagen(file);
-              }}
-              className="text-xs text-noche-ink-muted"
-            />
-            {subiendoImagen ? (
-              <span className="text-xs text-noche-ink-muted">Subiendo…</span>
-            ) : null}
-            {form.imagenUrl ? (
-              <button
-                type="button"
-                onClick={() => setForm((f) => ({ ...f, imagenUrl: null }))}
-                className="text-xs uppercase tracking-widest2 text-noche-ink-faint hover:text-noche-danger"
-              >
-                Quitar
-              </button>
-            ) : null}
-          </div>
-        </div>
-
-        <label className="flex items-center gap-2 text-sm text-noche-ink">
-          <input
-            type="checkbox"
-            checked={form.disponible}
-            onChange={(e) => setForm((f) => ({ ...f, disponible: e.target.checked }))}
-          />
-          Disponible
-        </label>
-        <label className="flex items-center gap-2 text-sm text-noche-ink">
-          <input
-            type="checkbox"
-            checked={form.destacado}
-            onChange={(e) => setForm((f) => ({ ...f, destacado: e.target.checked }))}
-          />
-          Destacado
-        </label>
-
-        <div className="col-span-2 flex items-center gap-3 sm:col-span-4">
+      <div className="flex items-center justify-between gap-4">
+        <h1 className="font-display text-2xl text-noche-ink">Productos</h1>
+        {!formAbierto ? (
           <button
             type="button"
-            onClick={handleGuardar}
-            disabled={guardando || subiendoImagen}
-            className="flex items-center gap-1.5 rounded-lg bg-noche-primary px-4 py-2 text-xs uppercase tracking-widest2 text-noche-ink disabled:opacity-50"
+            onClick={() => setFormAbierto(true)}
+            className="flex items-center gap-1.5 rounded-lg bg-noche-primary px-4 py-2 text-xs uppercase tracking-widest2 text-noche-ink transition hover:opacity-90"
           >
             <PlusIcon className="h-3.5 w-3.5" />
-            {editandoId ? "Guardar cambios" : "Añadir producto"}
+            Añadir producto
           </button>
-          {editandoId ? (
+        ) : null}
+      </div>
+
+      {formAbierto ? (
+        <div className="mt-6 rounded-xl border border-noche-border bg-noche-surface p-4 shadow-sm">
+          <div className="flex items-center justify-between">
+            <p className="text-xs uppercase tracking-widest2 text-noche-ink-muted">
+              {editandoId ? "Editar producto" : "Nuevo producto"}
+            </p>
             <button
               type="button"
-              onClick={() => {
-                setEditandoId(null);
-                setForm(FORM_VACIO);
-              }}
-              className="text-xs uppercase tracking-widest2 text-noche-ink-muted"
+              onClick={handleCancelar}
+              className="text-xs uppercase tracking-widest2 text-noche-ink-faint hover:text-noche-ink"
             >
-              Cancelar
+              Cerrar
             </button>
-          ) : null}
+          </div>
+
+          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="col-span-2">
+              <label className="text-xs uppercase tracking-widest2 text-noche-ink-muted">
+                Nombre
+              </label>
+              <input
+                value={form.nombre}
+                onChange={(e) => setForm((f) => ({ ...f, nombre: e.target.value }))}
+                className="mt-1 w-full rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2 text-sm text-noche-ink"
+              />
+            </div>
+            <div>
+              <label className="text-xs uppercase tracking-widest2 text-noche-ink-muted">
+                Precio (€)
+              </label>
+              <input
+                value={form.precio}
+                onChange={(e) => setForm((f) => ({ ...f, precio: e.target.value }))}
+                placeholder="6,50"
+                className="mt-1 w-full rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2 text-sm text-noche-ink"
+              />
+            </div>
+            <div>
+              <label className="text-xs uppercase tracking-widest2 text-noche-ink-muted">
+                Categoría
+              </label>
+              <select
+                value={form.categoriaId}
+                onChange={(e) => setForm((f) => ({ ...f, categoriaId: e.target.value }))}
+                className="mt-1 w-full rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2 text-sm text-noche-ink"
+              >
+                <option value="">Sin categoría</option>
+                {categorias.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.nombre}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="col-span-2 sm:col-span-4">
+              <label className="text-xs uppercase tracking-widest2 text-noche-ink-muted">
+                Descripción
+              </label>
+              <input
+                value={form.descripcion}
+                onChange={(e) => setForm((f) => ({ ...f, descripcion: e.target.value }))}
+                className="mt-1 w-full rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2 text-sm text-noche-ink"
+              />
+            </div>
+
+            <div className="col-span-2 sm:col-span-4">
+              <label className="text-xs uppercase tracking-widest2 text-noche-ink-muted">
+                Foto
+              </label>
+              <div className="mt-1 flex items-center gap-3">
+                {form.imagenUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={form.imagenUrl}
+                    alt=""
+                    className="h-16 w-16 shrink-0 rounded-lg border border-noche-border object-cover"
+                  />
+                ) : (
+                  <div className="h-16 w-16 shrink-0 rounded-lg border border-dashed border-noche-border bg-noche-surface-2" />
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  disabled={subiendoImagen}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleSubirImagen(file);
+                  }}
+                  className="text-xs text-noche-ink-muted"
+                />
+                {subiendoImagen ? (
+                  <span className="text-xs text-noche-ink-muted">Subiendo…</span>
+                ) : null}
+                {form.imagenUrl ? (
+                  <button
+                    type="button"
+                    onClick={() => setForm((f) => ({ ...f, imagenUrl: null }))}
+                    className="text-xs uppercase tracking-widest2 text-noche-ink-faint hover:text-noche-danger"
+                  >
+                    Quitar
+                  </button>
+                ) : null}
+              </div>
+            </div>
+
+            <label className="flex items-center gap-2 text-sm text-noche-ink">
+              <input
+                type="checkbox"
+                checked={form.disponible}
+                onChange={(e) => setForm((f) => ({ ...f, disponible: e.target.checked }))}
+              />
+              Disponible
+            </label>
+            <label className="flex items-center gap-2 text-sm text-noche-ink">
+              <input
+                type="checkbox"
+                checked={form.destacado}
+                onChange={(e) => setForm((f) => ({ ...f, destacado: e.target.checked }))}
+              />
+              Destacado
+            </label>
+
+            <div className="col-span-2 flex items-center gap-3 sm:col-span-4">
+              <button
+                type="button"
+                onClick={handleGuardar}
+                disabled={guardando || subiendoImagen}
+                className="flex items-center gap-1.5 rounded-lg bg-noche-primary px-4 py-2 text-xs uppercase tracking-widest2 text-noche-ink disabled:opacity-50"
+              >
+                <PlusIcon className="h-3.5 w-3.5" />
+                {editandoId ? "Guardar cambios" : "Añadir producto"}
+              </button>
+              <button
+                type="button"
+                onClick={handleCancelar}
+                className="text-xs uppercase tracking-widest2 text-noche-ink-muted"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
+      ) : null}
 
       {error ? <p className="mt-3 text-sm text-noche-danger">{error}</p> : null}
 
-      <table className="mt-6 w-full border-collapse overflow-hidden rounded-lg bg-noche-surface text-sm text-noche-ink">
-        <thead>
-          <tr className="border-b border-noche-border text-left text-xs uppercase tracking-widest2 text-noche-ink-muted">
-            <th className="p-3" />
-            <th className="p-3">Nombre</th>
-            <th className="p-3">Categoría</th>
-            <th className="p-3">Precio</th>
-            <th className="p-3">Disponible</th>
-            <th className="p-3" />
-          </tr>
-        </thead>
-        <tbody>
-          {productos?.map((producto) => (
-            <tr key={producto.id} className="border-b border-noche-border/50">
-              <td className="p-3">
-                {producto.imagen_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={producto.imagen_url}
-                    alt=""
-                    className="h-10 w-10 rounded-lg object-cover"
-                  />
-                ) : (
-                  <div className="h-10 w-10 rounded-lg bg-noche-surface-2" />
-                )}
-              </td>
-              <td className="p-3">{producto.nombre}</td>
-              <td className="p-3">{producto.categoria_nombre ?? "—"}</td>
-              <td className="p-3">{formatCentimos(producto.precio_centimos)} €</td>
-              <td className="p-3">
-                <button
-                  type="button"
-                  onClick={() => handleToggleDisponible(producto)}
-                  className={
-                    producto.disponible
-                      ? "rounded-full bg-noche-positive/15 px-2 py-0.5 text-xs font-medium text-noche-positive"
-                      : "rounded-full bg-noche-surface-2 px-2 py-0.5 text-xs font-medium text-noche-ink-muted"
-                  }
-                >
-                  {producto.disponible ? "Sí" : "No"}
-                </button>
-              </td>
-              <td className="p-3 text-right">
-                <button
-                  type="button"
-                  onClick={() => handleEditar(producto)}
-                  className="mr-3 inline-flex items-center gap-1 text-xs uppercase tracking-widest2 text-noche-ink-muted hover:text-noche-primary"
-                >
-                  <PencilIcon className="h-3 w-3" />
-                  Editar
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleEliminar(producto.id)}
-                  className="inline-flex items-center gap-1 text-xs uppercase tracking-widest2 text-noche-ink-muted hover:text-noche-danger"
-                >
-                  <TrashIcon className="h-3 w-3" />
-                  Eliminar
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <div className="mt-6 space-y-5">
+        {productos === null ? (
+          <p className="text-sm text-noche-ink-muted">Cargando…</p>
+        ) : grupos.length === 0 ? (
+          <p className="text-sm text-noche-ink-muted">Todavía no hay productos.</p>
+        ) : (
+          grupos.map((grupo) => (
+            <div
+              key={grupo.id}
+              className="overflow-hidden rounded-xl border border-noche-border bg-noche-surface shadow-sm"
+            >
+              <div className="flex items-center justify-between border-b border-noche-border bg-noche-surface-2/60 px-4 py-2.5">
+                <h2 className="font-display text-base text-noche-ink">{grupo.nombre}</h2>
+                <span className="rounded-full bg-noche-surface-2 px-2 py-0.5 text-xs text-noche-ink-muted">
+                  {grupo.productos.length}
+                </span>
+              </div>
+              <div className="divide-y divide-noche-border/50">
+                {grupo.productos.map((producto) => (
+                  <div key={producto.id} className="flex items-center gap-3 px-4 py-2.5">
+                    {producto.imagen_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={producto.imagen_url}
+                        alt=""
+                        className="h-10 w-10 shrink-0 rounded-lg object-cover"
+                      />
+                    ) : (
+                      <div className="h-10 w-10 shrink-0 rounded-lg bg-noche-surface-2" />
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm text-noche-ink">{producto.nombre}</p>
+                      {producto.destacado ? (
+                        <span className="text-xs text-noche-primary">Destacado</span>
+                      ) : null}
+                    </div>
+                    <span className="w-16 shrink-0 text-right text-sm text-noche-ink-muted">
+                      {formatCentimos(producto.precio_centimos)} €
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleToggleDisponible(producto)}
+                      className={
+                        producto.disponible
+                          ? "shrink-0 rounded-full bg-noche-positive/15 px-2 py-0.5 text-xs font-medium text-noche-positive"
+                          : "shrink-0 rounded-full bg-noche-surface-2 px-2 py-0.5 text-xs font-medium text-noche-ink-muted"
+                      }
+                    >
+                      {producto.disponible ? "Sí" : "No"}
+                    </button>
+                    <div className="flex shrink-0 items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => handleEditar(producto)}
+                        className="text-noche-ink-muted hover:text-noche-primary"
+                        aria-label="Editar"
+                      >
+                        <PencilIcon className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleEliminar(producto.id)}
+                        className="text-noche-ink-muted hover:text-noche-danger"
+                        aria-label="Eliminar"
+                      >
+                        <TrashIcon className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
 }
