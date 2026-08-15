@@ -49,14 +49,14 @@ function writeStored(mesaIdentificador: string, value: StoredContext) {
 }
 
 interface TableSessionValue {
-  mesaIdentificador: string;
+  mesaIdentificador: string | undefined;
   sesion: MesaSesion | null;
   participante: SesionParticipante | null;
   /** Snapshot en vivo (sondeado cada 5s en modo "separado"): participantes, pedidos y repartos. */
   sesionPublica: SesionPublica | null;
   loading: boolean;
   error: string | null;
-  /** Listo para pedir: modo JUNTOS con sesión, o SEPARADO con participante identificado. */
+  /** Listo para pedir: sin mesa (modo prueba de siempre), JUNTOS con sesión, o SEPARADO con participante identificado. */
   canOrder: boolean;
   elegirModo: (modo: ModoSesion) => Promise<void>;
   identificarse: (nombre: string) => Promise<void>;
@@ -66,20 +66,33 @@ interface TableSessionValue {
 
 const TableSessionContext = createContext<TableSessionValue | null>(null);
 
+/**
+ * `mesaIdentificador` es opcional: sin él (p. ej. quien entra en /pedir
+ * desde el menú, no desde el QR de una mesa) el proveedor se queda en modo
+ * "sin mesa" — sin sesión ni comensal, listo para pedir de inmediato, igual
+ * que el carrito único de siempre. El resto de la app (CartDrawer,
+ * PedirExperience, etc.) siempre puede usar useTableSession() sin
+ * comprobar antes si hay mesa.
+ */
 export function TableSessionProvider({
   mesaIdentificador,
   children,
 }: {
-  mesaIdentificador: string;
+  mesaIdentificador?: string;
   children: ReactNode;
 }) {
   const [sesion, setSesion] = useState<MesaSesion | null>(null);
   const [participante, setParticipante] = useState<SesionParticipante | null>(null);
   const [sesionPublica, setSesionPublica] = useState<SesionPublica | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(Boolean(mesaIdentificador));
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!mesaIdentificador) {
+      setLoading(false);
+      return;
+    }
+
     const stored = readStored(mesaIdentificador);
     if (!stored) {
       setLoading(false);
@@ -140,6 +153,7 @@ export function TableSessionProvider({
 
   const elegirModo = useCallback(
     async (modo: ModoSesion) => {
+      if (!mesaIdentificador) return;
       setError(null);
       try {
         const nuevaSesion = await iniciarSesionMesa(mesaIdentificador, modo);
@@ -154,7 +168,7 @@ export function TableSessionProvider({
 
   const identificarse = useCallback(
     async (nombre: string) => {
-      if (!sesion) return;
+      if (!mesaIdentificador || !sesion) return;
       setError(null);
       try {
         const nuevoParticipante = await unirseSesionMesa({
@@ -177,12 +191,13 @@ export function TableSessionProvider({
   );
 
   const cambiarComensal = useCallback(() => {
-    if (!sesion) return;
+    if (!mesaIdentificador || !sesion) return;
     setParticipante(null);
     writeStored(mesaIdentificador, { sesionId: sesion.id, modo: sesion.modo });
   }, [mesaIdentificador, sesion]);
 
-  const canOrder = Boolean(sesion && (sesion.modo === "JUNTOS" || participante));
+  const canOrder =
+    !mesaIdentificador || Boolean(sesion && (sesion.modo === "JUNTOS" || participante));
 
   const value = useMemo<TableSessionValue>(
     () => ({

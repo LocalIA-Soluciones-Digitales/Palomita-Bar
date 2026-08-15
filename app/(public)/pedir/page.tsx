@@ -37,26 +37,20 @@ export default async function PedirPage({
       : `Mesa ${mesa.numero}`
     : "Modo prueba · sin mesa asignada";
 
-  const experiencia = (
-    <PedirExperience
-      categorias={categorias}
-      productos={productos}
-      mesaLabel={mesaLabel}
-      mesaIdentificador={mesaIdentificador}
-    />
+  return (
+    <TableSessionProvider mesaIdentificador={mesa?.identificador}>
+      <CartProvider>
+        <TableEntry>
+          <PedirExperience
+            categorias={categorias}
+            productos={productos}
+            mesaLabel={mesaLabel}
+            mesaIdentificador={mesaIdentificador}
+          />
+        </TableEntry>
+      </CartProvider>
+    </TableSessionProvider>
   );
-
-  if (mesa) {
-    return (
-      <TableSessionProvider mesaIdentificador={mesa.identificador}>
-        <CartProvider>
-          <TableEntry>{experiencia}</TableEntry>
-        </CartProvider>
-      </TableSessionProvider>
-    );
-  }
-
-  return <CartProvider>{experiencia}</CartProvider>;
 }
 
 function EmptyState({ title, description }: { title: string; description: string }) {
