@@ -101,7 +101,7 @@ export async function upsertProductoAdmin(input: {
 export async function subirImagenProducto(file: File): Promise<string> {
   const supabase = createSupabaseBrowserClient();
   const extension = file.name.split(".").pop() ?? "jpg";
-  const path = `${clienteId()}/carta/${crypto.randomUUID()}.${extension}`;
+  const path = `carta/${crypto.randomUUID()}.${extension}`;
 
   const { error } = await supabase.storage.from("palomita-bar").upload(path, file, {
     cacheControl: "3600",
@@ -515,7 +515,7 @@ export async function setSiteImagesAdmin(value: SiteImages): Promise<void> {
 export async function subirImagenSitio(file: File, carpeta: string): Promise<string> {
   const supabase = createSupabaseBrowserClient();
   const extension = file.name.split(".").pop() ?? "jpg";
-  const path = `${clienteId()}/site/${carpeta}-${crypto.randomUUID()}.${extension}`;
+  const path = `site/${carpeta}-${crypto.randomUUID()}.${extension}`;
 
   const { error } = await supabase.storage.from("palomita-bar").upload(path, file, {
     cacheControl: "3600",

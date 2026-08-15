@@ -448,8 +448,8 @@ scroll; menú móvil a pantalla completa. Se mantiene la tipografía existente
 ### 16.2 Imágenes
 Las 34 fotos de producto de Readdy (readdy.ai) y 6 imágenes de sitio (hero,
 "nosotros", 4 de ambiente) se descargaron y se subieron a Supabase Storage
-(bucket `palomita-bar`, carpeta `<cliente_id>/carta/` y
-`<cliente_id>/site/`) mediante una Edge Function temporal
+(bucket `palomita-bar`, carpeta `carta/` y
+`site/`) mediante una Edge Function temporal
 (`migracion-imagenes-readdy`, **pendiente de borrar a mano** desde el dashboard
 de Supabase — no hay herramienta MCP para borrarla). Los 34 productos reales de
 `restaurant.productos` tenían el mismo nombre exacto que el catálogo mock de
