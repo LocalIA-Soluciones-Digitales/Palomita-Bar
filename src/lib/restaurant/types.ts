@@ -17,6 +17,11 @@ export interface Producto {
   destacado: boolean;
   alergenos: string[];
   orden: number;
+  ingredientes: string[];
+  calorias: number | null;
+  proteinas_g: number | null;
+  carbohidratos_g: number | null;
+  grasas_g: number | null;
 }
 
 export interface Mesa {
