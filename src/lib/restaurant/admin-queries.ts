@@ -11,7 +11,7 @@ import type {
   VentasHoy,
   ZonaAdmin,
 } from "@/lib/restaurant/admin-types";
-import type { EstadoPedido } from "@/lib/restaurant/types";
+import type { EstadoPedido, SiteImages } from "@/lib/restaurant/types";
 import type { PedidoCocina } from "@/lib/restaurant/cocina-types";
 
 const PALOMITA_CLIENTE_ID = process.env.NEXT_PUBLIC_PALOMITA_CLIENTE_ID;
@@ -492,4 +492,37 @@ export async function setConfiguracionAdmin(horario: string): Promise<void> {
     p_horario: horario,
   });
   if (error) throw error;
+}
+
+export async function getSiteImagesAdmin(): Promise<SiteImages | null> {
+  const supabase = createSupabaseBrowserClient();
+  const { data, error } = await supabase.rpc("get_site_images_admin", {
+    p_cliente_id: clienteId(),
+  });
+  if (error) throw error;
+  return (data as unknown as SiteImages | null) ?? null;
+}
+
+export async function setSiteImagesAdmin(value: SiteImages): Promise<void> {
+  const supabase = createSupabaseBrowserClient();
+  const { error } = await supabase.rpc("set_site_images_admin", {
+    p_cliente_id: clienteId(),
+    p_value: value,
+  });
+  if (error) throw error;
+}
+
+export async function subirImagenSitio(file: File, carpeta: string): Promise<string> {
+  const supabase = createSupabaseBrowserClient();
+  const extension = file.name.split(".").pop() ?? "jpg";
+  const path = `${clienteId()}/site/${carpeta}-${crypto.randomUUID()}.${extension}`;
+
+  const { error } = await supabase.storage.from("restaurant-media").upload(path, file, {
+    cacheControl: "3600",
+    upsert: false,
+  });
+  if (error) throw error;
+
+  const { data } = supabase.storage.from("restaurant-media").getPublicUrl(path);
+  return data.publicUrl;
 }

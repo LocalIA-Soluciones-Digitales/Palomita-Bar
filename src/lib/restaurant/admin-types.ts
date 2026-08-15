@@ -112,6 +112,7 @@ export interface MesaEstadoAdmin {
   pagando: boolean;
   por_limpiar: boolean;
   union_grupo_id: string | null;
+  sesion_modo: "JUNTOS" | "SEPARADO" | null;
   pedidos_hoy: PedidoMesaAdmin[];
 }
 
@@ -122,6 +123,8 @@ export interface VentasHoy {
   pendientes: number;
   en_preparacion: number;
   listos: number;
+  pedidos_juntos: number;
+  pedidos_separado: number;
   pagos_online: number;
   pagos_local: number;
   top_productos: { nombre: string; cantidad: number }[];

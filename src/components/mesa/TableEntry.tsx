@@ -4,9 +4,17 @@ import { useState, type ReactNode } from "react";
 import { useTableSession } from "@/components/mesa/table-session-context";
 
 export function TableEntry({ children }: { children: ReactNode }) {
-  const { sesion, loading, error, canOrder, elegirModo, identificarse } = useTableSession();
+  const { sesion, sesionPublica, loading, error, canOrder, elegirModo, identificarse } =
+    useTableSession();
   const [nombre, setNombre] = useState("");
   const [enviando, setEnviando] = useState(false);
+  const [nombreEligiendo, setNombreEligiendo] = useState<string | null>(null);
+
+  const elegirExistente = async (nombreExistente: string) => {
+    setNombreEligiendo(nombreExistente);
+    await identificarse(nombreExistente);
+    setNombreEligiendo(null);
+  };
 
   if (loading) {
     return (
@@ -67,6 +75,28 @@ export function TableEntry({ children }: { children: ReactNode }) {
       <p className="mt-3 text-sm text-noche-ink-muted">
         Así el resto de la mesa sabrá qué has pedido y podréis compartir platos.
       </p>
+
+      {sesionPublica && sesionPublica.participantes.length > 0 ? (
+        <div className="mt-6">
+          <p className="text-xs uppercase tracking-widest2 text-noche-ink-muted">
+            ¿Eres alguno de estos?
+          </p>
+          <div className="mt-3 flex flex-wrap justify-center gap-2">
+            {sesionPublica.participantes.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => elegirExistente(p.nombre)}
+                disabled={nombreEligiendo !== null}
+                className="border border-noche-border bg-noche-surface px-4 py-2 text-sm text-noche-ink transition-colors hover:border-noche-primary disabled:opacity-50"
+              >
+                {nombreEligiendo === p.nombre ? "…" : p.nombre}
+              </button>
+            ))}
+          </div>
+          <p className="mt-4 text-xs text-noche-ink-muted">O dinos tu nombre si eres nuevo:</p>
+        </div>
+      ) : null}
 
       <form
         onSubmit={async (e) => {

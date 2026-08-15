@@ -4,12 +4,18 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/components/cart/cart-context";
 import { useTableSession } from "@/components/mesa/table-session-context";
-import { useSesionParticipantes } from "@/components/mesa/useSesionParticipantes";
 import { formatCentimos } from "@/lib/format";
 import { splitEqually } from "@/lib/restaurant/split";
-import { crearPedido, validarMesaPorNumero } from "@/lib/restaurant/queries";
+import { crearPedido, getCarta, validarMesaPorNumero } from "@/lib/restaurant/queries";
 import { CloseIcon, ShareIcon } from "@/components/icons";
 import type { PaymentMethod, RepartoInput } from "@/lib/restaurant/types";
+
+interface CambioPrecio {
+  productoId: string;
+  nombre: string;
+  antes: number;
+  despues: number;
+}
 
 export function CartDrawer({
   mesaIdentificador,
@@ -18,9 +24,10 @@ export function CartDrawer({
   mesaIdentificador?: string;
   onClose: () => void;
 }) {
-  const { lines, increment, decrement, removeItem, toggleShare, totalCentimos, clear } = useCart();
-  const { sesion, participante } = useTableSession();
-  const otrosParticipantes = useSesionParticipantes(sesion?.id).filter(
+  const { lines, increment, decrement, removeItem, toggleShare, applyCatalog, totalCentimos, clear } =
+    useCart();
+  const { sesion, participante, sesionPublica } = useTableSession();
+  const otrosParticipantes = (sesionPublica?.participantes ?? []).filter(
     (p) => p.id !== participante?.id,
   );
   const separado = sesion?.modo === "SEPARADO" && Boolean(participante);
@@ -34,6 +41,9 @@ export function CartDrawer({
   const [tableError, setTableError] = useState<string | null>(null);
   const [resolvingTable, setResolvingTable] = useState(false);
   const [sharingProductId, setSharingProductId] = useState<string | null>(null);
+  const [comprobandoPrecios, setComprobandoPrecios] = useState(false);
+  const [cambiosPrecio, setCambiosPrecio] = useState<CambioPrecio[] | null>(null);
+  const [preciosAceptados, setPreciosAceptados] = useState(false);
   const router = useRouter();
 
   const effectiveMesaIdentificador = mesaIdentificador ?? resolvedMesaIdentificador;
@@ -115,6 +125,66 @@ export function CartDrawer({
     }
   };
 
+  const handleConfirmarClick = async () => {
+    if (cambiosPrecio && !preciosAceptados) return;
+
+    setComprobandoPrecios(true);
+    setError(null);
+    try {
+      const catalogo = await getCarta();
+      const idsEnCarrito = new Set(lines.map((l) => l.producto.id));
+      const cambios: CambioPrecio[] = [];
+      let hayNoDisponibles = false;
+
+      for (const id of idsEnCarrito) {
+        const linea = lines.find((l) => l.producto.id === id);
+        const fresco = catalogo.find((p) => p.id === id);
+        if (!linea) continue;
+        if (!fresco || !fresco.disponible) {
+          hayNoDisponibles = true;
+          continue;
+        }
+        if (fresco.precio_centimos !== linea.producto.precio_centimos) {
+          cambios.push({
+            productoId: id,
+            nombre: fresco.nombre,
+            antes: linea.producto.precio_centimos,
+            despues: fresco.precio_centimos,
+          });
+        }
+      }
+
+      if (hayNoDisponibles || cambios.length > 0) {
+        applyCatalog(catalogo);
+      }
+
+      if (hayNoDisponibles) {
+        setError(
+          "Algún producto de tu pedido ya no está disponible y se ha quitado del carrito. Revísalo antes de confirmar.",
+        );
+        setCambiosPrecio(null);
+        setPreciosAceptados(false);
+        return;
+      }
+
+      if (cambios.length > 0 && !preciosAceptados) {
+        setCambiosPrecio(cambios);
+        return;
+      }
+
+      setCambiosPrecio(null);
+      setPreciosAceptados(false);
+      await handleCheckout();
+    } finally {
+      setComprobandoPrecios(false);
+    }
+  };
+
+  const descartarCambiosPrecio = () => {
+    setCambiosPrecio(null);
+    setPreciosAceptados(false);
+  };
+
   const handleConfirmTableNumber = async () => {
     const numero = Number.parseInt(tableNumberInput, 10);
     if (!Number.isInteger(numero) || numero <= 0) {
@@ -178,7 +248,10 @@ export function CartDrawer({
                 <div className="flex shrink-0 items-center gap-2">
                   <button
                     type="button"
-                    onClick={() => decrement(line.producto.id)}
+                    onClick={() => {
+                      decrement(line.producto.id);
+                      descartarCambiosPrecio();
+                    }}
                     aria-label="Quitar una unidad"
                     className="flex h-8 w-8 items-center justify-center border border-noche-border text-noche-ink"
                   >
@@ -187,7 +260,10 @@ export function CartDrawer({
                   <span className="w-4 text-center text-sm text-noche-ink">{line.cantidad}</span>
                   <button
                     type="button"
-                    onClick={() => increment(line.producto.id)}
+                    onClick={() => {
+                      increment(line.producto.id);
+                      descartarCambiosPrecio();
+                    }}
                     aria-label="Añadir una unidad"
                     className="flex h-8 w-8 items-center justify-center border border-noche-border text-noche-ink"
                   >
@@ -195,7 +271,10 @@ export function CartDrawer({
                   </button>
                   <button
                     type="button"
-                    onClick={() => removeItem(line.producto.id)}
+                    onClick={() => {
+                      removeItem(line.producto.id);
+                      descartarCambiosPrecio();
+                    }}
                     aria-label="Eliminar producto del pedido"
                     className="ml-1 text-noche-ink-muted hover:text-noche-primary"
                   >
@@ -291,6 +370,35 @@ export function CartDrawer({
 
         {error ? <p className="mt-4 text-sm text-red-400">{error}</p> : null}
 
+        {cambiosPrecio && cambiosPrecio.length > 0 ? (
+          <div className="mt-4 border border-noche-primary/60 bg-noche-primary/10 p-4">
+            <p className="text-sm font-medium text-noche-ink">
+              Algunos precios han cambiado desde que abriste la carta
+            </p>
+            <ul className="mt-2 space-y-1 text-sm text-noche-ink/90">
+              {cambiosPrecio.map((c) => (
+                <li key={c.productoId} className="flex justify-between gap-3">
+                  <span className="truncate">{c.nombre}</span>
+                  <span className="shrink-0">
+                    <span className="text-noche-ink-muted line-through">
+                      {formatCentimos(c.antes)} €
+                    </span>{" "}
+                    {formatCentimos(c.despues)} €
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <label className="mt-3 flex items-center gap-2 text-sm text-noche-ink">
+              <input
+                type="checkbox"
+                checked={preciosAceptados}
+                onChange={(e) => setPreciosAceptados(e.target.checked)}
+              />
+              Acepto los nuevos precios
+            </label>
+          </div>
+        ) : null}
+
         {needsTableNumber ? (
           <div className="mt-6 border-t border-noche-border pt-4">
             <p className="text-xs uppercase tracking-widest2 text-noche-ink-muted">
@@ -322,15 +430,24 @@ export function CartDrawer({
         ) : (
           <button
             type="button"
-            onClick={() => handleCheckout()}
-            disabled={submitting || lines.length === 0}
+            onClick={handleConfirmarClick}
+            disabled={
+              submitting ||
+              comprobandoPrecios ||
+              lines.length === 0 ||
+              (cambiosPrecio !== null && cambiosPrecio.length > 0 && !preciosAceptados)
+            }
             className="mt-6 w-full bg-noche-primary py-4 text-sm uppercase tracking-widest2 text-white transition-colors hover:bg-noche-primary-dark disabled:opacity-50"
           >
-            {submitting
-              ? "Enviando pedido…"
-              : paymentMethod === "ONLINE"
-                ? "Ir a pagar"
-                : "Confirmar pedido"}
+            {comprobandoPrecios
+              ? "Comprobando precios…"
+              : submitting
+                ? "Enviando pedido…"
+                : cambiosPrecio && cambiosPrecio.length > 0
+                  ? "Confirmar con los nuevos precios"
+                  : paymentMethod === "ONLINE"
+                    ? "Ir a pagar"
+                    : "Confirmar pedido"}
           </button>
         )}
       </div>

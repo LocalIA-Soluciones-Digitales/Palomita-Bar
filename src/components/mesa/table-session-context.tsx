@@ -9,8 +9,8 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { iniciarSesionMesa, unirseSesionMesa } from "@/lib/restaurant/queries";
-import type { MesaSesion, ModoSesion, SesionParticipante } from "@/lib/restaurant/types";
+import { getSesionPublica, iniciarSesionMesa, unirseSesionMesa } from "@/lib/restaurant/queries";
+import type { MesaSesion, ModoSesion, SesionParticipante, SesionPublica } from "@/lib/restaurant/types";
 
 interface StoredContext {
   sesionId: string;
@@ -52,6 +52,8 @@ interface TableSessionValue {
   mesaIdentificador: string;
   sesion: MesaSesion | null;
   participante: SesionParticipante | null;
+  /** Snapshot en vivo (sondeado cada 5s en modo "separado"): participantes, pedidos y repartos. */
+  sesionPublica: SesionPublica | null;
   loading: boolean;
   error: string | null;
   /** Listo para pedir: modo JUNTOS con sesión, o SEPARADO con participante identificado. */
@@ -59,6 +61,7 @@ interface TableSessionValue {
   elegirModo: (modo: ModoSesion) => Promise<void>;
   identificarse: (nombre: string) => Promise<void>;
   cambiarComensal: () => void;
+  refrescarSesionPublica: () => Promise<void>;
 }
 
 const TableSessionContext = createContext<TableSessionValue | null>(null);
@@ -72,6 +75,7 @@ export function TableSessionProvider({
 }) {
   const [sesion, setSesion] = useState<MesaSesion | null>(null);
   const [participante, setParticipante] = useState<SesionParticipante | null>(null);
+  const [sesionPublica, setSesionPublica] = useState<SesionPublica | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -110,6 +114,29 @@ export function TableSessionProvider({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mesaIdentificador]);
+
+  const refrescarSesionPublica = useCallback(async () => {
+    if (!sesion) return;
+    const datos = await getSesionPublica(sesion.id);
+    if (datos) setSesionPublica(datos);
+  }, [sesion]);
+
+  useEffect(() => {
+    if (!sesion || sesion.modo !== "SEPARADO") return;
+
+    let cancelled = false;
+    const tick = async () => {
+      const datos = await getSesionPublica(sesion.id);
+      if (!cancelled && datos) setSesionPublica(datos);
+    };
+
+    tick();
+    const interval = setInterval(tick, 5000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [sesion]);
 
   const elegirModo = useCallback(
     async (modo: ModoSesion) => {
@@ -162,14 +189,28 @@ export function TableSessionProvider({
       mesaIdentificador,
       sesion,
       participante,
+      sesionPublica,
       loading,
       error,
       canOrder,
       elegirModo,
       identificarse,
       cambiarComensal,
+      refrescarSesionPublica,
     }),
-    [mesaIdentificador, sesion, participante, loading, error, canOrder, elegirModo, identificarse, cambiarComensal],
+    [
+      mesaIdentificador,
+      sesion,
+      participante,
+      sesionPublica,
+      loading,
+      error,
+      canOrder,
+      elegirModo,
+      identificarse,
+      cambiarComensal,
+      refrescarSesionPublica,
+    ],
   );
 
   return <TableSessionContext.Provider value={value}>{children}</TableSessionContext.Provider>;

@@ -8,6 +8,7 @@ import type {
   PaymentMethod,
   PedidoPublico,
   Producto,
+  RepartoParaPago,
   SesionParticipante,
   SesionPublica,
   SiteImages,
@@ -120,6 +121,23 @@ export async function getSesionPublica(sesionId: string): Promise<SesionPublica 
   });
   if (error || !data) return null;
   return data as unknown as SesionPublica;
+}
+
+export async function asumirReparto(repartoId: string, participanteId: string): Promise<void> {
+  const { error } = await supabase.rpc("asumir_reparto", {
+    p_site_key: siteKey(),
+    p_reparto_id: repartoId,
+    p_participante_id: participanteId,
+  });
+  if (error) throw error;
+}
+
+export async function getRepartoParaPago(participanteId: string): Promise<RepartoParaPago | null> {
+  const { data, error } = await supabase.rpc("get_reparto_para_pago", {
+    p_participante_id: participanteId,
+  });
+  if (error || !data) return null;
+  return data as unknown as RepartoParaPago;
 }
 
 export async function getPedidoPublico(pedidoId: string): Promise<PedidoPublico | null> {

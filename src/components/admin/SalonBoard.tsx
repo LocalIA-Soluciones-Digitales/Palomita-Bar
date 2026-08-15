@@ -680,6 +680,12 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
                         {mesa.nombre}
                       </span>
                     ) : null}
+                    {mesa.sesion_modo === "SEPARADO" ? (
+                      <span
+                        title="Cada uno por separado"
+                        className="absolute -bottom-1.5 left-1/2 h-2.5 w-2.5 -translate-x-1/2 rounded-full bg-violet-400 ring-2 ring-white"
+                      />
+                    ) : null}
                     {pendientes > 0 ? (
                       <span className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-brand-pink text-[10px] font-medium text-white">
                         {pendientes}
@@ -742,18 +748,25 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
                       Mesa {mesaSeleccionada.numero}
                       {mesaSeleccionada.nombre ? ` · ${mesaSeleccionada.nombre}` : ""}
                     </h2>
-                    <span
-                      className={`mt-1 inline-block px-2 py-0.5 text-[10px] uppercase tracking-widest2 ${
-                        ESTILO_MESA[estadoMesa(mesaSeleccionada, !!reservaDeMesa(mesaSeleccionada.id), esHoy)]
-                          .badge
-                      }`}
-                    >
-                      {
-                        ESTILO_MESA[
-                          estadoMesa(mesaSeleccionada, !!reservaDeMesa(mesaSeleccionada.id), esHoy)
-                        ].label
-                      }
-                    </span>
+                    <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                      <span
+                        className={`inline-block px-2 py-0.5 text-[10px] uppercase tracking-widest2 ${
+                          ESTILO_MESA[estadoMesa(mesaSeleccionada, !!reservaDeMesa(mesaSeleccionada.id), esHoy)]
+                            .badge
+                        }`}
+                      >
+                        {
+                          ESTILO_MESA[
+                            estadoMesa(mesaSeleccionada, !!reservaDeMesa(mesaSeleccionada.id), esHoy)
+                          ].label
+                        }
+                      </span>
+                      {mesaSeleccionada.sesion_modo === "SEPARADO" ? (
+                        <span className="inline-block bg-violet-100 px-2 py-0.5 text-[10px] uppercase tracking-widest2 text-violet-800">
+                          Cada uno por separado
+                        </span>
+                      ) : null}
+                    </div>
                   </div>
                   <button
                     type="button"

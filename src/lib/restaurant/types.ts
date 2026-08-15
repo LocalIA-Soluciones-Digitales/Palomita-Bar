@@ -95,9 +95,11 @@ export interface SesionParticipante {
 }
 
 export interface RepartoPublico {
+  id: string;
   participante_id: string;
   importe_centimos: number;
   pagado: boolean;
+  asumido_de_participante_id: string | null;
 }
 
 export interface SesionItemPublico {

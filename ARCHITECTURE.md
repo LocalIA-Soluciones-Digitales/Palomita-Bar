@@ -522,3 +522,17 @@ práctica.
 - i18n de Readdy (montado pero vacío, ningún string traducido) y las
   dependencias sin uso real del prototipo (Firebase, `@stripe/react-stripe-js`,
   Recharts, Lucide) no se portaron: no aportaban nada que no existiera ya.
+
+### 16.5 Mejoras añadidas sobre la primera versión (2026-08-15, misma tarde)
+
+Sobre lo descrito en §16.1-16.4 se añadió:
+- **Asumir la parte de otro comensal**: nueva columna `pedido_item_repartos.asumido_de_participante_id` (traza quién lo pidió originalmente) y RPC `asumir_reparto` (solo entre comensales de la misma sesión). Accesible desde el nuevo panel "Cuenta de la mesa" (`CuentaMesaDrawer`), con resumen Debe/Pagado/Pendiente por comensal.
+- **Selección rápida de comensal ya existente** al entrar en modo "separado" (en vez de escribir el nombre siempre a mano), usando la lista en vivo de `sesionPublica.participantes`.
+- **Notificaciones** ("Ana ha compartido contigo: Nachos") cuando aparece un reparto nuevo pendiente para ti que no venga de tu propio pedido.
+- **Detección de cambio de precio antes de confirmar**: `CartDrawer` vuelve a pedir la carta justo antes de confirmar, compara contra lo que hay en el carrito y, si algo cambió (o dejó de estar disponible), obliga a revisar/aceptar antes de poder pedir — nunca envía un reparto calculado con un precio caducado.
+- **Editor de imágenes de sitio en `/admin/configuracion`**: hero, "nosotros" y las 4 de ambiente, con subida de archivo real (mismo bucket/política `restaurant-media` que ya usaba `/admin/productos`, no la Edge Function temporal).
+- **`/admin/ventas`** desglosa pedidos "juntos" vs "separado"; **`SalonBoard`** marca con un punto morado y una etiqueta las mesas que están pidiendo por separado.
+- **Tipografía propia de la web pública** (Cormorant Garamond) sin afectar a `/admin`: se redefine `--font-display` solo dentro de `app/(public)/layout.tsx`, que es descendiente de `<html>` pero no del subárbol de `/admin`.
+- Se centralizó el sondeo de `get_sesion_publica` (antes duplicado) en `TableSessionProvider`, consumido tanto por el carrito como por la cuenta de la mesa y las notificaciones.
+
+Sigue pendiente (ver limitación conocida en §16.3): pulir el mensaje cuando el cambio de precio ocurre a mitad de un segundo intento de confirmación (caso muy raro, dos cambios de precio en segundos).

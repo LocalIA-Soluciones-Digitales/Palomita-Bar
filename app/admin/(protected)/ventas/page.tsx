@@ -55,6 +55,18 @@ export default function VentasAdminPage() {
         </div>
 
         <div className="border border-brand-black/10 bg-white p-4">
+          <p className="text-xs uppercase tracking-widest2 text-brand-ink/50">Modo de pedido</p>
+          <div className="mt-3 flex justify-between text-sm">
+            <span>Juntos</span>
+            <span>{ventas.pedidos_juntos}</span>
+          </div>
+          <div className="mt-1 flex justify-between text-sm">
+            <span>Cada uno por separado</span>
+            <span>{ventas.pedidos_separado}</span>
+          </div>
+        </div>
+
+        <div className="border border-brand-black/10 bg-white p-4 sm:col-span-2">
           <p className="text-xs uppercase tracking-widest2 text-brand-ink/50">Más vendidos hoy</p>
           <div className="mt-3 space-y-1">
             {ventas.top_productos.length === 0 ? (

@@ -18,6 +18,7 @@ interface CartContextValue {
   increment: (productoId: string) => void;
   decrement: (productoId: string) => void;
   toggleShare: (productoId: string, participanteId: string) => void;
+  applyCatalog: (catalogo: Producto[]) => void;
   clear: () => void;
   totalCentimos: number;
   totalItems: number;
@@ -72,6 +73,20 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const clear = () => setLines([]);
 
+  /** Sustituye cada línea por su versión viva del catálogo (precio, disponibilidad…);
+   * quita las que ya no están disponibles. Se usa justo antes de confirmar, para no
+   * fiarse nunca del precio que quedó cacheado en el navegador. */
+  const applyCatalog = (catalogo: Producto[]) => {
+    setLines((prev) =>
+      prev
+        .map((l) => {
+          const fresco = catalogo.find((p) => p.id === l.producto.id);
+          return fresco && fresco.disponible ? { ...l, producto: fresco } : null;
+        })
+        .filter((l): l is CartLine => l !== null),
+    );
+  };
+
   const totalCentimos = useMemo(
     () => lines.reduce((sum, l) => sum + l.producto.precio_centimos * l.cantidad, 0),
     [lines],
@@ -87,6 +102,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         increment,
         decrement,
         toggleShare,
+        applyCatalog,
         clear,
         totalCentimos,
         totalItems,
