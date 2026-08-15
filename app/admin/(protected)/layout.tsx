@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { AdminNav } from "@/components/admin/AdminNav";
+import { getAdminRole } from "@/lib/auth/role";
 
 export default async function AdminLayout({
   children,
@@ -16,9 +17,11 @@ export default async function AdminLayout({
     redirect("/admin/login");
   }
 
+  const role = await getAdminRole(supabase);
+
   return (
     <div className="min-h-screen bg-noche-bg">
-      <AdminNav />
+      <AdminNav role={role} />
       <div className="p-4 sm:p-6">{children}</div>
     </div>
   );

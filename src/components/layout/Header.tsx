@@ -52,6 +52,12 @@ export function Header() {
             );
           })}
           <Link
+            href="/admin/login"
+            className="inline-flex items-center rounded-full border border-noche-border px-5 py-2.5 text-sm font-medium text-noche-ink/80 transition-colors hover:border-noche-primary hover:text-noche-primary"
+          >
+            Panel de gestión
+          </Link>
+          <Link
             href="/pedir"
             className="inline-flex items-center rounded-full bg-noche-primary px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-noche-primary-dark"
           >

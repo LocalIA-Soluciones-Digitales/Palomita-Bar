@@ -56,6 +56,13 @@ export function MobileNav() {
             >
               Pedir
             </Link>
+            <Link
+              href="/admin/login"
+              onClick={() => setOpen(false)}
+              className="inline-flex w-fit items-center rounded-full border border-noche-border px-6 py-3 text-sm font-medium text-noche-ink/80"
+            >
+              Panel de gestión
+            </Link>
           </nav>
         </div>
       ) : null}

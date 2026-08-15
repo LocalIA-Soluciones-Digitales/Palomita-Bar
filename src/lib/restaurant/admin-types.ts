@@ -161,3 +161,46 @@ export interface InformeVentas {
   por_categoria: InformeVentasCategoria[];
   productos: InformeVentasProducto[];
 }
+
+export interface VisitaAdmin {
+  id: string;
+  session_id: string;
+  event_type: string;
+  path: string;
+  referrer: string | null;
+  source_category: string;
+  utm_source: string | null;
+  utm_medium: string | null;
+  utm_campaign: string | null;
+  device_type: string | null;
+  is_returning: boolean;
+  created_at: string;
+}
+
+export interface NewsletterSubscriberAdmin {
+  id: string;
+  email: string;
+  idioma: string;
+  confirmado: boolean;
+  confirmado_en: string | null;
+  created_at: string;
+}
+
+export interface ResenaAdmin {
+  id: string;
+  nombre: string;
+  valoracion: number;
+  comentario: string | null;
+  estado: string;
+  created_at: string;
+}
+
+export interface ErrorLogAdmin {
+  id: string;
+  message: string;
+  stack: string | null;
+  source: string;
+  url: string | null;
+  user_agent: string | null;
+  created_at: string;
+}

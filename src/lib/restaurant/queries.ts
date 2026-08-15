@@ -163,3 +163,19 @@ export async function getSiteImages(): Promise<SiteImages | null> {
   if (error || !data) return null;
   return data as unknown as SiteImages;
 }
+
+export async function crearErrorLog(input: {
+  message: string;
+  stack?: string;
+  source: string;
+  url?: string;
+}): Promise<void> {
+  await supabase.rpc("crear_error_log", {
+    p_site_key: siteKey(),
+    p_message: input.message,
+    p_stack: input.stack ?? null,
+    p_source: input.source,
+    p_url: input.url ?? null,
+    p_user_agent: typeof navigator === "undefined" ? null : navigator.userAgent,
+  });
+}
