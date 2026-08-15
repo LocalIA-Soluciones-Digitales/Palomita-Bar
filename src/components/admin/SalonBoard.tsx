@@ -1,8 +1,18 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { PointerEvent as ReactPointerEvent } from "react";
+import dynamic from "next/dynamic";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
+import type { Mesa3D } from "@/components/admin/Floorplan3D";
+
+const Floorplan3D = dynamic(() => import("@/components/admin/Floorplan3D"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex h-full items-center justify-center text-sm text-noche-ink-muted">
+      Cargando plano 3D…
+    </div>
+  ),
+});
 import { formatCentimos } from "@/lib/format";
 import { playNewOrderChime } from "@/lib/notify-sound";
 import {
@@ -50,7 +60,7 @@ import type {
 } from "@/lib/restaurant/admin-types";
 import type { EstadoPedido } from "@/lib/restaurant/types";
 
-type EstadoMesa =
+export type EstadoMesa =
   | "LIBRE"
   | "RESERVADA"
   | "OCUPADA"
@@ -104,21 +114,6 @@ const ESTILO_MESA: Record<EstadoMesa, { ring: string; badge: string; label: stri
     label: "Por limpiar",
   },
 };
-
-const MADERA_MESA =
-  "linear-gradient(135deg, #a9713f 0%, #8a5a30 45%, #6d4423 100%)";
-
-function tamanoMesa(capacidad: number): number {
-  return Math.min(128, 60 + Math.max(0, capacidad - 2) * 9);
-}
-
-function posicionesSillas(capacidad: number, radio: number): { x: number; y: number }[] {
-  const n = Math.min(Math.max(capacidad, 1), 10);
-  return Array.from({ length: n }, (_, i) => {
-    const angulo = (i / n) * 2 * Math.PI - Math.PI / 2;
-    return { x: Math.cos(angulo) * radio, y: Math.sin(angulo) * radio };
-  });
-}
 
 const SIGUIENTE_ESTADO: Partial<Record<EstadoPedido, { estado: EstadoPedido; label: string }>> = {
   RECEIVED: { estado: "ACCEPTED", label: "Aceptar" },
@@ -238,9 +233,8 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
   const [clientesForm, setClientesForm] = useState("2");
   const [camareroForm, setCamareroForm] = useState("");
   const [cambiarMesaAbierto, setCambiarMesaAbierto] = useState(false);
+  const [vistaSuperior, setVistaSuperior] = useState(false);
 
-  const canvasRef = useRef<HTMLDivElement>(null);
-  const arrastre = useRef<{ id: string; pointerId: number; moved: boolean } | null>(null);
   const [posicionesArrastre, setPosicionesArrastre] = useState<Record<string, { x: number; y: number }>>(
     {},
   );
@@ -331,6 +325,40 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
     [mesas, zonaActivaId],
   );
 
+  const posicionMesa = useCallback(
+    (mesa: MesaEstadoAdmin, index: number): { x: number; y: number } => {
+      const enArrastre = posicionesArrastre[mesa.id];
+      if (enArrastre) return enArrastre;
+      if (mesa.pos_x !== null && mesa.pos_y !== null) return { x: mesa.pos_x, y: mesa.pos_y };
+      return posicionAuto(index);
+    },
+    [posicionesArrastre],
+  );
+
+  const mesasEscena = useMemo<Mesa3D[]>(
+    () =>
+      mesasVisibles
+        .map((mesa, index) => {
+          const estado = estadoMesa(mesa, !!reservaDeMesa(mesa.id), esHoy);
+          const pos = posicionMesa(mesa, index);
+          return {
+            id: mesa.id,
+            numero: mesa.numero,
+            nombre: mesa.nombre,
+            capacidad: mesa.capacidad,
+            estado,
+            pendientes: mesa.pedidos_hoy.filter((p) => p.estado === "RECEIVED").length,
+            unida: !!mesa.union_grupo_id,
+            x: pos.x,
+            y: pos.y,
+            oculta: estadosOcultos.has(estado),
+          };
+        })
+        .filter((m) => !m.oculta)
+        .map(({ oculta: _oculta, ...m }) => m),
+    [mesasVisibles, reservaDeMesa, esHoy, posicionMesa, estadosOcultos],
+  );
+
   const stats = useMemo(() => {
     let libres = 0;
     let ocupadas = 0;
@@ -358,55 +386,25 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
     }
   };
 
-  const posicionMesa = (mesa: MesaEstadoAdmin, index: number): { x: number; y: number } => {
-    const enArrastre = posicionesArrastre[mesa.id];
-    if (enArrastre) return enArrastre;
-    if (mesa.pos_x !== null && mesa.pos_y !== null) return { x: mesa.pos_x, y: mesa.pos_y };
-    return posicionAuto(index);
-  };
-
-  const handlePointerDown = (mesa: MesaEstadoAdmin, e: ReactPointerEvent<HTMLButtonElement>) => {
-    e.currentTarget.setPointerCapture(e.pointerId);
-    arrastre.current = { id: mesa.id, pointerId: e.pointerId, moved: false };
-  };
-
-  const handlePointerMove = (e: ReactPointerEvent<HTMLButtonElement>) => {
-    const drag = arrastre.current;
-    const canvas = canvasRef.current;
-    if (!drag || !canvas) return;
-
-    const rect = canvas.getBoundingClientRect();
-    const x = Math.min(97, Math.max(3, ((e.clientX - rect.left) / rect.width) * 100));
-    const y = Math.min(94, Math.max(6, ((e.clientY - rect.top) / rect.height) * 100));
-
-    drag.moved = true;
-    setPosicionesArrastre((prev) => ({ ...prev, [drag.id]: { x, y } }));
-  };
-
-  const handlePointerUp = async () => {
-    const drag = arrastre.current;
-    arrastre.current = null;
-    if (!drag) return;
-
-    if (!drag.moved) {
-      if (modoUnion) {
-        setSeleccionUnion((prev) =>
-          prev.includes(drag.id) ? prev.filter((id) => id !== drag.id) : [...prev, drag.id],
-        );
-      } else {
-        setMesaSeleccionadaId(drag.id);
-      }
-      return;
+  const handleMesaSelect = (id: string) => {
+    if (modoUnion) {
+      setSeleccionUnion((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+    } else {
+      setMesaSeleccionadaId(id);
     }
+  };
 
-    const pos = posicionesArrastre[drag.id];
-    if (pos) {
-      try {
-        await actualizarMesaPosicionAdmin(drag.id, pos.x, pos.y);
-        await refetch();
-      } catch {
-        // deja la posición optimista en pantalla aunque falle el guardado
-      }
+  const handleMesaDragMove = (id: string, x: number, y: number) => {
+    setPosicionesArrastre((prev) => ({ ...prev, [id]: { x, y } }));
+  };
+
+  const handleMesaDragEnd = async (id: string, x: number, y: number) => {
+    setPosicionesArrastre((prev) => ({ ...prev, [id]: { x, y } }));
+    try {
+      await actualizarMesaPosicionAdmin(id, x, y);
+      await refetch();
+    } catch {
+      // deja la posición optimista en pantalla aunque falle el guardado
     }
   };
 
@@ -632,88 +630,50 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
             <p className="mt-3 text-sm text-noche-ink-muted">Cargando mesas…</p>
           ) : null}
 
-          <div className="mt-4 flex items-center justify-between">
+          <div className="mt-4 flex items-center justify-between gap-3">
             <p className="text-xs text-noche-ink-faint">
               {modoUnion
                 ? "Modo unión: pulsa las mesas que quieres juntar y confirma en el panel."
                 : "Arrastra las mesas para colocarlas como en el local. Pulsa una mesa para ver o tomar pedidos."}
             </p>
-            <button
-              type="button"
-              onClick={handleCrearMesaRapida}
-              className="flex shrink-0 items-center gap-1.5 rounded-lg bg-noche-primary px-4 py-2 text-xs uppercase tracking-widest2 text-noche-ink hover:bg-noche-primary-dark"
-            >
-              <PlusIcon className="h-3.5 w-3.5" />
-              Añadir mesa
-            </button>
+            <div className="flex shrink-0 items-center gap-2">
+              <div className="flex overflow-hidden rounded-lg border border-noche-border text-xs uppercase tracking-widest2">
+                <button
+                  type="button"
+                  onClick={() => setVistaSuperior(false)}
+                  className={`px-3 py-2 ${!vistaSuperior ? "bg-noche-primary/15 text-noche-primary" : "text-noche-ink-muted"}`}
+                >
+                  3D
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setVistaSuperior(true)}
+                  className={`px-3 py-2 ${vistaSuperior ? "bg-noche-primary/15 text-noche-primary" : "text-noche-ink-muted"}`}
+                >
+                  Planta
+                </button>
+              </div>
+              <button
+                type="button"
+                onClick={handleCrearMesaRapida}
+                className="flex items-center gap-1.5 rounded-lg bg-noche-primary px-4 py-2 text-xs uppercase tracking-widest2 text-noche-ink hover:bg-noche-primary-dark"
+              >
+                <PlusIcon className="h-3.5 w-3.5" />
+                Añadir mesa
+              </button>
+            </div>
           </div>
 
-          <div
-            ref={canvasRef}
-            className="relative mt-2 h-[560px] select-none overflow-hidden rounded-lg border border-noche-border bg-[radial-gradient(ellipse_at_center,_oklch(var(--noche-surface-2))_0%,_oklch(var(--noche-surface))_70%,_oklch(var(--noche-bg))_100%)]"
-          >
-            {mesasVisibles.map((mesa, index) => {
-              const estado = estadoMesa(mesa, !!reservaDeMesa(mesa.id), esHoy);
-              if (estadosOcultos.has(estado)) return null;
-              const estilo = ESTILO_MESA[estado];
-              const pos = posicionMesa(mesa, index);
-              const pendientes = mesa.pedidos_hoy.filter((p) => p.estado === "RECEIVED").length;
-              const enSeleccionUnion = seleccionUnion.includes(mesa.id);
-              const tamano = tamanoMesa(mesa.capacidad);
-              const sillas = posicionesSillas(mesa.capacidad, tamano / 2 + 12);
-
-              return (
-                <button
-                  key={mesa.id}
-                  type="button"
-                  onPointerDown={(e) => handlePointerDown(mesa, e)}
-                  onPointerMove={handlePointerMove}
-                  onPointerUp={handlePointerUp}
-                  style={{ left: `${pos.x}%`, top: `${pos.y}%`, width: tamano, height: tamano }}
-                  className={`absolute -translate-x-1/2 -translate-y-1/2 cursor-grab transition-transform active:cursor-grabbing ${
-                    mesaSeleccionadaId === mesa.id || enSeleccionUnion
-                      ? "z-10 scale-105"
-                      : ""
-                  }`}
-                >
-                  {sillas.map((silla, i) => (
-                    <span
-                      key={i}
-                      style={{ left: `calc(50% + ${silla.x}px)`, top: `calc(50% + ${silla.y}px)` }}
-                      className="absolute h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-[3px] bg-[#4a3a2c] shadow"
-                    />
-                  ))}
-                  <div
-                    style={{ background: MADERA_MESA }}
-                    className={`relative flex h-full w-full flex-col items-center justify-center rounded-md shadow-lg shadow-black/60 ring-4 ${estilo.ring} ${
-                      mesaSeleccionadaId === mesa.id || enSeleccionUnion ? "ring-offset-2 ring-offset-noche-primary" : ""
-                    }`}
-                  >
-                    <span
-                      className={`absolute -left-2 -top-2 flex h-7 w-7 items-center justify-center rounded-full text-xs font-medium ${estilo.badge}`}
-                    >
-                      {mesa.numero}
-                    </span>
-                    {mesa.nombre ? (
-                      <span className="max-w-[80%] truncate text-[9px] uppercase tracking-widest2 text-white/80">
-                        {mesa.nombre}
-                      </span>
-                    ) : null}
-                    {mesa.sesion_modo === "SEPARADO" ? (
-                      <span
-                        title="Cada uno por separado"
-                        className="absolute -bottom-1.5 left-1/2 h-2.5 w-2.5 -translate-x-1/2 rounded-full bg-violet-400 ring-2 ring-white"
-                      />
-                    ) : null}
-                    {pendientes > 0 ? (
-                      <span className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-noche-primary text-[10px] font-medium text-noche-ink">
-                        {pendientes}
-                      </span>
-                    ) : null}
-                  </div>
-                </button>
-              );
-            })}
+          <div className="relative mt-2 h-[560px] select-none overflow-hidden rounded-lg border border-noche-border bg-[radial-gradient(ellipse_at_center,_oklch(var(--noche-surface-2))_0%,_oklch(var(--noche-surface))_70%,_oklch(var(--noche-bg))_100%)]">
+            <Floorplan3D
+              mesas={mesasEscena}
+              seleccionadaId={mesaSeleccionadaId}
+              seleccionUnion={seleccionUnion}
+              top={vistaSuperior}
+              onSelect={handleMesaSelect}
+              onDragMove={handleMesaDragMove}
+              onDragEnd={handleMesaDragEnd}
+            />
           </div>
 
           <div className="mt-4 grid grid-cols-3 gap-3 rounded-lg border border-noche-border bg-noche-surface p-4 sm:grid-cols-6">
