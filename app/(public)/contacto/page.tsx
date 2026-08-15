@@ -20,7 +20,7 @@ export default async function ContactoPage() {
       <p className="text-xs uppercase tracking-widest2 text-noche-primary">Contacto</p>
       <h1 className="mt-4 font-display text-5xl text-noche-ink">Visítanos</h1>
 
-      <div className="mt-12 grid gap-12 sm:grid-cols-2">
+      <div className="mt-12 grid items-start gap-12 sm:grid-cols-2">
         <div className="space-y-6">
           <div>
             <p className="text-xs uppercase tracking-widest2 text-noche-ink-muted">
@@ -65,10 +65,10 @@ export default async function ContactoPage() {
           </div>
         </div>
 
-        <div className="aspect-square w-full overflow-hidden border border-noche-border bg-noche-surface">
+        <div className="aspect-square w-full self-start overflow-hidden border border-noche-border bg-noche-surface">
           <iframe
             title="Mapa de ubicación de Palomita Bar"
-            className="h-full w-full border-0 grayscale invert-[0.92] contrast-[0.9]"
+            className="h-full w-full border-0"
             loading="lazy"
             src={`https://www.google.com/maps?q=${mapsQuery}&output=embed`}
           />
