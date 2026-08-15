@@ -30,7 +30,7 @@ export function LocationSection({ horario }: { horario: string | null }) {
           <h2 className="mt-4 font-display text-4xl text-noche-ink">{SITE.name}</h2>
         </div>
 
-        <div className="mt-12 grid gap-12 lg:grid-cols-2">
+        <div className="mt-12 grid items-start gap-12 lg:grid-cols-2">
           <div>
             <p className="text-sm font-medium text-noche-primary">Dirección</p>
             <p className="mt-3 flex items-start gap-2 text-noche-ink/80">
@@ -103,7 +103,7 @@ export function LocationSection({ horario }: { horario: string | null }) {
             </a>
           </div>
 
-          <div className="h-72 overflow-hidden rounded-lg border border-noche-border md:h-full">
+          <div className="h-72 overflow-hidden rounded-lg border border-noche-border lg:h-[420px]">
             <iframe
               title="Ubicación de Palomita Bar"
               src={mapsEmbedUrl}
