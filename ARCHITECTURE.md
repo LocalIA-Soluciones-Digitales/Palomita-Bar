@@ -427,3 +427,98 @@ Pendiente, son decisiones/acciones del usuario, no código:
 | 9 (Testing) | No. |
 | 10 (Producción) | Opcional — dominio propio y decidir si mover el proyecto a una organización de Vercel de LocalIA (ver §14). |
 | Mesas con nombre | No — ya aplicado (§4.5), editable desde `/admin/mesas`. |
+
+## 16. Integración de la web pública de Readdy (2026-08-15)
+
+Se integró en el proyecto la interfaz/funcionalidad de un prototipo generado con
+Readdy (`project-13019657.txt`, Vite + React Router, ya eliminado tras la
+migración). Solo se tocó la **capa pública** (home, carta, coctelería, historia,
+galería, contacto, flujo de pedido en mesa) y el flujo de pago; `/admin` y
+`/admin/cocina` no cambian de diseño (ya tenían un plano de salón interactivo
+real, superior al dashboard mock de Readdy — ver §16.4).
+
+### 16.1 Identidad visual
+Paleta oscura magenta/púrpura en OKLCH (tokens `noche-*` en
+`tailwind.config.ts`/`app/globals.css`, aditivos: `brand-*` sigue existiendo tal
+cual para `/admin`). Aplicada en todo `app/(public)/**` y en el flujo de
+`/pedido/[id]`. Header ahora fijo con transición transparente→sólido al hacer
+scroll; menú móvil a pantalla completa. Se mantiene la tipografía existente
+(Playfair Display + Inter vía `next/font`) para no afectar a `/admin`.
+
+### 16.2 Imágenes
+Las 34 fotos de producto de Readdy (readdy.ai) y 6 imágenes de sitio (hero,
+"nosotros", 4 de ambiente) se descargaron y se subieron a Supabase Storage
+(bucket `restaurant-media`, carpeta `<cliente_id>/carta/` y
+`<cliente_id>/site/`) mediante una Edge Function temporal
+(`migracion-imagenes-readdy`, **pendiente de borrar a mano** desde el dashboard
+de Supabase — no hay herramienta MCP para borrarla). Los 34 productos reales de
+`restaurant.productos` tenían el mismo nombre exacto que el catálogo mock de
+Readdy, así que se mapearon 1:1 por nombre, sustituyendo las fotos placeholder
+de `loremflickr.com` que había antes (`next.config.ts` ya no las permite). Las
+imágenes de sitio se guardan en `public.settings` (`key = 'site_images'`),
+expuestas vía la RPC nueva `get_site_images_publica`. **No** se usó la foto
+aérea del plano de Readdy (ya existe una foto real del salón en `/admin`, ver
+§4.5), ni se inventaron reseñas de clientes (se sustituyeron por un enlace a
+Google Reviews real), ni se presenta el grid de "ambiente" como capturas reales
+de Instagram.
+
+### 16.3 Pedido en mesa: "juntos" o "cada uno por separado"
+`/pedir` (el destino real de los QR ya impresos, `?mesa=<identificador>`) fusiona
+la carta navegable (scrollspy de categorías, lightbox de foto, tarjetas con
+recomendado) con el carrito, en vez de ser dos pantallas separadas. Al entrar
+por una mesa nueva se pregunta el modo:
+- **Juntos**: idéntico al carrito único de siempre (sin cambios de esquema ni de Stripe).
+- **Separado**: cada comensal se identifica por nombre (ligado a su dispositivo,
+  no a su nombre — dos comensales pueden llamarse igual sin colisionar),
+  puede compartir líneas del pedido con otros comensales de la mesa, y paga
+  **su parte real** con Stripe (o en local, a criterio del grupo).
+
+Esquema nuevo en `restaurant` (aditivo, no toca pedidos/pagos existentes):
+`mesa_sesiones` (una sesión ACTIVA por mesa, con índice único parcial),
+`sesion_participantes` (por dispositivo), `pedido_item_repartos` (cuánto debe
+cada comensal de cada línea, y si ya está pagado). `restaurant.pedidos` gana
+`sesion_id`/`participante_id`, ambos nullable — los pedidos antiguos y los
+creados sin sesión (modo prueba de `/pedir` sin `?mesa=`) siguen funcionando
+exactamente igual. `liberar_mesa_admin` cierra la sesión activa de la mesa al
+liberarla, para que el siguiente cliente no se cuele en una sesión ya cobrada.
+
+RPC nuevas en `public` (mismo patrón `site_key`/RLS que el resto de la
+plataforma): `iniciar_sesion_mesa`, `unirse_sesion_mesa`, `get_sesion_publica`,
+`get_reparto_para_pago`, `marcar_repartos_pagados` (revocada de
+`anon`/`authenticated`, solo `service_role` — como `marcar_pedido_pagado`).
+`crear_pedido_restaurant` gana parámetros opcionales (`p_sesion_id`,
+`p_participante_id`) y valida server-side que el reparto de cada línea suma
+exactamente su subtotal, nunca confía en el cálculo del navegador.
+
+Pago: `POST /api/stripe/checkout-participante` (nuevo, junto al
+`/api/stripe/checkout` existente que sigue sirviendo el modo "juntos") crea una
+Stripe Checkout Session solo con los repartos pendientes de un comensal. El
+webhook de Stripe distingue `pedido_id` (modo juntos) de `participante_id`
+(modo separado) en los metadatos de la sesión y llama a la RPC
+correspondiente. **Hallazgo de seguridad corregido durante esta migración**:
+`marcar_repartos_pagados` quedó inicialmente ejecutable por `anon` (Supabase
+concede `EXECUTE` a `anon`/`authenticated` por defecto en funciones nuevas, un
+`revoke ... from public` no basta) — corregido revocando explícitamente de
+`anon` y `authenticated`, verificado con `get_advisors` y contra
+`information_schema.role_routine_grants`.
+
+**Limitación conocida**: si el precio de un producto cambia en el admin justo
+entre que un comensal lo compartió y confirma el pedido, la validación
+server-side del reparto lo rechaza (nunca cobra un importe no cuadrado) pero
+hoy el mensaje de error es genérico, sin la pantalla de "aceptar nuevo precio"
+que sí tenía el prototipo de Readdy. Pendiente de pulir si se da en la
+práctica.
+
+### 16.4 Lo que no se tocó (a propósito)
+- `/admin/cocina` y `SalonBoard` (plano de mesas de `/admin/mesas`): ya eran
+  más completos y reales que el dashboard mock de Readdy (`/empleados/comandas`
+  en el prototipo no tenía ni un botón funcional). Solo se les añadió mostrar
+  el nombre del comensal en cada pedido cuando el pedido viene de una sesión
+  en modo "separado" (`get_mesas_estado_admin`/`get_pedidos_cocina` devuelven
+  ahora `participante_nombre`).
+- El login de "empleados" del prototipo (`/empleados`) nunca autenticaba de
+  verdad; el proyecto ya tenía `Supabase Auth` real en `/admin/login`, sin
+  cambios.
+- i18n de Readdy (montado pero vacío, ningún string traducido) y las
+  dependencias sin uso real del prototipo (Firebase, `@stripe/react-stripe-js`,
+  Recharts, Lucide) no se portaron: no aportaban nada que no existiera ya.

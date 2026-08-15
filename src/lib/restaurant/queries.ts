@@ -3,9 +3,14 @@ import type {
   CartItemInput,
   Categoria,
   Mesa,
+  MesaSesion,
+  ModoSesion,
   PaymentMethod,
   PedidoPublico,
   Producto,
+  SesionParticipante,
+  SesionPublica,
+  SiteImages,
 } from "@/lib/restaurant/types";
 
 const SITE_KEY = process.env.NEXT_PUBLIC_PALOMITA_SITE_KEY;
@@ -62,6 +67,8 @@ export async function crearPedido(params: {
   items: CartItemInput[];
   paymentMethod: PaymentMethod;
   notas?: string;
+  sesionId?: string;
+  participanteId?: string;
 }): Promise<string> {
   const { data, error } = await supabase.rpc("crear_pedido_restaurant", {
     p_site_key: siteKey(),
@@ -69,9 +76,50 @@ export async function crearPedido(params: {
     p_items: params.items,
     p_payment_method: params.paymentMethod,
     p_notas: params.notas ?? null,
+    p_sesion_id: params.sesionId ?? null,
+    p_participante_id: params.participanteId ?? null,
   });
   if (error) throw error;
   return data as string;
+}
+
+// --- Sesión de mesa ("juntos" / "cada uno por separado") ---------------
+
+export async function iniciarSesionMesa(
+  mesaIdentificador: string,
+  modo: ModoSesion,
+): Promise<MesaSesion> {
+  const { data, error } = await supabase.rpc("iniciar_sesion_mesa", {
+    p_site_key: siteKey(),
+    p_mesa_identificador: mesaIdentificador,
+    p_modo: modo,
+  });
+  if (error) throw error;
+  return data as unknown as MesaSesion;
+}
+
+export async function unirseSesionMesa(params: {
+  sesionId: string;
+  nombre: string;
+  deviceId: string;
+}): Promise<SesionParticipante> {
+  const { data, error } = await supabase.rpc("unirse_sesion_mesa", {
+    p_site_key: siteKey(),
+    p_sesion_id: params.sesionId,
+    p_nombre: params.nombre,
+    p_device_id: params.deviceId,
+  });
+  if (error) throw error;
+  return data as unknown as SesionParticipante;
+}
+
+export async function getSesionPublica(sesionId: string): Promise<SesionPublica | null> {
+  const { data, error } = await supabase.rpc("get_sesion_publica", {
+    p_site_key: siteKey(),
+    p_sesion_id: sesionId,
+  });
+  if (error || !data) return null;
+  return data as unknown as SesionPublica;
 }
 
 export async function getPedidoPublico(pedidoId: string): Promise<PedidoPublico | null> {
@@ -88,4 +136,12 @@ export async function getHorarioPublico(): Promise<string | null> {
   });
   if (error) return null;
   return (data as unknown as string | null) ?? null;
+}
+
+export async function getSiteImages(): Promise<SiteImages | null> {
+  const { data, error } = await supabase.rpc("get_site_images_publica", {
+    p_site_key: siteKey(),
+  });
+  if (error || !data) return null;
+  return data as unknown as SiteImages;
 }

@@ -116,6 +116,11 @@ export function KitchenBoard({ pedidosIniciales }: { pedidosIniciales: PedidoCoc
                       </span>
                       <span className="text-xs text-brand-ink/50">{hora}</span>
                     </div>
+                    {pedido.participante_nombre ? (
+                      <p className="text-xs text-brand-ink/50">
+                        Pedido de {pedido.participante_nombre}
+                      </p>
+                    ) : null}
 
                     <ul className="mt-2 space-y-1 text-sm">
                       {pedido.items.map((item, index) => (

@@ -90,6 +90,7 @@ export interface PedidoMesaAdmin {
   total_centimos: number;
   notas: string | null;
   created_at: string;
+  participante_nombre: string | null;
   items: PedidoMesaItemAdmin[];
 }
 

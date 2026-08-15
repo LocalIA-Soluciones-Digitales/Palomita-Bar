@@ -31,3 +31,7 @@ vivo, Stripe, administración, seguridad, verificación funcional). En
 producción en `palomita-bar.vercel.app`. Ver `ARCHITECTURE.md` §15 para el
 resumen de qué queda por hacer manualmente (básicamente: dar de alta
 Stripe) y el resto de fases en detalle.
+
+Web pública con identidad visual oscura y flujo de pedido en mesa con dos
+modos ("juntos" o cada comensal por separado, con reparto de cuenta y pago
+individual real por Stripe) — ver `ARCHITECTURE.md` §16.

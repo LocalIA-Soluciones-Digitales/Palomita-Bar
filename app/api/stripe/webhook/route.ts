@@ -30,18 +30,34 @@ export async function POST(request: Request) {
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
     const pedidoId = session.metadata?.pedido_id;
+    const participanteId = session.metadata?.participante_id;
+    const stripePaymentIntentId =
+      typeof session.payment_intent === "string" ? session.payment_intent : null;
+
+    const supabaseServiceRole = createSupabaseServiceRoleClient();
 
     if (pedidoId) {
-      const supabaseServiceRole = createSupabaseServiceRoleClient();
       const { error } = await supabaseServiceRole.rpc("marcar_pedido_pagado", {
         p_pedido_id: pedidoId,
         p_stripe_session_id: session.id,
-        p_stripe_payment_intent_id:
-          typeof session.payment_intent === "string" ? session.payment_intent : null,
+        p_stripe_payment_intent_id: stripePaymentIntentId,
       });
 
       if (error) {
         console.error("Error marcando el pedido como pagado", error);
+        return NextResponse.json({ error: "Error interno" }, { status: 500 });
+      }
+    } else if (participanteId) {
+      // Pago de "mi parte" en modo separado: marca solo los repartos de
+      // este comensal, nunca el pedido entero de otro comensal.
+      const { error } = await supabaseServiceRole.rpc("marcar_repartos_pagados", {
+        p_participante_id: participanteId,
+        p_stripe_session_id: session.id,
+        p_stripe_payment_intent_id: stripePaymentIntentId,
+      });
+
+      if (error) {
+        console.error("Error marcando los repartos como pagados", error);
         return NextResponse.json({ error: "Error interno" }, { status: 500 });
       }
     }

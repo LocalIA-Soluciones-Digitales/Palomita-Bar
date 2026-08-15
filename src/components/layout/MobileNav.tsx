@@ -18,17 +18,17 @@ export function MobileNav() {
       >
         <span className="relative block h-4 w-6">
           <span
-            className={`absolute left-0 top-0 h-px w-6 bg-brand-black transition-transform ${
+            className={`absolute left-0 top-0 h-px w-6 bg-noche-ink transition-transform ${
               open ? "translate-y-[7px] rotate-45" : ""
             }`}
           />
           <span
-            className={`absolute left-0 top-1/2 h-px w-6 -translate-y-1/2 bg-brand-black transition-opacity ${
+            className={`absolute left-0 top-1/2 h-px w-6 -translate-y-1/2 bg-noche-ink transition-opacity ${
               open ? "opacity-0" : "opacity-100"
             }`}
           />
           <span
-            className={`absolute bottom-0 left-0 h-px w-6 bg-brand-black transition-transform ${
+            className={`absolute bottom-0 left-0 h-px w-6 bg-noche-ink transition-transform ${
               open ? "-translate-y-[7px] -rotate-45" : ""
             }`}
           />
@@ -36,14 +36,15 @@ export function MobileNav() {
       </button>
 
       {open ? (
-        <div className="absolute inset-x-0 top-full border-t border-brand-black/10 bg-brand-cream px-6 py-8">
-          <nav className="flex flex-col gap-6">
-            {NAV_LINKS.map((link) => (
+        <div className="fixed inset-0 top-16 z-30 flex flex-col bg-noche-bg/98 px-6 py-10 backdrop-blur-lg">
+          <nav className="flex flex-col gap-7">
+            {NAV_LINKS.map((link, index) => (
               <Link
                 key={link.href}
                 href={link.href}
                 onClick={() => setOpen(false)}
-                className="font-display text-2xl"
+                style={{ transitionDelay: `${index * 40}ms` }}
+                className="font-display text-3xl text-noche-ink transition-colors hover:text-noche-primary"
               >
                 {link.label}
               </Link>
@@ -51,14 +52,14 @@ export function MobileNav() {
             <Link
               href="/pedir"
               onClick={() => setOpen(false)}
-              className="mt-2 inline-flex w-fit items-center bg-brand-pink px-6 py-3 text-sm uppercase tracking-widest2 text-white"
+              className="mt-4 inline-flex w-fit items-center bg-noche-primary px-6 py-3 text-sm uppercase tracking-widest2 text-white"
             >
               Pedir
             </Link>
             <Link
               href="/admin"
               onClick={() => setOpen(false)}
-              className="text-xs uppercase tracking-widest2 text-brand-ink/40"
+              className="text-xs uppercase tracking-widest2 text-noche-ink-muted"
             >
               Equipo
             </Link>

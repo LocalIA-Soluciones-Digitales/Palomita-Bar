@@ -16,5 +16,6 @@ export interface PedidoCocina {
   created_at: string;
   mesa_numero: number | null;
   mesa_nombre: string | null;
+  participante_nombre: string | null;
   items: PedidoCocinaItem[];
 }

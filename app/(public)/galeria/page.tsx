@@ -21,20 +21,18 @@ const PHOTOS = [
 export default function GaleriaPage() {
   return (
     <div className="mx-auto max-w-6xl px-6 py-24">
-      <p className="text-xs uppercase tracking-widest2 text-brand-pink">Galería</p>
-      <h1 className="mt-4 font-display text-5xl">En imágenes</h1>
-      <p className="mt-4 max-w-lg text-brand-ink/70">
+      <p className="text-xs uppercase tracking-widest2 text-noche-primary">Galería</p>
+      <h1 className="mt-4 font-display text-5xl text-noche-ink">En imágenes</h1>
+      <p className="mt-4 max-w-lg text-noche-ink-muted">
         Ambiente de referencia mientras preparamos el reportaje fotográfico
-        real de Palomita: local y carta. Próximamente sustituiremos estas
-        imágenes por fotos propias servidas desde Supabase Storage (bucket{" "}
-        <code>restaurant/palomita/gallery</code>).
+        real de Palomita: local y carta.
       </p>
 
       <div className="mt-16 grid grid-cols-2 gap-3 sm:grid-cols-3">
         {PHOTOS.map((photo) => (
           <div
             key={photo.src}
-            className="relative aspect-[4/5] overflow-hidden bg-brand-sand"
+            className="relative aspect-[4/5] overflow-hidden bg-noche-surface"
           >
             <Image
               src={photo.src}

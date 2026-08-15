@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { getCarta, getCategorias, validarMesa } from "@/lib/restaurant/queries";
 import { CartProvider } from "@/components/cart/cart-context";
-import { ProductRow } from "@/components/pedir/ProductRow";
-import { CartBar } from "@/components/pedir/CartBar";
+import { TableSessionProvider } from "@/components/mesa/table-session-context";
+import { TableEntry } from "@/components/mesa/TableEntry";
+import { PedirExperience } from "@/components/pedir/PedirExperience";
 
 export const dynamic = "force-dynamic";
 
@@ -30,48 +31,39 @@ export default async function PedirPage({
   }
 
   const [categorias, productos] = await Promise.all([getCategorias(), getCarta()]);
+  const mesaLabel = mesa
+    ? mesa.nombre
+      ? `${mesa.nombre} (Mesa ${mesa.numero})`
+      : `Mesa ${mesa.numero}`
+    : "Modo prueba · sin mesa asignada";
 
-  return (
-    <CartProvider>
-      <div className="mx-auto max-w-3xl px-6 pb-32 pt-16">
-        <p className="text-xs uppercase tracking-widest2 text-brand-pink">
-          {mesa
-            ? mesa.nombre
-              ? `${mesa.nombre} (Mesa ${mesa.numero})`
-              : `Mesa ${mesa.numero}`
-            : "Modo prueba · sin mesa asignada"}
-        </p>
-        <h1 className="mt-4 font-display text-4xl">¿Qué te apetece?</h1>
-
-        <div className="mt-12 space-y-16">
-          {categorias.map((categoria) => {
-            const items = productos.filter((p) => p.categoria_id === categoria.id);
-            if (items.length === 0) return null;
-
-            return (
-              <div key={categoria.id}>
-                <h2 className="font-display text-2xl text-brand-pink">{categoria.nombre}</h2>
-                <div className="mt-4 divide-y divide-brand-black/10">
-                  {items.map((producto) => (
-                    <ProductRow key={producto.id} producto={producto} />
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      <CartBar mesaIdentificador={mesaIdentificador} />
-    </CartProvider>
+  const experiencia = (
+    <PedirExperience
+      categorias={categorias}
+      productos={productos}
+      mesaLabel={mesaLabel}
+      mesaIdentificador={mesaIdentificador}
+    />
   );
+
+  if (mesa) {
+    return (
+      <TableSessionProvider mesaIdentificador={mesa.identificador}>
+        <CartProvider>
+          <TableEntry>{experiencia}</TableEntry>
+        </CartProvider>
+      </TableSessionProvider>
+    );
+  }
+
+  return <CartProvider>{experiencia}</CartProvider>;
 }
 
 function EmptyState({ title, description }: { title: string; description: string }) {
   return (
     <div className="mx-auto flex min-h-[70vh] max-w-lg flex-col items-center justify-center px-6 py-24 text-center">
-      <h1 className="font-display text-3xl">{title}</h1>
-      <p className="mt-4 text-brand-ink/70">{description}</p>
+      <h1 className="font-display text-3xl text-noche-ink">{title}</h1>
+      <p className="mt-4 text-noche-ink-muted">{description}</p>
     </div>
   );
 }

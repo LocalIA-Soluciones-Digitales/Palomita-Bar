@@ -7,6 +7,8 @@ export interface CartLine {
   producto: Producto;
   cantidad: number;
   notas?: string;
+  /** Ids de otros comensales con los que se comparte esta línea (modo "separado"). */
+  compartidoCon: string[];
 }
 
 interface CartContextValue {
@@ -15,6 +17,7 @@ interface CartContextValue {
   removeItem: (productoId: string) => void;
   increment: (productoId: string) => void;
   decrement: (productoId: string) => void;
+  toggleShare: (productoId: string, participanteId: string) => void;
   clear: () => void;
   totalCentimos: number;
   totalItems: number;
@@ -33,7 +36,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           l.producto.id === producto.id ? { ...l, cantidad: l.cantidad + 1 } : l,
         );
       }
-      return [...prev, { producto, cantidad: 1 }];
+      return [...prev, { producto, cantidad: 1, compartidoCon: [] }];
     });
   };
 
@@ -55,6 +58,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
     );
   };
 
+  const toggleShare = (productoId: string, participanteId: string) => {
+    setLines((prev) =>
+      prev.map((l) => {
+        if (l.producto.id !== productoId) return l;
+        const compartidoCon = l.compartidoCon.includes(participanteId)
+          ? l.compartidoCon.filter((id) => id !== participanteId)
+          : [...l.compartidoCon, participanteId];
+        return { ...l, compartidoCon };
+      }),
+    );
+  };
+
   const clear = () => setLines([]);
 
   const totalCentimos = useMemo(
@@ -65,7 +80,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   return (
     <CartContext.Provider
-      value={{ lines, addItem, removeItem, increment, decrement, clear, totalCentimos, totalItems }}
+      value={{
+        lines,
+        addItem,
+        removeItem,
+        increment,
+        decrement,
+        toggleShare,
+        clear,
+        totalCentimos,
+        totalItems,
+      }}
     >
       {children}
     </CartContext.Provider>

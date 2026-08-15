@@ -10,4 +10,31 @@
   body {
     @apply bg-brand-cream text-brand-ink antialiased;
   }
+
+  :root {
+    /* Paleta oscura magenta/púrpura de la web pública. Tríos "L C H" de
+       OKLCH (sin oklch(...) alrededor) para poder aplicar opacidad con
+       clases tipo bg-noche-surface/60 vía <alpha-value>. */
+    --noche-bg: 0.15 0.028 300;
+    --noche-surface: 0.21 0.032 300;
+    --noche-surface-2: 0.27 0.038 300;
+    --noche-primary: 0.62 0.21 340;
+    --noche-primary-dark: 0.5 0.2 340;
+    --noche-accent: 0.58 0.16 295;
+    --noche-positive: 0.72 0.17 150;
+    --noche-warning: 0.75 0.15 80;
+    --noche-ink: 0.97 0.01 300;
+    --noche-ink-muted: 0.72 0.02 300;
+    --noche-border: 0.32 0.03 300;
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
 }
