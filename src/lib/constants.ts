@@ -20,7 +20,7 @@ export const SITE = {
 } as const;
 
 export const NAV_LINKS = [
-  { href: "/historia", label: "Historia" },
+  { href: "/#nosotros", label: "Historia" },
   { href: "/carta", label: "Carta" },
   { href: "/cocteleria", label: "Coctelería" },
   { href: "/galeria", label: "Galería" },
