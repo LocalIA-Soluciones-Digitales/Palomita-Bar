@@ -352,6 +352,37 @@ export function EyeIcon({ className }: { className?: string }) {
   );
 }
 
+export function EyeOffIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} className={className}>
+      <path
+        d="M3.5 3.5l17 17M9.9 9.9a3 3 0 0 0 4.2 4.2M6.2 6.5C4.1 8 2.5 10 2.5 12c0 0 3.5 6.5 9.5 6.5 1.9 0 3.5-.6 4.9-1.5M10.7 5.6c.4 0 .9-.1 1.3-.1 6 0 9.5 6.5 9.5 6.5-.5 1-1.3 2.2-2.4 3.3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function MailIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} className={className}>
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <path d="M4 6.5l8 6.2 8-6.2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function LockIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} className={className}>
+      <rect x="4.5" y="10.5" width="15" height="10" rx="2" />
+      <path d="M7.5 10.5V7a4.5 4.5 0 0 1 9 0v3.5" strokeLinecap="round" />
+      <circle cx="12" cy="15.2" r="1.3" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
 export function AlertIcon({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} className={className}>
