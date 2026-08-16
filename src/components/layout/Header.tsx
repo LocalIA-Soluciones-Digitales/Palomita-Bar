@@ -9,6 +9,7 @@ import { InstagramIcon } from "@/components/icons";
 
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -21,7 +22,7 @@ export function Header() {
   return (
     <header
       className={`fixed inset-x-0 top-0 z-40 transition-colors duration-300 ${
-        scrolled
+        scrolled || mobileMenuOpen
           ? "border-b border-noche-border bg-noche-bg/90 backdrop-blur-md"
           : "border-b border-transparent bg-transparent"
       }`}
@@ -74,7 +75,7 @@ export function Header() {
           </a>
         </nav>
 
-        <MobileNav />
+        <MobileNav open={mobileMenuOpen} onOpenChange={setMobileMenuOpen} />
       </div>
     </header>
   );
