@@ -10,7 +10,7 @@ import {
 } from "@/lib/restaurant/admin-queries";
 import type { CategoriaAdmin, ProductoAdmin } from "@/lib/restaurant/admin-types";
 import { errorMessage, formatCentimos } from "@/lib/format";
-import { PencilIcon, PlusIcon, TrashIcon } from "@/components/icons";
+import { BoxIcon, CheckIcon, PencilIcon, PlusIcon, TrashIcon } from "@/components/icons";
 
 const FORM_VACIO = {
   nombre: "",
@@ -194,11 +194,19 @@ export default function ProductosAdminPage() {
       </div>
 
       {formAbierto ? (
-        <div className="mt-6 rounded-xl border border-noche-border bg-noche-surface p-4 shadow-sm">
-          <div className="flex items-center justify-between">
-            <p className="text-xs uppercase tracking-widest2 text-noche-ink-muted">
-              {editandoId ? "Editar producto" : "Nuevo producto"}
-            </p>
+        <div className="mt-6 overflow-hidden rounded-xl border border-noche-border bg-noche-surface shadow-sm">
+          <div className="flex items-center justify-between border-b border-noche-border px-4 py-3">
+            <div className="flex items-center gap-2">
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-noche-primary/10 text-noche-primary">
+                <BoxIcon className="h-4 w-4" />
+              </span>
+              <div>
+                <p className="text-sm font-medium text-noche-ink">
+                  {editandoId ? "Editar producto" : "Nuevo producto"}
+                </p>
+                <p className="text-xs text-noche-ink-faint">Aparecerá en la carta pública.</p>
+              </div>
+            </div>
             <button
               type="button"
               onClick={handleCancelar}
@@ -208,7 +216,7 @@ export default function ProductosAdminPage() {
             </button>
           </div>
 
-          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-4 px-4 py-4 sm:grid-cols-4">
             <div className="col-span-2">
               <label className="text-xs uppercase tracking-widest2 text-noche-ink-muted">
                 Nombre
@@ -216,7 +224,7 @@ export default function ProductosAdminPage() {
               <input
                 value={form.nombre}
                 onChange={(e) => setForm((f) => ({ ...f, nombre: e.target.value }))}
-                className="mt-1 w-full rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2 text-sm text-noche-ink"
+                className="mt-1.5 w-full rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2.5 text-sm text-noche-ink outline-none transition focus:border-noche-primary"
               />
             </div>
             <div>
@@ -227,7 +235,7 @@ export default function ProductosAdminPage() {
                 value={form.precio}
                 onChange={(e) => setForm((f) => ({ ...f, precio: e.target.value }))}
                 placeholder="6,50"
-                className="mt-1 w-full rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2 text-sm text-noche-ink"
+                className="mt-1.5 w-full rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2.5 text-sm text-noche-ink outline-none transition focus:border-noche-primary"
               />
             </div>
             <div>
@@ -237,7 +245,7 @@ export default function ProductosAdminPage() {
               <select
                 value={form.categoriaId}
                 onChange={(e) => setForm((f) => ({ ...f, categoriaId: e.target.value }))}
-                className="mt-1 w-full rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2 text-sm text-noche-ink"
+                className="mt-1.5 w-full rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2.5 text-sm text-noche-ink outline-none transition focus:border-noche-primary"
               >
                 <option value="">Sin categoría</option>
                 {categorias.map((c) => (
@@ -254,7 +262,7 @@ export default function ProductosAdminPage() {
               <input
                 value={form.descripcion}
                 onChange={(e) => setForm((f) => ({ ...f, descripcion: e.target.value }))}
-                className="mt-1 w-full rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2 text-sm text-noche-ink"
+                className="mt-1.5 w-full rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2.5 text-sm text-noche-ink outline-none transition focus:border-noche-primary"
               />
             </div>
 
@@ -262,7 +270,7 @@ export default function ProductosAdminPage() {
               <label className="text-xs uppercase tracking-widest2 text-noche-ink-muted">
                 Foto
               </label>
-              <div className="mt-1 flex items-center gap-3">
+              <div className="mt-1.5 flex items-center gap-4">
                 {form.imagenUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -273,54 +281,66 @@ export default function ProductosAdminPage() {
                 ) : (
                   <div className="h-16 w-16 shrink-0 rounded-lg border border-dashed border-noche-border bg-noche-surface-2" />
                 )}
-                <input
-                  type="file"
-                  accept="image/*"
-                  disabled={subiendoImagen}
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) handleSubirImagen(file);
-                  }}
-                  className="text-xs text-noche-ink-muted"
-                />
-                {subiendoImagen ? (
-                  <span className="text-xs text-noche-ink-muted">Subiendo…</span>
-                ) : null}
-                {form.imagenUrl ? (
-                  <button
-                    type="button"
-                    onClick={() => setForm((f) => ({ ...f, imagenUrl: null }))}
-                    className="text-xs uppercase tracking-widest2 text-noche-ink-faint hover:text-noche-danger"
-                  >
-                    Quitar
-                  </button>
-                ) : null}
+                <div className="flex items-center gap-3">
+                  <label className="cursor-pointer rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2 text-xs uppercase tracking-widest2 text-noche-ink-muted transition hover:border-noche-primary hover:text-noche-ink">
+                    {subiendoImagen ? "Subiendo…" : "Seleccionar imagen"}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      disabled={subiendoImagen}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleSubirImagen(file);
+                      }}
+                      className="hidden"
+                    />
+                  </label>
+                  {form.imagenUrl ? (
+                    <button
+                      type="button"
+                      onClick={() => setForm((f) => ({ ...f, imagenUrl: null }))}
+                      className="text-xs uppercase tracking-widest2 text-noche-ink-faint hover:text-noche-danger"
+                    >
+                      Quitar
+                    </button>
+                  ) : null}
+                </div>
               </div>
             </div>
 
-            <label className="flex items-center gap-2 text-sm text-noche-ink">
-              <input
-                type="checkbox"
-                checked={form.disponible}
-                onChange={(e) => setForm((f) => ({ ...f, disponible: e.target.checked }))}
-              />
-              Disponible
-            </label>
-            <label className="flex items-center gap-2 text-sm text-noche-ink">
-              <input
-                type="checkbox"
-                checked={form.destacado}
-                onChange={(e) => setForm((f) => ({ ...f, destacado: e.target.checked }))}
-              />
-              Destacado
-            </label>
+            <div className="col-span-2 flex gap-2 sm:col-span-4">
+              <button
+                type="button"
+                onClick={() => setForm((f) => ({ ...f, disponible: !f.disponible }))}
+                className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs uppercase tracking-widest2 transition ${
+                  form.disponible
+                    ? "border-noche-positive/40 bg-noche-positive/10 text-noche-positive"
+                    : "border-noche-border bg-noche-surface-2 text-noche-ink-muted"
+                }`}
+              >
+                {form.disponible ? <CheckIcon className="h-3 w-3" /> : null}
+                Disponible
+              </button>
+              <button
+                type="button"
+                onClick={() => setForm((f) => ({ ...f, destacado: !f.destacado }))}
+                className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs uppercase tracking-widest2 transition ${
+                  form.destacado
+                    ? "border-noche-primary/40 bg-noche-primary/10 text-noche-primary"
+                    : "border-noche-border bg-noche-surface-2 text-noche-ink-muted"
+                }`}
+              >
+                {form.destacado ? <CheckIcon className="h-3 w-3" /> : null}
+                Destacado
+              </button>
+            </div>
 
-            <div className="col-span-2 flex items-center gap-3 sm:col-span-4">
+            <div className="col-span-2 flex items-center gap-3 border-t border-noche-border pt-4 sm:col-span-4">
               <button
                 type="button"
                 onClick={handleGuardar}
                 disabled={guardando || subiendoImagen}
-                className="flex items-center gap-1.5 rounded-lg bg-noche-primary px-4 py-2 text-xs uppercase tracking-widest2 text-noche-ink disabled:opacity-50"
+                className="flex items-center gap-1.5 rounded-lg bg-noche-primary px-4 py-2 text-xs uppercase tracking-widest2 text-noche-ink transition hover:brightness-110 disabled:opacity-50"
               >
                 <PlusIcon className="h-3.5 w-3.5" />
                 {editandoId ? "Guardar cambios" : "Añadir producto"}

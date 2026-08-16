@@ -8,7 +8,7 @@ import {
 } from "@/lib/restaurant/admin-queries";
 import type { CategoriaAdmin } from "@/lib/restaurant/admin-types";
 import { errorMessage } from "@/lib/format";
-import { PencilIcon, PlusIcon, TrashIcon } from "@/components/icons";
+import { PencilIcon, PlusIcon, TagIcon, TrashIcon } from "@/components/icons";
 
 const COMBINING_MARKS = new RegExp("[\\u0300-\\u036f]", "g");
 
@@ -126,11 +126,19 @@ export default function CategoriasAdminPage() {
       </div>
 
       {formAbierto ? (
-        <div className="mt-6 rounded-xl border border-noche-border bg-noche-surface p-4 shadow-sm">
-          <div className="flex items-center justify-between">
-            <p className="text-xs uppercase tracking-widest2 text-noche-ink-muted">
-              {editandoId ? "Editar categoría" : "Nueva categoría"}
-            </p>
+        <div className="mt-6 overflow-hidden rounded-xl border border-noche-border bg-noche-surface shadow-sm">
+          <div className="flex items-center justify-between border-b border-noche-border px-4 py-3">
+            <div className="flex items-center gap-2">
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-noche-primary/10 text-noche-primary">
+                <TagIcon className="h-4 w-4" />
+              </span>
+              <div>
+                <p className="text-sm font-medium text-noche-ink">
+                  {editandoId ? "Editar categoría" : "Nueva categoría"}
+                </p>
+                <p className="text-xs text-noche-ink-faint">Agrupa los productos de la carta.</p>
+              </div>
+            </div>
             <button
               type="button"
               onClick={handleCancelar}
@@ -140,15 +148,15 @@ export default function CategoriasAdminPage() {
             </button>
           </div>
 
-          <div className="mt-4 flex flex-wrap items-end gap-3">
-            <div className="flex-1">
+          <div className="flex flex-wrap items-end gap-4 px-4 py-4">
+            <div className="min-w-[10rem] flex-1">
               <label className="text-xs uppercase tracking-widest2 text-noche-ink-muted">
                 Nombre
               </label>
               <input
                 value={form.nombre}
                 onChange={(e) => setForm((f) => ({ ...f, nombre: e.target.value }))}
-                className="mt-1 w-full rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2 text-sm text-noche-ink"
+                className="mt-1.5 w-full rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2.5 text-sm text-noche-ink outline-none transition focus:border-noche-primary"
               />
             </div>
             <div>
@@ -160,7 +168,7 @@ export default function CategoriasAdminPage() {
                 onChange={(e) =>
                   setForm((f) => ({ ...f, tipo: e.target.value as "comida" | "bebida" }))
                 }
-                className="mt-1 rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2 text-sm text-noche-ink"
+                className="mt-1.5 rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2.5 text-sm text-noche-ink outline-none transition focus:border-noche-primary"
               >
                 <option value="comida">Comida</option>
                 <option value="bebida">Bebida</option>
@@ -174,25 +182,27 @@ export default function CategoriasAdminPage() {
                 type="number"
                 value={form.orden}
                 onChange={(e) => setForm((f) => ({ ...f, orden: Number(e.target.value) }))}
-                className="mt-1 w-20 rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2 text-sm text-noche-ink"
+                className="mt-1.5 w-20 rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2.5 text-sm text-noche-ink outline-none transition focus:border-noche-primary"
               />
             </div>
-            <button
-              type="button"
-              onClick={handleGuardar}
-              disabled={guardando}
-              className="flex items-center gap-1.5 rounded-lg bg-noche-primary px-4 py-2 text-xs uppercase tracking-widest2 text-noche-ink disabled:opacity-50"
-            >
-              <PlusIcon className="h-3.5 w-3.5" />
-              {editandoId ? "Guardar cambios" : "Añadir"}
-            </button>
-            <button
-              type="button"
-              onClick={handleCancelar}
-              className="text-xs uppercase tracking-widest2 text-noche-ink-muted"
-            >
-              Cancelar
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={handleGuardar}
+                disabled={guardando}
+                className="flex items-center gap-1.5 rounded-lg bg-noche-primary px-4 py-2 text-xs uppercase tracking-widest2 text-noche-ink transition hover:brightness-110 disabled:opacity-50"
+              >
+                <PlusIcon className="h-3.5 w-3.5" />
+                {editandoId ? "Guardar cambios" : "Añadir"}
+              </button>
+              <button
+                type="button"
+                onClick={handleCancelar}
+                className="text-xs uppercase tracking-widest2 text-noche-ink-muted"
+              >
+                Cancelar
+              </button>
+            </div>
           </div>
         </div>
       ) : null}
