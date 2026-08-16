@@ -15,8 +15,8 @@
 --      SELECT * FROM restaurant.productos LIMIT 1;
 --    y ajusta nombres de columna si difieren.
 --
--- 2. Sustituye REEMPLAZA_CLIENTE_ID más abajo por el valor real de
---    NEXT_PUBLIC_PALOMITA_CLIENTE_ID (variable de entorno del proyecto).
+-- 2. El cliente_id de Palomita Bar (e73669e4-7951-41f0-aa9a-16b391d0015c,
+--    obtenido de la tabla clientes por su site_key) ya está puesto abajo.
 --
 -- 3. Es idempotente: usa NOT EXISTS por nombre+categoría, así que se
 --    puede volver a ejecutar sin duplicar filas. Sí duplicará si el
@@ -36,15 +36,13 @@
 
 begin;
 
-create temporary table _cliente as
-  select 'REEMPLAZA_CLIENTE_ID'::uuid as id;
 
 -- ------------------------------------------------------------
 -- Categorías
 -- ------------------------------------------------------------
 
 insert into restaurant.categorias (cliente_id, nombre, slug, tipo, orden)
-select (select id from _cliente), v.nombre, v.slug, v.tipo, v.orden
+select 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid, v.nombre, v.slug, v.tipo, v.orden
 from (values
   ('Cócteles de la casa',    'cocteles-de-la-casa',    'bebida', 1),
   ('Combinados',             'combinados',             'bebida', 2),
@@ -67,7 +65,7 @@ from (values
 ) as v(nombre, slug, tipo, orden)
 where not exists (
   select 1 from restaurant.categorias c
-  where c.cliente_id = (select id from _cliente) and c.slug = v.slug
+  where c.cliente_id = 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid and c.slug = v.slug
 );
 
 -- ------------------------------------------------------------
@@ -75,7 +73,7 @@ where not exists (
 -- ------------------------------------------------------------
 insert into restaurant.productos
   (cliente_id, categoria_id, nombre, descripcion, precio_centimos, disponible, destacado, orden, alergenos)
-select (select id from _cliente), c.id, p.nombre, p.descripcion, p.precio_centimos, true, true, p.orden, array[]::text[]
+select 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid, c.id, p.nombre, p.descripcion, p.precio_centimos, true, true, p.orden, array[]::text[]
 from restaurant.categorias c
 cross join (values
   ('La Bolsita',            'Vodka, limón, zumo de arándanos, sirope de frambuesa y coco.', 950, 1),
@@ -85,10 +83,10 @@ cross join (values
   ('Palomita',               'Tequila reposado, limón, zumo de pomelo, sirope de ágave y soda de pomelo.', 850, 5),
   ('Holy Bible',            'Dewars white label, limón, zumo de manzana, sirope y bitter de chocolate.', 950, 6)
 ) as p(nombre, descripcion, precio_centimos, orden)
-where c.cliente_id = (select id from _cliente) and c.slug = 'cocteles-de-la-casa'
+where c.cliente_id = 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid and c.slug = 'cocteles-de-la-casa'
 and not exists (
   select 1 from restaurant.productos pr
-  where pr.cliente_id = (select id from _cliente) and pr.categoria_id = c.id and pr.nombre = p.nombre
+  where pr.cliente_id = 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid and pr.categoria_id = c.id and pr.nombre = p.nombre
 );
 
 -- ------------------------------------------------------------
@@ -96,7 +94,7 @@ and not exists (
 -- ------------------------------------------------------------
 insert into restaurant.productos
   (cliente_id, categoria_id, nombre, descripcion, precio_centimos, disponible, destacado, orden, alergenos)
-select (select id from _cliente), c.id, p.nombre, p.descripcion, p.precio_centimos, true, false, p.orden, array[]::text[]
+select 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid, c.id, p.nombre, p.descripcion, p.precio_centimos, true, false, p.orden, array[]::text[]
 from restaurant.categorias c
 cross join (values
   ('Gintonic de la casa',             'Mg paradiso con tónica. Bitter de pimienta negra y jengibre.', 850, 1),
@@ -106,10 +104,10 @@ cross join (values
   ('Kraken',                          'Ron especiado Kraken con Coca Cola.', 850, 5),
   ('Santa Teresa 1796',               'Ron Santa Teresa 1796.', 950, 6)
 ) as p(nombre, descripcion, precio_centimos, orden)
-where c.cliente_id = (select id from _cliente) and c.slug = 'combinados'
+where c.cliente_id = 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid and c.slug = 'combinados'
 and not exists (
   select 1 from restaurant.productos pr
-  where pr.cliente_id = (select id from _cliente) and pr.categoria_id = c.id and pr.nombre = p.nombre
+  where pr.cliente_id = 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid and pr.categoria_id = c.id and pr.nombre = p.nombre
 );
 
 -- ------------------------------------------------------------
@@ -117,7 +115,7 @@ and not exists (
 -- ------------------------------------------------------------
 insert into restaurant.productos
   (cliente_id, categoria_id, nombre, descripcion, precio_centimos, disponible, destacado, orden, alergenos)
-select (select id from _cliente), c.id, p.nombre, p.descripcion, p.precio_centimos, true, false, p.orden, p.alergenos
+select 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid, c.id, p.nombre, p.descripcion, p.precio_centimos, true, false, p.orden, p.alergenos
 from restaurant.categorias c
 cross join (values
   ('Clover Club', 'MG paradiso, limón, sirope de frambuesa y clara de huevo. Dulce.', 850, 1, array['huevo']),
@@ -125,10 +123,10 @@ cross join (values
   ('Ginberry',     'Ginebra rosa, limón, naranja, zumo de arándanos, sirope de frambuesa y licor de almendras. Dulce.', 900, 3, array['frutos secos']),
   ('Bramble',      'MG paradiso, limón, azúcar y licor de mora. Cítrico con toques dulces.', 850, 4, array[]::text[])
 ) as p(nombre, descripcion, precio_centimos, orden, alergenos)
-where c.cliente_id = (select id from _cliente) and c.slug = 'ginebra'
+where c.cliente_id = 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid and c.slug = 'ginebra'
 and not exists (
   select 1 from restaurant.productos pr
-  where pr.cliente_id = (select id from _cliente) and pr.categoria_id = c.id and pr.nombre = p.nombre
+  where pr.cliente_id = 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid and pr.categoria_id = c.id and pr.nombre = p.nombre
 );
 
 -- ------------------------------------------------------------
@@ -136,7 +134,7 @@ and not exists (
 -- ------------------------------------------------------------
 insert into restaurant.productos
   (cliente_id, categoria_id, nombre, descripcion, precio_centimos, disponible, destacado, orden, alergenos)
-select (select id from _cliente), c.id, p.nombre, p.descripcion, p.precio_centimos, true, false, p.orden, array[]::text[]
+select 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid, c.id, p.nombre, p.descripcion, p.precio_centimos, true, false, p.orden, array[]::text[]
 from restaurant.categorias c
 cross join (values
   ('Cosmopolitan',     'Vodka, limón, zumo de arándanos y Cointreau. Cítrico.', 800, 1),
@@ -144,10 +142,10 @@ cross join (values
   ('Espresso Martini', 'Vodka, café, azúcar y licor de café. Notas amargas.', 850, 3),
   ('Sex on the Beach', 'Vodka, licor de melocotón, zumo de naranja, arándanos y sirope de frambuesa. Dulce.', 900, 4)
 ) as p(nombre, descripcion, precio_centimos, orden)
-where c.cliente_id = (select id from _cliente) and c.slug = 'vodka'
+where c.cliente_id = 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid and c.slug = 'vodka'
 and not exists (
   select 1 from restaurant.productos pr
-  where pr.cliente_id = (select id from _cliente) and pr.categoria_id = c.id and pr.nombre = p.nombre
+  where pr.cliente_id = 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid and pr.categoria_id = c.id and pr.nombre = p.nombre
 );
 
 -- ------------------------------------------------------------
@@ -155,7 +153,7 @@ and not exists (
 -- ------------------------------------------------------------
 insert into restaurant.productos
   (cliente_id, categoria_id, nombre, descripcion, precio_centimos, disponible, destacado, orden, alergenos)
-select (select id from _cliente), c.id, p.nombre, p.descripcion, p.precio_centimos, true, false, p.orden, array[]::text[]
+select 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid, c.id, p.nombre, p.descripcion, p.precio_centimos, true, false, p.orden, array[]::text[]
 from restaurant.categorias c
 cross join (values
   ('Mojito',        'Ron Santísima 3, hierbabuena, azúcar moreno y soda. Cítrico.', 850, 1),
@@ -164,10 +162,10 @@ cross join (values
   ('Dark''n Stormy', 'Ron Kraken, limón, angostura y ginger beer. Trago largo. Notas a jengibre.', 950, 4),
   ('Mai Tai',        'Ron Santísima 3, Kraken, limón, zumo de piña, almendras, Cointreau y bitter de chocolate. Dulce.', 900, 5)
 ) as p(nombre, descripcion, precio_centimos, orden)
-where c.cliente_id = (select id from _cliente) and c.slug = 'ron'
+where c.cliente_id = 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid and c.slug = 'ron'
 and not exists (
   select 1 from restaurant.productos pr
-  where pr.cliente_id = (select id from _cliente) and pr.categoria_id = c.id and pr.nombre = p.nombre
+  where pr.cliente_id = 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid and pr.categoria_id = c.id and pr.nombre = p.nombre
 );
 
 -- ------------------------------------------------------------
@@ -175,16 +173,16 @@ and not exists (
 -- ------------------------------------------------------------
 insert into restaurant.productos
   (cliente_id, categoria_id, nombre, descripcion, precio_centimos, disponible, destacado, orden, alergenos)
-select (select id from _cliente), c.id, p.nombre, p.descripcion, p.precio_centimos, true, false, p.orden, p.alergenos
+select 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid, c.id, p.nombre, p.descripcion, p.precio_centimos, true, false, p.orden, p.alergenos
 from restaurant.categorias c
 cross join (values
   ('Whiskey Sour',  'Whiskey, limón, azúcar y clara de huevo. Cítrico.', 900, 1, array['huevo']),
   ('Smoked Darkan', 'Whiskey, Deacon, limón, azúcar y ginger ale. Trago largo. Toque ligeramente ahumado.', 950, 2, array[]::text[])
 ) as p(nombre, descripcion, precio_centimos, orden, alergenos)
-where c.cliente_id = (select id from _cliente) and c.slug = 'whiskey'
+where c.cliente_id = 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid and c.slug = 'whiskey'
 and not exists (
   select 1 from restaurant.productos pr
-  where pr.cliente_id = (select id from _cliente) and pr.categoria_id = c.id and pr.nombre = p.nombre
+  where pr.cliente_id = 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid and pr.categoria_id = c.id and pr.nombre = p.nombre
 );
 
 -- ------------------------------------------------------------
@@ -192,16 +190,16 @@ and not exists (
 -- ------------------------------------------------------------
 insert into restaurant.productos
   (cliente_id, categoria_id, nombre, descripcion, precio_centimos, disponible, destacado, orden, alergenos)
-select (select id from _cliente), c.id, p.nombre, p.descripcion, p.precio_centimos, true, false, p.orden, p.alergenos
+select 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid, c.id, p.nombre, p.descripcion, p.precio_centimos, true, false, p.orden, p.alergenos
 from restaurant.categorias c
 cross join (values
   ('Pisco Sour', 'Pisco, limón, azúcar y clara de huevo. Cítrico.', 900, 1, array['huevo']),
   ('Chilcano',   'Pisco, limón, azúcar y ginger ale. Trago largo, refrescante.', 950, 2, array[]::text[])
 ) as p(nombre, descripcion, precio_centimos, orden, alergenos)
-where c.cliente_id = (select id from _cliente) and c.slug = 'pisco'
+where c.cliente_id = 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid and c.slug = 'pisco'
 and not exists (
   select 1 from restaurant.productos pr
-  where pr.cliente_id = (select id from _cliente) and pr.categoria_id = c.id and pr.nombre = p.nombre
+  where pr.cliente_id = 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid and pr.categoria_id = c.id and pr.nombre = p.nombre
 );
 
 -- ------------------------------------------------------------
@@ -209,7 +207,7 @@ and not exists (
 -- ------------------------------------------------------------
 insert into restaurant.productos
   (cliente_id, categoria_id, nombre, descripcion, precio_centimos, disponible, destacado, orden, alergenos)
-select (select id from _cliente), c.id, p.nombre, p.descripcion, p.precio_centimos, true, false, p.orden, array[]::text[]
+select 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid, c.id, p.nombre, p.descripcion, p.precio_centimos, true, false, p.orden, array[]::text[]
 from restaurant.categorias c
 cross join (values
   ('Mexican Mule', 'Tequila reposado, limón, habanero jalapeño ahumado y ginger beer. Toques ahumados, ligeramente picante.', 950, 1),
@@ -217,10 +215,10 @@ cross join (values
   ('Margarita', 'Tequila blanco, limón, azúcar y Cointreau. Cítrico.', 800, 3),
   ('Caipirinha', 'Cachaza Capucanna, lima y azúcar.', 900, 4)
 ) as p(nombre, descripcion, precio_centimos, orden)
-where c.cliente_id = (select id from _cliente) and c.slug = 'especiales-de-la-casa'
+where c.cliente_id = 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid and c.slug = 'especiales-de-la-casa'
 and not exists (
   select 1 from restaurant.productos pr
-  where pr.cliente_id = (select id from _cliente) and pr.categoria_id = c.id and pr.nombre = p.nombre
+  where pr.cliente_id = 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid and pr.categoria_id = c.id and pr.nombre = p.nombre
 );
 
 -- ------------------------------------------------------------
@@ -228,7 +226,7 @@ and not exists (
 -- ------------------------------------------------------------
 insert into restaurant.productos
   (cliente_id, categoria_id, nombre, descripcion, precio_centimos, disponible, destacado, orden, alergenos)
-select (select id from _cliente), c.id, p.nombre, p.descripcion, p.precio_centimos, true, false, p.orden, array[]::text[]
+select 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid, c.id, p.nombre, p.descripcion, p.precio_centimos, true, false, p.orden, array[]::text[]
 from restaurant.categorias c
 cross join (values
   ('Élan Tropical', 'Limón, piña, maracuyá y sirope de agave. Cítrico, refrescante.', 700, 1),
@@ -237,10 +235,10 @@ cross join (values
   ('Apple Fizz',    'Zumo de manzana, limón, agave y ginger ale. Ralladura de canela. Refrescante.', 750, 4),
   ('Virgin Mary',   'Limón, zumo de tomate y salsa de la casa.', 700, 5)
 ) as p(nombre, descripcion, precio_centimos, orden)
-where c.cliente_id = (select id from _cliente) and c.slug = 'moctails'
+where c.cliente_id = 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid and c.slug = 'moctails'
 and not exists (
   select 1 from restaurant.productos pr
-  where pr.cliente_id = (select id from _cliente) and pr.categoria_id = c.id and pr.nombre = p.nombre
+  where pr.cliente_id = 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid and pr.categoria_id = c.id and pr.nombre = p.nombre
 );
 
 -- ------------------------------------------------------------
@@ -248,7 +246,7 @@ and not exists (
 -- ------------------------------------------------------------
 insert into restaurant.productos
   (cliente_id, categoria_id, nombre, descripcion, precio_centimos, disponible, destacado, orden, alergenos)
-select (select id from _cliente), c.id, p.nombre, p.descripcion, p.precio_centimos, true, false, p.orden, array[]::text[]
+select 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid, c.id, p.nombre, p.descripcion, p.precio_centimos, true, false, p.orden, array[]::text[]
 from restaurant.categorias c
 cross join (values
   ('Vermut preparado',      'Martini Rosso y receta casera.', 380, 1),
@@ -261,10 +259,10 @@ cross join (values
   ('Bloody Mary (medio)',    'Vodka, limón, zumo de tomate y salsa de la casa.', 500, 8),
   ('Bloody Mary (entero)',   'Vodka, limón, zumo de tomate y salsa de la casa.', 850, 9)
 ) as p(nombre, descripcion, precio_centimos, orden)
-where c.cliente_id = (select id from _cliente) and c.slug = 'aperitivos'
+where c.cliente_id = 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid and c.slug = 'aperitivos'
 and not exists (
   select 1 from restaurant.productos pr
-  where pr.cliente_id = (select id from _cliente) and pr.categoria_id = c.id and pr.nombre = p.nombre
+  where pr.cliente_id = 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid and pr.categoria_id = c.id and pr.nombre = p.nombre
 );
 
 -- ------------------------------------------------------------
@@ -272,7 +270,7 @@ and not exists (
 -- ------------------------------------------------------------
 insert into restaurant.productos
   (cliente_id, categoria_id, nombre, descripcion, precio_centimos, disponible, destacado, orden, alergenos)
-select (select id from _cliente), c.id, p.nombre, p.descripcion, p.precio_centimos, true, false, p.orden, array['sulfitos']
+select 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid, c.id, p.nombre, p.descripcion, p.precio_centimos, true, false, p.orden, array['sulfitos']
 from restaurant.categorias c
 cross join (values
   ('Cueva de Lobos 16',
@@ -294,10 +292,10 @@ cross join (values
    'D.O. Ribera del Duero | Bodegas Cepa 21 | Tempranillo. Joven, fresco y frutal, con excelente equilibrio y fácil disfrute.',
    2100, 6)
 ) as p(nombre, descripcion, precio_centimos, orden)
-where c.cliente_id = (select id from _cliente) and c.slug = 'vinos-tintos'
+where c.cliente_id = 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid and c.slug = 'vinos-tintos'
 and not exists (
   select 1 from restaurant.productos pr
-  where pr.cliente_id = (select id from _cliente) and pr.categoria_id = c.id and pr.nombre = p.nombre
+  where pr.cliente_id = 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid and pr.categoria_id = c.id and pr.nombre = p.nombre
 );
 
 -- ------------------------------------------------------------
@@ -305,7 +303,7 @@ and not exists (
 -- ------------------------------------------------------------
 insert into restaurant.productos
   (cliente_id, categoria_id, nombre, descripcion, precio_centimos, disponible, destacado, orden, alergenos)
-select (select id from _cliente), c.id, p.nombre, p.descripcion, p.precio_centimos, true, false, p.orden, array['sulfitos']
+select 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid, c.id, p.nombre, p.descripcion, p.precio_centimos, true, false, p.orden, array['sulfitos']
 from restaurant.categorias c
 cross join (values
   ('Boyante 12',
@@ -336,10 +334,10 @@ cross join (values
    'D.O. Getariako Txakolina | Bodega Txomin Etxaniz | Hondarrabi Zuri. Txakoli fresco y vibrante, con marcada acidez, notas cítricas y ligero toque salino.',
    2100, 9)
 ) as p(nombre, descripcion, precio_centimos, orden)
-where c.cliente_id = (select id from _cliente) and c.slug = 'vinos-blancos'
+where c.cliente_id = 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid and c.slug = 'vinos-blancos'
 and not exists (
   select 1 from restaurant.productos pr
-  where pr.cliente_id = (select id from _cliente) and pr.categoria_id = c.id and pr.nombre = p.nombre
+  where pr.cliente_id = 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid and pr.categoria_id = c.id and pr.nombre = p.nombre
 );
 
 -- ------------------------------------------------------------
@@ -347,7 +345,7 @@ and not exists (
 -- ------------------------------------------------------------
 insert into restaurant.productos
   (cliente_id, categoria_id, nombre, descripcion, precio_centimos, disponible, destacado, orden, alergenos)
-select (select id from _cliente), c.id, p.nombre, p.descripcion, p.precio_centimos, true, false, p.orden, array['sulfitos']
+select 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid, c.id, p.nombre, p.descripcion, p.precio_centimos, true, false, p.orden, array['sulfitos']
 from restaurant.categorias c
 cross join (values
   ('Marina Espumante 13',
@@ -357,10 +355,10 @@ cross join (values
    'D.O. Cava | Juvé & Camps | Trepat. Cava rosado elegante y fresco, con aromas de frutos rojos y burbuja fina. Seco y muy equilibrado.',
    2400, 2)
 ) as p(nombre, descripcion, precio_centimos, orden)
-where c.cliente_id = (select id from _cliente) and c.slug = 'espumosos'
+where c.cliente_id = 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid and c.slug = 'espumosos'
 and not exists (
   select 1 from restaurant.productos pr
-  where pr.cliente_id = (select id from _cliente) and pr.categoria_id = c.id and pr.nombre = p.nombre
+  where pr.cliente_id = 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid and pr.categoria_id = c.id and pr.nombre = p.nombre
 );
 
 -- ------------------------------------------------------------
@@ -368,7 +366,7 @@ and not exists (
 -- ------------------------------------------------------------
 insert into restaurant.productos
   (cliente_id, categoria_id, nombre, descripcion, precio_centimos, disponible, destacado, orden, alergenos)
-select (select id from _cliente), c.id, p.nombre, p.descripcion, p.precio_centimos, true, false, p.orden, p.alergenos
+select 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid, c.id, p.nombre, p.descripcion, p.precio_centimos, true, false, p.orden, p.alergenos
 from restaurant.categorias c
 cross join (values
   ('Ensalada de Burrata con Inyección de Pesto Rojo',
@@ -408,10 +406,10 @@ cross join (values
    'Pollo marinado, barbacoa, miel y mostaza.',
    900, 12, array['gluten','soja','mostaza','sésamo'])
 ) as p(nombre, descripcion, precio_centimos, orden, alergenos)
-where c.cliente_id = (select id from _cliente) and c.slug = 'entrantes'
+where c.cliente_id = 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid and c.slug = 'entrantes'
 and not exists (
   select 1 from restaurant.productos pr
-  where pr.cliente_id = (select id from _cliente) and pr.categoria_id = c.id and pr.nombre = p.nombre
+  where pr.cliente_id = 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid and pr.categoria_id = c.id and pr.nombre = p.nombre
 );
 
 -- ------------------------------------------------------------
@@ -419,7 +417,7 @@ and not exists (
 -- ------------------------------------------------------------
 insert into restaurant.productos
   (cliente_id, categoria_id, nombre, descripcion, precio_centimos, disponible, destacado, orden, alergenos)
-select (select id from _cliente), c.id, p.nombre, p.descripcion, p.precio_centimos, true, false, p.orden, p.alergenos
+select 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid, c.id, p.nombre, p.descripcion, p.precio_centimos, true, false, p.orden, p.alergenos
 from restaurant.categorias c
 cross join (values
   ('Picaña ahumada (6 ud)',
@@ -438,10 +436,10 @@ cross join (values
    'Brie, parmigiano DOP y queso azul. Acompañado de membrillo y picos.',
    1600, 5, array['lactosa','gluten'])
 ) as p(nombre, descripcion, precio_centimos, orden, alergenos)
-where c.cliente_id = (select id from _cliente) and c.slug = 'tablas'
+where c.cliente_id = 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid and c.slug = 'tablas'
 and not exists (
   select 1 from restaurant.productos pr
-  where pr.cliente_id = (select id from _cliente) and pr.categoria_id = c.id and pr.nombre = p.nombre
+  where pr.cliente_id = 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid and pr.categoria_id = c.id and pr.nombre = p.nombre
 );
 
 -- ------------------------------------------------------------
@@ -449,7 +447,7 @@ and not exists (
 -- ------------------------------------------------------------
 insert into restaurant.productos
   (cliente_id, categoria_id, nombre, descripcion, precio_centimos, disponible, destacado, orden, alergenos)
-select (select id from _cliente), c.id, p.nombre, p.descripcion, p.precio_centimos, true, false, p.orden, p.alergenos
+select 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid, c.id, p.nombre, p.descripcion, p.precio_centimos, true, false, p.orden, p.alergenos
 from restaurant.categorias c
 cross join (values
   ('Tartar de Atún',
@@ -471,10 +469,10 @@ cross join (values
    'Contramuslo marinado en salsa teriyaki.',
    850, 6, array['soja','sésamo'])
 ) as p(nombre, descripcion, precio_centimos, orden, alergenos)
-where c.cliente_id = (select id from _cliente) and c.slug = 'rollo-japones'
+where c.cliente_id = 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid and c.slug = 'rollo-japones'
 and not exists (
   select 1 from restaurant.productos pr
-  where pr.cliente_id = (select id from _cliente) and pr.categoria_id = c.id and pr.nombre = p.nombre
+  where pr.cliente_id = 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid and pr.categoria_id = c.id and pr.nombre = p.nombre
 );
 
 -- ------------------------------------------------------------
@@ -482,7 +480,7 @@ and not exists (
 -- ------------------------------------------------------------
 insert into restaurant.productos
   (cliente_id, categoria_id, nombre, descripcion, precio_centimos, disponible, destacado, orden, alergenos)
-select (select id from _cliente), c.id, p.nombre, p.descripcion, p.precio_centimos, true, false, p.orden, p.alergenos
+select 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid, c.id, p.nombre, p.descripcion, p.precio_centimos, true, false, p.orden, p.alergenos
 from restaurant.categorias c
 cross join (values
   ('Uramaki de Anguila',
@@ -501,10 +499,10 @@ cross join (values
    'Uramaki de zanahoria, pepino, tofu y aguacate. Recubierto de cebolla crujiente.',
    1250, 5, array['soja','sulfitos'])
 ) as p(nombre, descripcion, precio_centimos, orden, alergenos)
-where c.cliente_id = (select id from _cliente) and c.slug = 'rolls'
+where c.cliente_id = 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid and c.slug = 'rolls'
 and not exists (
   select 1 from restaurant.productos pr
-  where pr.cliente_id = (select id from _cliente) and pr.categoria_id = c.id and pr.nombre = p.nombre
+  where pr.cliente_id = 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid and pr.categoria_id = c.id and pr.nombre = p.nombre
 );
 
 -- ------------------------------------------------------------
@@ -512,7 +510,7 @@ and not exists (
 -- ------------------------------------------------------------
 insert into restaurant.productos
   (cliente_id, categoria_id, nombre, descripcion, precio_centimos, disponible, destacado, orden, alergenos)
-select (select id from _cliente), c.id, p.nombre, p.descripcion, p.precio_centimos, true, false, p.orden, p.alergenos
+select 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid, c.id, p.nombre, p.descripcion, p.precio_centimos, true, false, p.orden, p.alergenos
 from restaurant.categorias c
 cross join (values
   ('Coulant de Chocolate',
@@ -531,13 +529,12 @@ cross join (values
    'Con helado de vainilla de La Veneciana.',
    750, 5, array['lácteos'])
 ) as p(nombre, descripcion, precio_centimos, orden, alergenos)
-where c.cliente_id = (select id from _cliente) and c.slug = 'postres-caseros'
+where c.cliente_id = 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid and c.slug = 'postres-caseros'
 and not exists (
   select 1 from restaurant.productos pr
-  where pr.cliente_id = (select id from _cliente) and pr.categoria_id = c.id and pr.nombre = p.nombre
+  where pr.cliente_id = 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid and pr.categoria_id = c.id and pr.nombre = p.nombre
 );
 
-drop table _cliente;
 
 -- ------------------------------------------------------------
 -- Comprobación: revisa el recuento antes de hacer COMMIT
@@ -545,7 +542,7 @@ drop table _cliente;
 select cat.tipo, cat.nombre as categoria, count(pr.id) as productos
 from restaurant.categorias cat
 left join restaurant.productos pr on pr.categoria_id = cat.id
-where cat.cliente_id = 'REEMPLAZA_CLIENTE_ID'::uuid
+where cat.cliente_id = 'e73669e4-7951-41f0-aa9a-16b391d0015c'::uuid
 group by cat.tipo, cat.nombre, cat.orden
 order by cat.tipo, cat.orden;
 
