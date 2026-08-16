@@ -57,18 +57,63 @@ function macroBreakdown(producto: Producto) {
   return floored.map((r) => ({ ...r, color: MACRO_COLORS[r.key] }));
 }
 
-function MacroBar({ segments }: { segments: { pctInt: number; color: string }[] }) {
+function Donut({ segments }: { segments: { pctInt: number; color: string }[] }) {
+  const radius = 42;
+  const strokeWidth = 16;
+  const circumference = 2 * Math.PI * radius;
+  const gap = 3;
+  let cumulative = 0;
+
   return (
-    <div className="flex h-2.5 w-full gap-0.5" role="img" aria-hidden="true">
-      {segments.map((seg, i) =>
-        seg.pctInt > 0 ? (
-          <div
-            key={i}
-            className="h-full first:rounded-l-full last:rounded-r-full"
-            style={{ width: `${seg.pctInt}%`, backgroundColor: seg.color }}
-          />
-        ) : null,
-      )}
+    <svg viewBox="0 0 104 104" className="h-20 w-20 shrink-0" role="img" aria-hidden="true">
+      <g transform="rotate(-90 52 52)">
+        <circle cx="52" cy="52" r={radius} fill="none" stroke="currentColor" strokeWidth={strokeWidth} className="text-noche-surface-3" />
+        {segments.map((seg, i) => {
+          const length = (seg.pctInt / 100) * circumference;
+          const visibleLength = Math.max(length - gap, 0);
+          const dashOffset = -cumulative;
+          cumulative += length;
+          return (
+            <circle
+              key={i}
+              cx="52"
+              cy="52"
+              r={radius}
+              fill="none"
+              stroke={seg.color}
+              strokeWidth={strokeWidth}
+              strokeDasharray={`${visibleLength} ${circumference - visibleLength}`}
+              strokeDashoffset={dashOffset}
+              strokeLinecap="round"
+            />
+          );
+        })}
+      </g>
+    </svg>
+  );
+}
+
+function TablaFila({
+  label,
+  value,
+  sub,
+}: {
+  label: string;
+  value: string;
+  sub?: { label: string; value: string };
+}) {
+  return (
+    <div className="border-b border-noche-border/60 py-1.5 last:border-b-0">
+      <div className="flex items-center justify-between text-sm">
+        <span className="text-noche-ink">{label}</span>
+        <span className="font-medium text-noche-ink">{value}</span>
+      </div>
+      {sub ? (
+        <div className="flex items-center justify-between pl-3 text-xs text-noche-ink-muted">
+          <span>{sub.label}</span>
+          <span>{sub.value}</span>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -228,16 +273,17 @@ export function ProductDetailModal({
                     <TagIcon className="h-3.5 w-3.5" />
                     Ingredientes
                   </p>
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    {producto.ingredientes.map((ingrediente) => (
-                      <span
-                        key={ingrediente}
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-noche-border bg-noche-surface-2 px-2.5 py-1.5 text-[11px] text-noche-ink-muted"
-                      >
-                        <span aria-hidden="true" className="h-1.5 w-1.5 shrink-0 rounded-full bg-noche-primary/60" />
-                        {ingrediente}
-                      </span>
-                    ))}
+                  <div className="mt-2 rounded-lg border border-noche-border bg-noche-surface-2 p-3">
+                    <ol className="space-y-1.5 text-sm text-noche-ink-muted">
+                      {producto.ingredientes.map((ingrediente, i) => (
+                        <li key={ingrediente} className="flex items-baseline gap-2">
+                          <span className="w-4 shrink-0 text-[10px] font-medium tabular-nums text-noche-primary/70">
+                            {String(i + 1).padStart(2, "0")}
+                          </span>
+                          <span className="truncate">{ingrediente}</span>
+                        </li>
+                      ))}
+                    </ol>
                   </div>
                 </div>
               ) : null}
@@ -338,23 +384,23 @@ export function ProductDetailModal({
                       <p className="text-xs font-medium uppercase tracking-widest2 text-noche-ink-muted">
                         Desglose de macros
                       </p>
-                      <div className="mt-3 rounded-lg border border-noche-border bg-noche-surface-2 p-4">
-                        <MacroBar segments={macros} />
-                        <ul className="mt-4 space-y-2.5 text-sm">
+                      <div className="mt-3 flex items-center gap-4 rounded-lg border border-noche-border bg-noche-surface-2 p-3">
+                        <Donut segments={macros} />
+                        <ul className="min-w-0 flex-1 space-y-2 text-sm">
                           {macros.map((m) => {
                             const Icon = MACRO_ICONS[m.key];
                             return (
-                              <li key={m.key} className="flex items-center justify-between gap-3">
-                                <span className="flex items-center gap-2.5 text-noche-ink-muted">
+                              <li key={m.key} className="flex items-center justify-between gap-2">
+                                <span className="flex min-w-0 items-center gap-2 text-noche-ink-muted">
                                   <span
-                                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full"
+                                    className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full"
                                     style={{ backgroundColor: `${m.color}26`, color: m.color }}
                                   >
-                                    <Icon className="h-3.5 w-3.5" />
+                                    <Icon className="h-3 w-3" />
                                   </span>
-                                  {m.label}
+                                  <span className="truncate">{m.label}</span>
                                 </span>
-                                <span className="flex shrink-0 items-center gap-2 whitespace-nowrap">
+                                <span className="flex shrink-0 items-center gap-1.5 whitespace-nowrap">
                                   <span className="font-medium text-noche-ink">{m.grams}g</span>
                                   <span className="text-xs text-noche-ink-faint">({m.pctInt}%)</span>
                                 </span>
@@ -363,15 +409,48 @@ export function ProductDetailModal({
                           })}
                         </ul>
                       </div>
-                      <p className="mt-2 text-[11px] text-noche-ink-faint">
-                        Valores aproximados por ración.
-                      </p>
                     </div>
                   ) : (
                     <div className="mt-4 rounded-lg border border-dashed border-noche-border p-4 text-center text-sm text-noche-ink-faint">
                       Sin datos de macronutrientes.
                     </div>
                   )}
+
+                  {producto.calorias != null ? (
+                    <div className="mt-4">
+                      <p className="text-xs font-medium uppercase tracking-widest2 text-noche-ink-muted">
+                        Valores por ración
+                      </p>
+                      <div className="mt-3 rounded-lg border border-noche-border bg-noche-surface-2 px-3">
+                        <TablaFila label="Valor energético" value={`${producto.calorias} kcal`} />
+                        <TablaFila
+                          label="Grasas"
+                          value={`${producto.grasas_g ?? "—"} g`}
+                          sub={
+                            producto.grasas_saturadas_g != null
+                              ? { label: "de las cuales saturadas", value: `${producto.grasas_saturadas_g} g` }
+                              : undefined
+                          }
+                        />
+                        <TablaFila
+                          label="Hidratos de carbono"
+                          value={`${producto.carbohidratos_g ?? "—"} g`}
+                          sub={
+                            producto.azucares_g != null
+                              ? { label: "de los cuales azúcares", value: `${producto.azucares_g} g` }
+                              : undefined
+                          }
+                        />
+                        <TablaFila label="Proteínas" value={`${producto.proteinas_g ?? "—"} g`} />
+                        {producto.sal_g != null ? (
+                          <TablaFila label="Sal" value={`${producto.sal_g} g`} />
+                        ) : null}
+                      </div>
+                      <p className="mt-2 text-[11px] text-noche-ink-faint">
+                        Valores aproximados por ración.
+                      </p>
+                    </div>
+                  ) : null}
                 </>
               ) : (
                 <div className="flex flex-1 items-center justify-center text-center text-sm text-noche-ink-muted">

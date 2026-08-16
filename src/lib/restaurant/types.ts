@@ -22,6 +22,9 @@ export interface Producto {
   proteinas_g: number | null;
   carbohidratos_g: number | null;
   grasas_g: number | null;
+  grasas_saturadas_g: number | null;
+  azucares_g: number | null;
+  sal_g: number | null;
 }
 
 export interface Mesa {
