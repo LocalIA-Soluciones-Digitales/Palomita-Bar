@@ -535,4 +535,29 @@ Sobre lo descrito en §16.1-16.4 se añadió:
 - **Tipografía propia de la web pública** (Cormorant Garamond) sin afectar a `/admin`: se redefine `--font-display` solo dentro de `app/(public)/layout.tsx`, que es descendiente de `<html>` pero no del subárbol de `/admin`.
 - Se centralizó el sondeo de `get_sesion_publica` (antes duplicado) en `TableSessionProvider`, consumido tanto por el carrito como por la cuenta de la mesa y las notificaciones.
 
+## 17. Impresión de comandas (2026-08-16)
+
+Implementado en la web (ya en `main`): botón "Imprimir comanda" en
+`/admin/mesas` (comida + bebida, manual, para la impresora de barra) y
+auto-print en `/admin/cocina` filtrando solo comida al entrar un pedido
+nuevo (manual u online) — ver `src/lib/print/ticket.ts`, `SalonBoard.tsx`,
+`KitchenBoard.tsx`. Además se añadió `print-bridge/` (servicio Node.js
+aparte, con su propio README) para que cocina imprima solo en la térmica
+sin depender de tener el navegador abierto.
+
+**Pendiente de acción manual (in situ, con la impresora JASSWAY JAW-260H
+delante):**
+1. Configurar la impresora en modo LAN con IP fija (puerto 9100).
+2. Crear una cuenta de `/admin` dedicada al servicio (no reutilizar una
+   personal).
+3. Instalar Node.js en el PC de cocina, `npm install` en `print-bridge/`,
+   rellenar `.env` (URL/clave de Supabase, cuenta del punto 2, IP de la
+   impresora) y arrancar con `npm start`.
+4. Verificar impresión real con un pedido de prueba.
+5. Dejarlo como servicio de Windows (NSSM) para que sobreviva a reinicios —
+   instrucciones en `print-bridge/README.md`.
+
+Sin este montaje, cocina sigue funcionando igual mediante el diálogo de
+impresión del navegador (ya operativo), solo que no automatizado del todo.
+
 Sigue pendiente (ver limitación conocida en §16.3): pulir el mensaje cuando el cambio de precio ocurre a mitad de un segundo intento de confirmación (caso muy raro, dos cambios de precio en segundos).
