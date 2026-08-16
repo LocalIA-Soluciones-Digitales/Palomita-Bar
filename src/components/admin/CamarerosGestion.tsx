@@ -9,6 +9,12 @@ import {
 import type { CamareroAdmin } from "@/lib/restaurant/admin-types";
 import { PlusIcon, UsersIcon } from "@/components/icons";
 
+function iniciales(nombre: string): string {
+  const partes = nombre.trim().split(/\s+/);
+  const letras = partes.slice(0, 2).map((parte) => parte.charAt(0));
+  return letras.join("").toUpperCase();
+}
+
 function mensajeError(base: string, err: unknown): string {
   const detalle =
     err && typeof err === "object" && "message" in err ? String((err as { message: unknown }).message) : null;
@@ -55,17 +61,28 @@ export function CamarerosGestion() {
     }
   };
 
-  return (
-    <div className="mt-6 rounded-lg border border-noche-border bg-noche-surface p-4">
-      <p className="flex items-center gap-1.5 text-xs uppercase tracking-widest2 text-noche-ink-muted">
-        <UsersIcon className="h-3.5 w-3.5" />
-        Personal (camareros)
-      </p>
-      <p className="mt-1 text-xs text-noche-ink-faint">
-        Se usan para asignar quién atiende cada mesa en el plano de Salón.
-      </p>
+  const activos = camareros?.filter((c) => c.activo) ?? [];
 
-      <div className="mt-3 flex gap-2">
+  return (
+    <div className="mt-6 overflow-hidden rounded-xl border border-noche-border bg-noche-surface">
+      <div className="flex items-center justify-between border-b border-noche-border px-4 py-3">
+        <div className="flex items-center gap-2">
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-noche-primary/10 text-noche-primary">
+            <UsersIcon className="h-4 w-4" />
+          </span>
+          <div>
+            <p className="text-sm font-medium text-noche-ink">Personal</p>
+            <p className="text-xs text-noche-ink-faint">Quién puede atender mesas en el plano de Salón.</p>
+          </div>
+        </div>
+        {camareros ? (
+          <span className="rounded-full bg-noche-surface-2 px-2.5 py-1 text-xs text-noche-ink-muted">
+            {activos.length} activo{activos.length === 1 ? "" : "s"}
+          </span>
+        ) : null}
+      </div>
+
+      <div className="flex gap-2 px-4 pt-4">
         <input
           value={nuevoNombre}
           onChange={(e) => setNuevoNombre(e.target.value)}
@@ -76,26 +93,41 @@ export function CamarerosGestion() {
         <button
           type="button"
           onClick={handleCrear}
-          className="flex items-center gap-1.5 rounded-lg bg-noche-primary px-4 py-2 text-xs uppercase tracking-widest2 text-noche-ink"
+          className="flex items-center gap-1.5 rounded-lg bg-noche-primary px-4 py-2 text-xs uppercase tracking-widest2 text-noche-ink transition hover:brightness-110"
         >
           <PlusIcon className="h-3.5 w-3.5" />
           Añadir
         </button>
       </div>
 
-      {error ? <p className="mt-2 text-sm text-noche-danger">{error}</p> : null}
+      {error ? <p className="px-4 pt-2 text-sm text-noche-danger">{error}</p> : null}
 
-      <ul className="mt-4 divide-y divide-noche-border">
+      <ul className="mt-3 divide-y divide-noche-border">
         {camareros?.map((camarero) => (
-          <li key={camarero.id} className="flex items-center justify-between py-2 text-sm">
-            <span className={camarero.activo ? "text-noche-ink" : "text-noche-ink-faint line-through"}>
-              {camarero.nombre}
-            </span>
+          <li key={camarero.id} className="flex items-center justify-between px-4 py-3">
+            <div className="flex items-center gap-3">
+              <span
+                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-medium ${
+                  camarero.activo
+                    ? "bg-noche-primary/15 text-noche-primary"
+                    : "bg-noche-surface-2 text-noche-ink-faint"
+                }`}
+              >
+                {iniciales(camarero.nombre)}
+              </span>
+              <span
+                className={`text-sm ${camarero.activo ? "text-noche-ink" : "text-noche-ink-faint line-through"}`}
+              >
+                {camarero.nombre}
+              </span>
+            </div>
             <button
               type="button"
               onClick={() => handleToggleActivo(camarero)}
-              className={`text-xs uppercase tracking-widest2 ${
-                camarero.activo ? "text-noche-ink-muted hover:text-noche-danger" : "text-noche-positive"
+              className={`rounded-full px-3 py-1 text-xs uppercase tracking-widest2 transition ${
+                camarero.activo
+                  ? "text-noche-ink-muted hover:bg-noche-danger/10 hover:text-noche-danger"
+                  : "text-noche-positive hover:bg-noche-positive/10"
               }`}
             >
               {camarero.activo ? "Dar de baja" : "Reactivar"}
@@ -103,7 +135,9 @@ export function CamarerosGestion() {
           </li>
         ))}
         {camareros?.length === 0 ? (
-          <li className="py-2 text-sm text-noche-ink-muted">Todavía no hay personal dado de alta.</li>
+          <li className="px-4 py-8 text-center text-sm text-noche-ink-muted">
+            Todavía no hay personal dado de alta.
+          </li>
         ) : null}
       </ul>
     </div>
