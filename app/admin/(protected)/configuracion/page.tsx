@@ -1,6 +1,7 @@
 "use client";
 
 import { CamarerosGestion } from "@/components/admin/CamarerosGestion";
+import { HorarioGestion } from "@/components/admin/HorarioGestion";
 import { SettingsIcon } from "@/components/icons";
 
 export default function ConfiguracionAdminPage() {
@@ -12,10 +13,11 @@ export default function ConfiguracionAdminPage() {
         </span>
         <div>
           <h1 className="font-display text-2xl text-noche-ink">Configuración</h1>
-          <p className="text-xs text-noche-ink-faint">Gestión del personal del local.</p>
+          <p className="text-xs text-noche-ink-faint">Horario y personal del local.</p>
         </div>
       </div>
 
+      <HorarioGestion />
       <CamarerosGestion />
     </div>
   );
