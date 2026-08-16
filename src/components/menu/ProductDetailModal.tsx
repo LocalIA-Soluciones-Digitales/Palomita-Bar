@@ -58,16 +58,16 @@ function macroBreakdown(producto: Producto) {
 }
 
 function Donut({ segments }: { segments: { pctInt: number; color: string }[] }) {
-  const radius = 42;
-  const strokeWidth = 16;
+  const radius = 34;
+  const strokeWidth = 13;
   const circumference = 2 * Math.PI * radius;
   const gap = 3;
   let cumulative = 0;
 
   return (
-    <svg viewBox="0 0 104 104" className="h-20 w-20 shrink-0" role="img" aria-hidden="true">
-      <g transform="rotate(-90 52 52)">
-        <circle cx="52" cy="52" r={radius} fill="none" stroke="currentColor" strokeWidth={strokeWidth} className="text-noche-surface-3" />
+    <svg viewBox="0 0 88 88" className="h-16 w-16 shrink-0" role="img" aria-hidden="true">
+      <g transform="rotate(-90 44 44)">
+        <circle cx="44" cy="44" r={radius} fill="none" stroke="currentColor" strokeWidth={strokeWidth} className="text-noche-surface-3" />
         {segments.map((seg, i) => {
           const length = (seg.pctInt / 100) * circumference;
           const visibleLength = Math.max(length - gap, 0);
@@ -76,8 +76,8 @@ function Donut({ segments }: { segments: { pctInt: number; color: string }[] }) 
           return (
             <circle
               key={i}
-              cx="52"
-              cy="52"
+              cx="44"
+              cy="44"
               r={radius}
               fill="none"
               stroke={seg.color}
@@ -103,13 +103,13 @@ function TablaFila({
   sub?: { label: string; value: string };
 }) {
   return (
-    <div className="border-b border-noche-border/60 py-1.5 last:border-b-0">
-      <div className="flex items-center justify-between text-sm">
+    <div className="border-b border-noche-border/60 py-1 last:border-b-0">
+      <div className="flex items-center justify-between text-[13px]">
         <span className="text-noche-ink">{label}</span>
         <span className="font-medium text-noche-ink">{value}</span>
       </div>
       {sub ? (
-        <div className="flex items-center justify-between pl-3 text-xs text-noche-ink-muted">
+        <div className="flex items-center justify-between pl-3 text-[11px] text-noche-ink-muted">
           <span>{sub.label}</span>
           <span>{sub.value}</span>
         </div>
@@ -240,8 +240,8 @@ export function ProductDetailModal({
             <CloseIcon className="h-4 w-4" />
           </button>
 
-          <div className="overflow-y-auto p-5 sm:p-6">
-          <div className="grid gap-5 sm:gap-6 md:grid-cols-2">
+          <div className="overflow-y-auto p-4 sm:p-5">
+          <div className="grid gap-4 sm:gap-5 md:grid-cols-2">
             <div className="flex min-w-0 flex-col">
               <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-noche-primary px-3 py-1 text-[10px] font-medium uppercase tracking-widest2 text-white">
                 <StarIcon className="h-3 w-3" />
@@ -249,32 +249,32 @@ export function ProductDetailModal({
               </span>
 
               {producto.imagen_url ? (
-                <div className="relative mx-auto mt-4 h-44 w-44 shrink-0 overflow-hidden rounded-xl bg-noche-surface-2 sm:h-52 sm:w-52">
+                <div className="relative mx-auto mt-3 h-28 w-28 shrink-0 overflow-hidden rounded-xl bg-noche-surface-2 sm:h-32 sm:w-32">
                   <Image
                     src={producto.imagen_url}
                     alt={producto.nombre}
                     fill
-                    sizes="(min-width: 640px) 208px, 176px"
+                    sizes="128px"
                     className="object-cover"
                   />
                 </div>
               ) : (
-                <div className="mx-auto mt-4 h-44 w-44 shrink-0 rounded-xl bg-noche-surface-2 sm:h-52 sm:w-52" />
+                <div className="mx-auto mt-3 h-28 w-28 shrink-0 rounded-xl bg-noche-surface-2 sm:h-32 sm:w-32" />
               )}
 
-              <h2 className="mt-4 font-display text-2xl text-noche-ink sm:text-3xl">{producto.nombre}</h2>
+              <h2 className="mt-3 font-display text-xl text-noche-ink sm:text-2xl">{producto.nombre}</h2>
               {producto.descripcion ? (
-                <p className="mt-1.5 text-sm text-noche-ink-muted">{producto.descripcion}</p>
+                <p className="mt-1 text-sm text-noche-ink-muted">{producto.descripcion}</p>
               ) : null}
 
               {producto.ingredientes.length > 0 ? (
-                <div className="mt-4">
+                <div className="mt-3">
                   <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-widest2 text-noche-ink-muted">
                     <TagIcon className="h-3.5 w-3.5" />
                     Ingredientes
                   </p>
-                  <div className="mt-2 rounded-lg border border-noche-border bg-noche-surface-2 p-3">
-                    <ol className="space-y-1.5 text-sm text-noche-ink-muted">
+                  <div className="mt-1.5 rounded-lg border border-noche-border bg-noche-surface-2 p-2.5">
+                    <ol className="space-y-1 text-[13px] text-noche-ink-muted">
                       {producto.ingredientes.map((ingrediente, i) => (
                         <li key={ingrediente} className="flex items-baseline gap-2">
                           <span className="w-4 shrink-0 text-[10px] font-medium tabular-nums text-noche-primary/70">
@@ -288,9 +288,9 @@ export function ProductDetailModal({
                 </div>
               ) : null}
 
-              <div className="mt-auto flex items-center justify-between pt-4">
+              <div className="mt-auto flex items-center justify-between pt-3">
                 <div>
-                  <p className="text-2xl font-medium text-noche-primary">
+                  <p className="text-xl font-medium text-noche-primary">
                     {formatCentimos(producto.precio_centimos)} €
                   </p>
                   <p className="text-[10px] uppercase tracking-widest2 text-noche-ink-faint">
@@ -305,7 +305,7 @@ export function ProductDetailModal({
                         type="button"
                         onClick={() => cart.onDecrement(producto.id)}
                         aria-label="Quitar una unidad"
-                        className="flex h-9 w-9 items-center justify-center rounded-full border border-noche-border text-noche-ink transition-colors hover:border-noche-primary hover:text-noche-primary"
+                        className="flex h-8 w-8 items-center justify-center rounded-full border border-noche-border text-noche-ink transition-colors hover:border-noche-primary hover:text-noche-primary"
                       >
                         <MinusIcon className="h-3.5 w-3.5" />
                       </button>
@@ -314,7 +314,7 @@ export function ProductDetailModal({
                         type="button"
                         onClick={() => cart.onIncrement(producto.id)}
                         aria-label="Añadir una unidad"
-                        className="flex h-9 w-9 items-center justify-center rounded-full border border-noche-border text-noche-ink transition-colors hover:border-noche-primary hover:text-noche-primary"
+                        className="flex h-8 w-8 items-center justify-center rounded-full border border-noche-border text-noche-ink transition-colors hover:border-noche-primary hover:text-noche-primary"
                       >
                         <PlusIcon className="h-3.5 w-3.5" />
                       </button>
@@ -341,62 +341,62 @@ export function ProductDetailModal({
                   </p>
 
                   {producto.calorias != null ? (
-                    <div className="mt-3 grid grid-cols-4 gap-2">
-                      <div className="rounded-lg border border-noche-border bg-noche-surface-2 p-2.5 text-center">
-                        <FireIcon className="mx-auto h-4 w-4 text-noche-danger" />
-                        <p className="mt-1.5 text-base font-semibold text-noche-ink">
+                    <div className="mt-2.5 grid grid-cols-4 gap-1.5">
+                      <div className="rounded-lg border border-noche-border bg-noche-surface-2 p-2 text-center">
+                        <FireIcon className="mx-auto h-3.5 w-3.5 text-noche-danger" />
+                        <p className="mt-1 text-sm font-semibold text-noche-ink">
                           {producto.calorias}
                         </p>
-                        <p className="text-[9px] uppercase tracking-widest2 text-noche-ink-muted">Kcal</p>
+                        <p className="text-[8px] uppercase tracking-widest2 text-noche-ink-muted">Kcal</p>
                       </div>
-                      <div className="rounded-lg border border-noche-border bg-noche-surface-2 p-2.5 text-center">
-                        <span className="mx-auto flex h-4 w-4 items-center justify-center" style={{ color: MACRO_COLORS.proteinas }}>
-                          <ProteinIcon className="h-4 w-4" />
+                      <div className="rounded-lg border border-noche-border bg-noche-surface-2 p-2 text-center">
+                        <span className="mx-auto flex h-3.5 w-3.5 items-center justify-center" style={{ color: MACRO_COLORS.proteinas }}>
+                          <ProteinIcon className="h-3.5 w-3.5" />
                         </span>
-                        <p className="mt-1.5 text-base font-semibold text-noche-ink">
+                        <p className="mt-1 text-sm font-semibold text-noche-ink">
                           {producto.proteinas_g ?? "—"}g
                         </p>
-                        <p className="text-[9px] uppercase tracking-widest2 text-noche-ink-muted">Proteínas</p>
+                        <p className="text-[8px] uppercase tracking-widest2 text-noche-ink-muted">Proteínas</p>
                       </div>
-                      <div className="rounded-lg border border-noche-border bg-noche-surface-2 p-2.5 text-center">
-                        <span className="mx-auto flex h-4 w-4 items-center justify-center" style={{ color: MACRO_COLORS.carbohidratos }}>
-                          <WheatIcon className="h-4 w-4" />
+                      <div className="rounded-lg border border-noche-border bg-noche-surface-2 p-2 text-center">
+                        <span className="mx-auto flex h-3.5 w-3.5 items-center justify-center" style={{ color: MACRO_COLORS.carbohidratos }}>
+                          <WheatIcon className="h-3.5 w-3.5" />
                         </span>
-                        <p className="mt-1.5 text-base font-semibold text-noche-ink">
+                        <p className="mt-1 text-sm font-semibold text-noche-ink">
                           {producto.carbohidratos_g ?? "—"}g
                         </p>
-                        <p className="text-[9px] uppercase tracking-widest2 text-noche-ink-muted">Carbos</p>
+                        <p className="text-[8px] uppercase tracking-widest2 text-noche-ink-muted">Carbos</p>
                       </div>
-                      <div className="rounded-lg border border-noche-border bg-noche-surface-2 p-2.5 text-center">
-                        <span className="mx-auto flex h-4 w-4 items-center justify-center" style={{ color: MACRO_COLORS.grasas }}>
-                          <DropletIcon className="h-4 w-4" />
+                      <div className="rounded-lg border border-noche-border bg-noche-surface-2 p-2 text-center">
+                        <span className="mx-auto flex h-3.5 w-3.5 items-center justify-center" style={{ color: MACRO_COLORS.grasas }}>
+                          <DropletIcon className="h-3.5 w-3.5" />
                         </span>
-                        <p className="mt-1.5 text-base font-semibold text-noche-ink">
+                        <p className="mt-1 text-sm font-semibold text-noche-ink">
                           {producto.grasas_g ?? "—"}g
                         </p>
-                        <p className="text-[9px] uppercase tracking-widest2 text-noche-ink-muted">Grasas</p>
+                        <p className="text-[8px] uppercase tracking-widest2 text-noche-ink-muted">Grasas</p>
                       </div>
                     </div>
                   ) : null}
 
                   {macros.length > 0 ? (
-                    <div className="mt-4">
+                    <div className="mt-3">
                       <p className="text-xs font-medium uppercase tracking-widest2 text-noche-ink-muted">
                         Desglose de macros
                       </p>
-                      <div className="mt-3 flex items-center gap-4 rounded-lg border border-noche-border bg-noche-surface-2 p-3">
+                      <div className="mt-2 flex items-center gap-3 rounded-lg border border-noche-border bg-noche-surface-2 p-2.5">
                         <Donut segments={macros} />
-                        <ul className="min-w-0 flex-1 space-y-2 text-sm">
+                        <ul className="min-w-0 flex-1 space-y-1.5 text-sm">
                           {macros.map((m) => {
                             const Icon = MACRO_ICONS[m.key];
                             return (
                               <li key={m.key} className="flex items-center justify-between gap-2">
-                                <span className="flex min-w-0 items-center gap-2 text-noche-ink-muted">
+                                <span className="flex min-w-0 items-center gap-1.5 text-noche-ink-muted">
                                   <span
-                                    className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full"
+                                    className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full"
                                     style={{ backgroundColor: `${m.color}26`, color: m.color }}
                                   >
-                                    <Icon className="h-3 w-3" />
+                                    <Icon className="h-2.5 w-2.5" />
                                   </span>
                                   <span className="truncate">{m.label}</span>
                                 </span>
@@ -411,17 +411,17 @@ export function ProductDetailModal({
                       </div>
                     </div>
                   ) : (
-                    <div className="mt-4 rounded-lg border border-dashed border-noche-border p-4 text-center text-sm text-noche-ink-faint">
+                    <div className="mt-3 rounded-lg border border-dashed border-noche-border p-3 text-center text-sm text-noche-ink-faint">
                       Sin datos de macronutrientes.
                     </div>
                   )}
 
                   {producto.calorias != null ? (
-                    <div className="mt-4">
+                    <div className="mt-3">
                       <p className="text-xs font-medium uppercase tracking-widest2 text-noche-ink-muted">
                         Valores por ración
                       </p>
-                      <div className="mt-3 rounded-lg border border-noche-border bg-noche-surface-2 px-3">
+                      <div className="mt-2 rounded-lg border border-noche-border bg-noche-surface-2 px-3">
                         <TablaFila label="Valor energético" value={`${producto.calorias} kcal`} />
                         <TablaFila
                           label="Grasas"
@@ -446,7 +446,7 @@ export function ProductDetailModal({
                           <TablaFila label="Sal" value={`${producto.sal_g} g`} />
                         ) : null}
                       </div>
-                      <p className="mt-2 text-[11px] text-noche-ink-faint">
+                      <p className="mt-1.5 text-[11px] text-noche-ink-faint">
                         Valores aproximados por ración.
                       </p>
                     </div>
@@ -461,7 +461,7 @@ export function ProductDetailModal({
           </div>
 
             {items.length > 1 ? (
-              <div className="mt-4 flex items-center justify-center gap-2">
+              <div className="mt-3 flex items-center justify-center gap-2">
                 {items.map((item, i) => (
                   <button
                     key={item.id}
