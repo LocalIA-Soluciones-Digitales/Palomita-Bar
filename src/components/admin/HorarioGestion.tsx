@@ -90,7 +90,7 @@ export function HorarioGestion() {
                 return (
                   <li
                     key={nombre}
-                    className="grid grid-cols-[44px_88px_1fr_auto] items-center gap-x-3 gap-y-2 py-3"
+                    className="flex flex-wrap items-center gap-x-3 gap-y-2 py-3 sm:grid sm:grid-cols-[44px_88px_1fr_auto]"
                   >
                     <button
                       type="button"
@@ -108,26 +108,26 @@ export function HorarioGestion() {
                       />
                     </button>
 
-                    <span className="text-sm text-noche-ink">{nombre}</span>
+                    <span className="min-w-0 flex-1 text-sm text-noche-ink sm:flex-none">{nombre}</span>
 
                     {dia.abierto ? (
-                      <div className="flex items-center gap-2">
+                      <div className="order-4 flex w-full items-center gap-2 sm:order-none sm:w-auto">
                         <input
                           type="time"
                           value={dia.desde}
                           onChange={(e) => actualizarDia(i, { desde: e.target.value })}
-                          className="rounded-lg border border-noche-border bg-noche-surface-2 px-2 py-1.5 text-sm text-noche-ink"
+                          className="w-full min-w-0 rounded-lg border border-noche-border bg-noche-surface-2 px-2 py-1.5 text-sm text-noche-ink sm:w-auto"
                         />
-                        <span className="text-noche-ink-faint">–</span>
+                        <span className="shrink-0 text-noche-ink-faint">–</span>
                         <input
                           type="time"
                           value={dia.hasta}
                           onChange={(e) => actualizarDia(i, { hasta: e.target.value })}
-                          className="rounded-lg border border-noche-border bg-noche-surface-2 px-2 py-1.5 text-sm text-noche-ink"
+                          className="w-full min-w-0 rounded-lg border border-noche-border bg-noche-surface-2 px-2 py-1.5 text-sm text-noche-ink sm:w-auto"
                         />
                       </div>
                     ) : (
-                      <span className="text-sm text-noche-ink-faint">Cerrado</span>
+                      <span className="order-4 text-sm text-noche-ink-faint sm:order-none">Cerrado</span>
                     )}
 
                     <button
