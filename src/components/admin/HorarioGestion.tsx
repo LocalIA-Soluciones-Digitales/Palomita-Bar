@@ -4,9 +4,17 @@ import { useEffect, useState } from "react";
 import { getConfiguracionAdmin, setConfiguracionAdmin } from "@/lib/restaurant/admin-queries";
 import { errorMessage } from "@/lib/format";
 import { CheckIcon, ClockIcon } from "@/components/icons";
+import {
+  DIAS_SEMANA,
+  formatearHorarioVisual,
+  parseHorario,
+  semanaPorDefecto,
+  serializarHorario,
+  type SemanaHorario,
+} from "@/lib/horario";
 
 export function HorarioGestion() {
-  const [horario, setHorario] = useState("");
+  const [semana, setSemana] = useState<SemanaHorario>(semanaPorDefecto());
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);
   const [guardado, setGuardado] = useState(false);
@@ -14,17 +22,35 @@ export function HorarioGestion() {
 
   useEffect(() => {
     getConfiguracionAdmin()
-      .then((valor) => setHorario(valor ?? ""))
+      .then((valor) => {
+        const parsed = parseHorario(valor);
+        if (parsed) setSemana(parsed);
+      })
       .catch(() => setError("No se ha podido cargar el horario."))
       .finally(() => setCargando(false));
   }, []);
+
+  const actualizarDia = (indice: number, cambios: Partial<SemanaHorario[number]>) => {
+    setSemana((prev) => {
+      const copia = [...prev] as SemanaHorario;
+      copia[indice] = { ...copia[indice]!, ...cambios };
+      return copia;
+    });
+    setGuardado(false);
+  };
+
+  const copiarATodos = (indice: number) => {
+    const referencia = semana[indice]!;
+    setSemana((prev) => prev.map(() => ({ ...referencia })) as SemanaHorario);
+    setGuardado(false);
+  };
 
   const handleGuardar = async () => {
     setGuardando(true);
     setGuardado(false);
     setError(null);
     try {
-      await setConfiguracionAdmin(horario);
+      await setConfiguracionAdmin(serializarHorario(semana));
       setGuardado(true);
     } catch (err) {
       setError(`No se ha podido guardar: ${errorMessage(err)}`);
@@ -58,16 +84,68 @@ export function HorarioGestion() {
           <p className="text-sm text-noche-ink-muted">Cargando…</p>
         ) : (
           <>
-            <textarea
-              value={horario}
-              onChange={(e) => {
-                setHorario(e.target.value);
-                setGuardado(false);
-              }}
-              rows={3}
-              placeholder="Ej: Martes a domingo, 18:00 - 01:00"
-              className="w-full rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2 text-sm text-noche-ink"
-            />
+            <ul className="divide-y divide-noche-border">
+              {DIAS_SEMANA.map((nombre, i) => {
+                const dia = semana[i]!;
+                return (
+                  <li key={nombre} className="flex flex-wrap items-center gap-3 py-2.5">
+                    <button
+                      type="button"
+                      onClick={() => actualizarDia(i, { abierto: !dia.abierto })}
+                      className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
+                        dia.abierto ? "bg-noche-positive" : "bg-noche-surface-2"
+                      }`}
+                      aria-pressed={dia.abierto}
+                      aria-label={`${nombre}: ${dia.abierto ? "abierto" : "cerrado"}`}
+                    >
+                      <span
+                        className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                          dia.abierto ? "translate-x-5" : "translate-x-0.5"
+                        }`}
+                      />
+                    </button>
+
+                    <span className="w-20 shrink-0 text-sm text-noche-ink">{nombre}</span>
+
+                    {dia.abierto ? (
+                      <div className="flex flex-1 min-w-[180px] items-center gap-2">
+                        <input
+                          type="time"
+                          value={dia.desde}
+                          onChange={(e) => actualizarDia(i, { desde: e.target.value })}
+                          className="rounded-lg border border-noche-border bg-noche-surface-2 px-2 py-1.5 text-sm text-noche-ink"
+                        />
+                        <span className="text-noche-ink-faint">–</span>
+                        <input
+                          type="time"
+                          value={dia.hasta}
+                          onChange={(e) => actualizarDia(i, { hasta: e.target.value })}
+                          className="rounded-lg border border-noche-border bg-noche-surface-2 px-2 py-1.5 text-sm text-noche-ink"
+                        />
+                      </div>
+                    ) : (
+                      <span className="flex-1 text-sm text-noche-ink-faint">Cerrado</span>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => copiarATodos(i)}
+                      className="shrink-0 rounded-lg px-2 py-1 text-xs text-noche-ink-faint transition hover:bg-noche-surface-2 hover:text-noche-primary"
+                      title={`Aplicar el horario de ${nombre} a toda la semana`}
+                    >
+                      Aplicar a todos
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+
+            <div className="mt-4 rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2.5">
+              <p className="text-xs uppercase tracking-widest2 text-noche-ink-faint">Así se verá en la home</p>
+              <p className="mt-1.5 whitespace-pre-line text-sm text-noche-ink/80">
+                {formatearHorarioVisual(semana)}
+              </p>
+            </div>
 
             {error ? <p className="mt-2 text-sm text-noche-danger">{error}</p> : null}
 

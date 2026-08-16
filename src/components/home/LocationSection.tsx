@@ -3,9 +3,12 @@
 import { SITE } from "@/lib/constants";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
 import { PhoneIcon, InstagramIcon, MapPinIcon, ClockIcon } from "@/components/icons";
+import { formatearHorarioVisual, parseHorario } from "@/lib/horario";
 
 export function LocationSection({ horario }: { horario: string | null }) {
   const { ref, visible } = useScrollReveal<HTMLDivElement>();
+  const semana = parseHorario(horario);
+  const textoHorario = semana ? formatearHorarioVisual(semana) : (horario ?? SITE.hoursNote);
 
   const mapQuery = encodeURIComponent(
     `${SITE.name} ${SITE.address.line1}, ${SITE.address.postalCode} ${SITE.address.city}`,
@@ -71,7 +74,7 @@ export function LocationSection({ horario }: { horario: string | null }) {
             <p className="mt-8 text-sm font-medium text-noche-primary">Horario</p>
             <p className="mt-3 flex items-start gap-2 whitespace-pre-line text-noche-ink/80">
               <ClockIcon className="mt-0.5 h-4 w-4 shrink-0 text-noche-primary" />
-              {horario ?? SITE.hoursNote}
+              {textoHorario}
             </p>
 
             <div className="mt-8 flex flex-wrap gap-4">
