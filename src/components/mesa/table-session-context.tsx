@@ -76,9 +76,13 @@ const TableSessionContext = createContext<TableSessionValue | null>(null);
  */
 export function TableSessionProvider({
   mesaIdentificador,
+  mesaCapacidad,
   children,
 }: {
   mesaIdentificador?: string;
+  /** Con aforo de 1 (p. ej. una banqueta de barra) se salta la pregunta de
+   * "¿pedimos juntos o por separado?": no aporta nada a un único comensal. */
+  mesaCapacidad?: number;
   children: ReactNode;
 }) {
   const [sesion, setSesion] = useState<MesaSesion | null>(null);
@@ -94,7 +98,7 @@ export function TableSessionProvider({
     }
 
     const stored = readStored(mesaIdentificador);
-    if (!stored) {
+    if (!stored && mesaCapacidad !== 1) {
       setLoading(false);
       return;
     }
@@ -102,11 +106,14 @@ export function TableSessionProvider({
     let cancelled = false;
     (async () => {
       try {
-        const sesionActual = await iniciarSesionMesa(mesaIdentificador, stored.modo);
+        const sesionActual = await iniciarSesionMesa(mesaIdentificador, stored?.modo ?? "JUNTOS");
         if (cancelled) return;
         setSesion(sesionActual);
+        if (!stored) {
+          writeStored(mesaIdentificador, { sesionId: sesionActual.id, modo: sesionActual.modo });
+        }
 
-        if (stored.participanteId && stored.participanteNombre) {
+        if (stored?.participanteId && stored?.participanteNombre) {
           setParticipante({
             id: stored.participanteId,
             sesion_id: sesionActual.id,
@@ -126,7 +133,7 @@ export function TableSessionProvider({
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mesaIdentificador]);
+  }, [mesaIdentificador, mesaCapacidad]);
 
   const refrescarSesionPublica = useCallback(async () => {
     if (!sesion) return;

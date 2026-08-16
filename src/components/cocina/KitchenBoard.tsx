@@ -59,10 +59,19 @@ function urgencyClasses(minutos: number) {
   return "bg-noche-surface-2 text-noche-ink-muted";
 }
 
+type FiltroTipo = "todos" | "comida" | "bebida";
+
+const FILTROS: { valor: FiltroTipo; label: string }[] = [
+  { valor: "todos", label: "Todos" },
+  { valor: "comida", label: "Cocina" },
+  { valor: "bebida", label: "Barra" },
+];
+
 export function KitchenBoard({ pedidosIniciales }: { pedidosIniciales: PedidoCocina[] }) {
   const [pedidos, setPedidos] = useState<PedidoCocina[]>(pedidosIniciales);
   const [actualizando, setActualizando] = useState<string | null>(null);
   const [tick, setTick] = useState(0);
+  const [filtro, setFiltro] = useState<FiltroTipo>("todos");
 
   const refetch = useCallback(async () => {
     const supabase = createSupabaseBrowserClient();
@@ -120,10 +129,33 @@ export function KitchenBoard({ pedidosIniciales }: { pedidosIniciales: PedidoCoc
   };
 
   return (
-    <div className="mt-6 grid gap-4 lg:grid-cols-3">
+    <div className="mt-6">
+      <div className="flex gap-2">
+        {FILTROS.map((f) => (
+          <button
+            key={f.valor}
+            type="button"
+            onClick={() => setFiltro(f.valor)}
+            className={`rounded-full px-4 py-1.5 text-xs font-semibold uppercase tracking-widest2 transition-colors ${
+              filtro === f.valor
+                ? "bg-noche-primary text-white"
+                : "border border-noche-border text-noche-ink-muted hover:text-noche-ink"
+            }`}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="mt-4 grid gap-4 lg:grid-cols-3">
       {COLUMNAS.map((columna) => {
         const items = pedidos
           .filter((p) => columna.estados.includes(p.estado))
+          .filter(
+            (p) =>
+              filtro === "todos" ||
+              p.items.some((item) => item.producto_tipo === null || item.producto_tipo === filtro),
+          )
           .sort((a, b) => a.created_at.localeCompare(b.created_at));
 
         return (
@@ -185,23 +217,32 @@ export function KitchenBoard({ pedidosIniciales }: { pedidosIniciales: PedidoCoc
                     ) : null}
 
                     <ul className="mt-3 space-y-1.5">
-                      {pedido.items.map((item, index) => (
-                        <li key={index} className="flex items-start gap-2">
-                          <span className="mt-0.5 flex h-6 min-w-6 shrink-0 items-center justify-center rounded-md bg-noche-primary/20 px-1.5 text-sm font-bold text-noche-primary">
-                            {item.cantidad}
-                          </span>
-                          <div>
-                            <span className="text-base font-medium text-noche-ink">
-                              {item.producto_nombre}
+                      {pedido.items.map((item, index) => {
+                        const fueraDeFiltro =
+                          filtro !== "todos" &&
+                          item.producto_tipo !== null &&
+                          item.producto_tipo !== filtro;
+                        return (
+                          <li
+                            key={index}
+                            className={`flex items-start gap-2 ${fueraDeFiltro ? "opacity-35" : ""}`}
+                          >
+                            <span className="mt-0.5 flex h-6 min-w-6 shrink-0 items-center justify-center rounded-md bg-noche-primary/20 px-1.5 text-sm font-bold text-noche-primary">
+                              {item.cantidad}
                             </span>
-                            {item.notas ? (
-                              <span className="block text-xs text-noche-ink-muted">
-                                {item.notas}
+                            <div>
+                              <span className="text-base font-medium text-noche-ink">
+                                {item.producto_nombre}
                               </span>
-                            ) : null}
-                          </div>
-                        </li>
-                      ))}
+                              {item.notas ? (
+                                <span className="block text-xs text-noche-ink-muted">
+                                  {item.notas}
+                                </span>
+                              ) : null}
+                            </div>
+                          </li>
+                        );
+                      })}
                     </ul>
 
                     {pedido.notas ? (
@@ -248,6 +289,7 @@ export function KitchenBoard({ pedidosIniciales }: { pedidosIniciales: PedidoCoc
           </div>
         );
       })}
+      </div>
     </div>
   );
 }

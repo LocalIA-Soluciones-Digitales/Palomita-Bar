@@ -33,6 +33,7 @@ export interface Mesa {
   nombre: string | null;
   identificador: string;
   activa: boolean;
+  capacidad: number;
 }
 
 export type EstadoPedido =

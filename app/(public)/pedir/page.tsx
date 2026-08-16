@@ -38,7 +38,7 @@ export default async function PedirPage({
     : "Modo prueba · sin mesa asignada";
 
   return (
-    <TableSessionProvider mesaIdentificador={mesa?.identificador}>
+    <TableSessionProvider mesaIdentificador={mesa?.identificador} mesaCapacidad={mesa?.capacidad}>
       <CartProvider>
         <TableEntry>
           <PedirExperience

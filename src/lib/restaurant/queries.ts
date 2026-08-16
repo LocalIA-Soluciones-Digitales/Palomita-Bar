@@ -164,6 +164,34 @@ export async function getSiteImages(): Promise<SiteImages | null> {
   return data as unknown as SiteImages;
 }
 
+export async function llamarCamarero(mesaIdentificador: string): Promise<void> {
+  const { error } = await supabase.rpc("llamar_camarero", {
+    p_site_key: siteKey(),
+    p_identificador: mesaIdentificador,
+  });
+  if (error) throw error;
+}
+
+export async function crearReservaPublica(input: {
+  nombreCliente: string;
+  numPersonas: number;
+  fecha: string;
+  hora: string;
+  telefono?: string;
+  notas?: string;
+}): Promise<void> {
+  const { error } = await supabase.rpc("crear_reserva_publica", {
+    p_site_key: siteKey(),
+    p_nombre_cliente: input.nombreCliente,
+    p_num_personas: input.numPersonas,
+    p_fecha: input.fecha,
+    p_hora: input.hora,
+    p_telefono: input.telefono ?? null,
+    p_notas: input.notas ?? null,
+  });
+  if (error) throw error;
+}
+
 export async function crearErrorLog(input: {
   message: string;
   stack?: string;

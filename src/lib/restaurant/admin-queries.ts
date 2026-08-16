@@ -291,6 +291,15 @@ export async function marcarMesaLimpiaAdmin(id: string): Promise<void> {
   if (error) throw error;
 }
 
+export async function atenderAvisoCamareroAdmin(mesaId: string): Promise<void> {
+  const supabase = createSupabaseBrowserClient();
+  const { error } = await supabase.rpc("atender_aviso_camarero_admin", {
+    p_cliente_id: clienteId(),
+    p_mesa_id: mesaId,
+  });
+  if (error) throw error;
+}
+
 export async function marcarMesaPagandoAdmin(id: string, pagando: boolean): Promise<void> {
   const supabase = createSupabaseBrowserClient();
   const { error } = await supabase.rpc("marcar_mesa_pagando_admin", {

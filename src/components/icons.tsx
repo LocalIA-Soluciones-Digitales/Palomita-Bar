@@ -480,6 +480,19 @@ export function MoonIcon({ className }: { className?: string }) {
   );
 }
 
+export function BellIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} className={className}>
+      <path
+        d="M6 10.5a6 6 0 1 1 12 0c0 4 1.5 5.2 1.5 5.2H4.5S6 14.5 6 10.5z"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path d="M10 18.5a2 2 0 0 0 4 0" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export function AllergenIcon({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} className={className}>

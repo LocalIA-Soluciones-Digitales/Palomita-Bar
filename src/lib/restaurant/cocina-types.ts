@@ -2,6 +2,7 @@ import type { EstadoPedido, PaymentMethod, PaymentStatus } from "@/lib/restauran
 
 export interface PedidoCocinaItem {
   producto_nombre: string;
+  producto_tipo: "comida" | "bebida" | null;
   cantidad: number;
   notas: string | null;
 }

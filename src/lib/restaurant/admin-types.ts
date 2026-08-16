@@ -116,6 +116,7 @@ export interface MesaEstadoAdmin {
   por_limpiar: boolean;
   union_grupo_id: string | null;
   nota: string | null;
+  aviso_camarero_at: string | null;
   sesion_modo: "JUNTOS" | "SEPARADO" | null;
   pedidos_hoy: PedidoMesaAdmin[];
 }

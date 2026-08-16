@@ -19,6 +19,7 @@ import { playNewOrderChime } from "@/lib/notify-sound";
 import {
   actualizarMesaCapacidadAdmin,
   actualizarMesaNotaAdmin,
+  atenderAvisoCamareroAdmin,
   avanzarPedidoAdmin,
   cambiarMesaAdmin,
   crearMesaAdmin,
@@ -39,6 +40,7 @@ import { etiquetasMesas, prefijoZona } from "@/lib/restaurant/mesa-label";
 import { PedidoRapidoForm } from "@/components/admin/PedidoRapidoForm";
 import { ReservaModal } from "@/components/admin/ReservaModal";
 import {
+  BellIcon,
   CheckIcon,
   ClockIcon,
   CloseIcon,
@@ -394,6 +396,22 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
       .on("postgres_changes", { event: "*", schema: "restaurant", table: "pedido_items" }, () =>
         refetch(),
       )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "restaurant", table: "mesas" },
+        (payload) => {
+          // Solo suena aviso cuando aparece una llamada nueva (evita ruido
+          // en cualquier otra actualización de la mesa: posición, aforo…).
+          const antes = (payload.old as { aviso_camarero_at?: string | null } | null)
+            ?.aviso_camarero_at;
+          const despues = (payload.new as { aviso_camarero_at?: string | null } | null)
+            ?.aviso_camarero_at;
+          if (despues && despues !== antes) {
+            playNewOrderChime();
+          }
+          refetch();
+        },
+      )
       .subscribe();
 
     return () => {
@@ -553,6 +571,15 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
       await refetch();
     } catch {
       setAccionError("No se ha podido liberar la mesa.");
+    }
+  };
+
+  const handleAtenderAviso = async (mesaId: string) => {
+    try {
+      await atenderAvisoCamareroAdmin(mesaId);
+      await refetch();
+    } catch {
+      setAccionError("No se ha podido marcar el aviso como atendido.");
     }
   };
 
@@ -839,6 +866,37 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
         </div>
 
         <div className="flex flex-col gap-4">
+          {mesas.some((m) => m.aviso_camarero_at) ? (
+            <div className="rounded-lg border-2 border-noche-warning bg-noche-warning/10 p-4">
+              <p className="flex items-center gap-2 text-sm font-semibold text-noche-warning">
+                <BellIcon className="h-4 w-4" />
+                Camarero solicitado
+              </p>
+              <ul className="mt-2 space-y-1.5">
+                {mesas
+                  .filter((m) => m.aviso_camarero_at)
+                  .map((m) => (
+                    <li key={m.id} className="flex items-center justify-between gap-2 text-sm">
+                      <button
+                        type="button"
+                        onClick={() => setMesaSeleccionadaId(m.id)}
+                        className="text-noche-ink transition-colors hover:text-noche-primary"
+                      >
+                        {m.nombre ? `${m.nombre} (Mesa ${m.numero})` : `Mesa ${m.numero}`}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleAtenderAviso(m.id)}
+                        className="text-xs uppercase tracking-widest2 text-noche-ink-muted transition-colors hover:text-noche-primary"
+                      >
+                        Atendido
+                      </button>
+                    </li>
+                  ))}
+              </ul>
+            </div>
+          ) : null}
+
           <div className="rounded-lg border border-noche-border bg-noche-surface p-4">
             {!mesaSeleccionada ? (
               <p className="text-sm text-noche-ink-muted">
