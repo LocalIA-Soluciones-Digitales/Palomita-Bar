@@ -88,7 +88,10 @@ export function HorarioGestion() {
               {DIAS_SEMANA.map((nombre, i) => {
                 const dia = semana[i]!;
                 return (
-                  <li key={nombre} className="flex flex-wrap items-center gap-3 py-2.5">
+                  <li
+                    key={nombre}
+                    className="grid grid-cols-[44px_88px_1fr_auto] items-center gap-x-3 gap-y-2 py-3"
+                  >
                     <button
                       type="button"
                       onClick={() => actualizarDia(i, { abierto: !dia.abierto })}
@@ -99,16 +102,16 @@ export function HorarioGestion() {
                       aria-label={`${nombre}: ${dia.abierto ? "abierto" : "cerrado"}`}
                     >
                       <span
-                        className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
-                          dia.abierto ? "translate-x-5" : "translate-x-0.5"
+                        className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                          dia.abierto ? "translate-x-5" : "translate-x-0"
                         }`}
                       />
                     </button>
 
-                    <span className="w-20 shrink-0 text-sm text-noche-ink">{nombre}</span>
+                    <span className="text-sm text-noche-ink">{nombre}</span>
 
                     {dia.abierto ? (
-                      <div className="flex flex-1 min-w-[180px] items-center gap-2">
+                      <div className="flex items-center gap-2">
                         <input
                           type="time"
                           value={dia.desde}
@@ -124,7 +127,7 @@ export function HorarioGestion() {
                         />
                       </div>
                     ) : (
-                      <span className="flex-1 text-sm text-noche-ink-faint">Cerrado</span>
+                      <span className="text-sm text-noche-ink-faint">Cerrado</span>
                     )}
 
                     <button
@@ -133,7 +136,7 @@ export function HorarioGestion() {
                       className="shrink-0 rounded-lg px-2 py-1 text-xs text-noche-ink-faint transition hover:bg-noche-surface-2 hover:text-noche-primary"
                       title={`Aplicar el horario de ${nombre} a toda la semana`}
                     >
-                      Aplicar a todos
+                      Copiar
                     </button>
                   </li>
                 );

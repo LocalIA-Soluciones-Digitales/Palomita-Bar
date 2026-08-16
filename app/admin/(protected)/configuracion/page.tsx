@@ -17,8 +17,8 @@ export default function ConfiguracionAdminPage() {
         </div>
       </div>
 
-      <HorarioGestion />
       <CamarerosGestion />
+      <HorarioGestion />
     </div>
   );
 }

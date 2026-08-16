@@ -27,7 +27,16 @@ export const DIAS_SEMANA = [
 const MARCA_JSON = "hjson:";
 
 export function semanaPorDefecto(): SemanaHorario {
-  return DIAS_SEMANA.map(() => ({ abierto: true, desde: "18:00", hasta: "01:00" })) as SemanaHorario;
+  const base: Record<string, DiaHorario> = {
+    Lunes: { abierto: true, desde: "09:00", hasta: "23:30" },
+    Martes: { abierto: true, desde: "09:00", hasta: "23:30" },
+    Miércoles: { abierto: true, desde: "09:00", hasta: "23:30" },
+    Jueves: { abierto: true, desde: "09:00", hasta: "23:30" },
+    Viernes: { abierto: true, desde: "09:00", hasta: "03:00" },
+    Sábado: { abierto: true, desde: "10:00", hasta: "03:00" },
+    Domingo: { abierto: true, desde: "10:00", hasta: "23:00" },
+  };
+  return DIAS_SEMANA.map((dia) => base[dia]!) as SemanaHorario;
 }
 
 export function parseHorario(valor: string | null | undefined): SemanaHorario | null {
