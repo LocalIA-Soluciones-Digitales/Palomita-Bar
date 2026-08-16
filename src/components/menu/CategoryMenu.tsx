@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { formatCentimos } from "@/lib/format";
-import { MinusIcon, PlusIcon } from "@/components/icons";
+import { EyeIcon, MinusIcon, PlusIcon } from "@/components/icons";
 import { ProductDetailModal } from "@/components/menu/ProductDetailModal";
 import type { Categoria, Producto } from "@/lib/restaurant/types";
 
@@ -172,19 +172,19 @@ export function CategoryMenu({
                           });
                         }
                       }}
-                      className={`group flex cursor-pointer gap-4 rounded-lg border p-4 transition-all duration-300 ${
+                      className={`group flex cursor-pointer gap-4 rounded-xl border p-4 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20 ${
                         isHighlighted
                           ? "border-noche-primary bg-noche-surface"
                           : "border-noche-border bg-noche-surface/40 hover:border-noche-primary/60"
                       }`}
                     >
                       {producto.imagen_url ? (
-                        <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-lg bg-noche-surface-2">
+                        <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-lg bg-noche-surface-2">
                           <Image
                             src={producto.imagen_url}
                             alt={producto.nombre}
                             fill
-                            sizes="96px"
+                            sizes="112px"
                             className="object-cover transition-transform duration-300 group-hover:scale-105"
                           />
                           {producto.destacado ? (
@@ -197,7 +197,7 @@ export function CategoryMenu({
                           ) : null}
                         </div>
                       ) : (
-                        <div className="h-24 w-24 shrink-0 rounded-lg bg-noche-surface-2" />
+                        <div className="h-28 w-28 shrink-0 rounded-lg bg-noche-surface-2" />
                       )}
 
                       <div className="flex min-w-0 flex-1 flex-col">
@@ -262,9 +262,10 @@ export function CategoryMenu({
                         </div>
 
                         {tieneNutricion ? (
-                          <p className="mt-1.5 text-[10px] uppercase tracking-widest2 text-noche-ink-muted/70">
-                            Toca para ver ingredientes y calorías
-                          </p>
+                          <span className="mt-1.5 inline-flex items-center gap-1 text-[11px] text-noche-ink-faint">
+                            <EyeIcon className="h-3 w-3" />
+                            Ingredientes y calorías
+                          </span>
                         ) : null}
                       </div>
                     </div>

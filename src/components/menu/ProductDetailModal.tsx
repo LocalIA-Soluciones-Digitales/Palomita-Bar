@@ -13,6 +13,7 @@ import {
   PlusIcon,
   ProteinIcon,
   StarIcon,
+  TagIcon,
   WheatIcon,
 } from "@/components/icons";
 import type { Producto } from "@/lib/restaurant/types";
@@ -58,7 +59,7 @@ function Donut({ segments }: { segments: { pctInt: number; color: string }[] }) 
   let cumulative = 0;
 
   return (
-    <svg viewBox="0 0 120 120" className="h-28 w-28 shrink-0" role="img" aria-hidden="true">
+    <svg viewBox="0 0 120 120" className="h-24 w-24 shrink-0 sm:h-32 sm:w-32" role="img" aria-hidden="true">
       <g transform="rotate(-90 60 60)">
         <circle cx="60" cy="60" r={radius} fill="none" stroke="currentColor" strokeWidth={strokeWidth} className="text-noche-surface-3" />
         {segments.map((seg, i) => {
@@ -217,17 +218,17 @@ export function ProductDetailModal({
               </span>
 
               {producto.imagen_url ? (
-                <div className="relative mt-4 h-40 w-full shrink-0 overflow-hidden rounded-xl bg-noche-surface-2 sm:h-44">
+                <div className="relative mt-4 aspect-[4/3] max-h-52 w-full shrink-0 overflow-hidden rounded-xl bg-noche-surface-2">
                   <Image
                     src={producto.imagen_url}
                     alt={producto.nombre}
                     fill
                     sizes="(min-width: 640px) 420px, 90vw"
-                    className="object-cover"
+                    className="object-cover object-[center_65%]"
                   />
                 </div>
               ) : (
-                <div className="mt-4 h-40 w-full shrink-0 rounded-xl bg-noche-surface-2 sm:h-44" />
+                <div className="mt-4 aspect-[4/3] max-h-52 w-full shrink-0 rounded-xl bg-noche-surface-2" />
               )}
 
               <h2 className="mt-4 font-display text-2xl text-noche-ink sm:text-3xl">{producto.nombre}</h2>
@@ -236,15 +237,22 @@ export function ProductDetailModal({
               ) : null}
 
               {producto.ingredientes.length > 0 ? (
-                <div className="mt-3 flex flex-wrap gap-1.5">
-                  {producto.ingredientes.map((ingrediente) => (
-                    <span
-                      key={ingrediente}
-                      className="rounded-full border border-noche-border bg-noche-surface-2 px-2.5 py-1 text-[11px] text-noche-ink-muted"
-                    >
-                      {ingrediente}
-                    </span>
-                  ))}
+                <div className="mt-4">
+                  <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-widest2 text-noche-ink-muted">
+                    <TagIcon className="h-3.5 w-3.5" />
+                    Ingredientes
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {producto.ingredientes.map((ingrediente) => (
+                      <span
+                        key={ingrediente}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-noche-border bg-noche-surface-2 px-2.5 py-1.5 text-[11px] text-noche-ink-muted"
+                      >
+                        <span aria-hidden="true" className="h-1.5 w-1.5 shrink-0 rounded-full bg-noche-primary/60" />
+                        {ingrediente}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               ) : null}
 
@@ -340,13 +348,13 @@ export function ProductDetailModal({
                   ) : null}
 
                   {macros.length > 0 ? (
-                    <>
-                      <p className="mt-4 text-xs font-medium uppercase tracking-widest2 text-noche-ink-muted">
+                    <div className="mt-4 flex flex-1 flex-col">
+                      <p className="text-xs font-medium uppercase tracking-widest2 text-noche-ink-muted">
                         Desglose de macros
                       </p>
-                      <div className="mt-3 flex min-w-0 items-center gap-4 rounded-lg border border-noche-border bg-noche-surface-2 p-3">
+                      <div className="mt-3 flex min-w-0 flex-1 items-center gap-5 rounded-lg border border-noche-border bg-noche-surface-2 p-4">
                         <Donut segments={macros} />
-                        <ul className="min-w-0 flex-1 space-y-2.5 text-sm">
+                        <ul className="min-w-0 flex-1 space-y-3 text-sm">
                           {macros.map((m) => (
                             <li key={m.key} className="flex min-w-0 items-center justify-between gap-2">
                               <span className="flex min-w-0 items-center gap-2 truncate text-noche-ink-muted">
@@ -368,13 +376,17 @@ export function ProductDetailModal({
                       <p className="mt-2 text-[11px] text-noche-ink-faint">
                         Valores aproximados por ración.
                       </p>
-                    </>
-                  ) : null}
+                    </div>
+                  ) : (
+                    <div className="mt-4 flex flex-1 items-center justify-center rounded-lg border border-dashed border-noche-border p-4 text-center text-sm text-noche-ink-faint">
+                      Sin datos de macronutrientes.
+                    </div>
+                  )}
                 </>
               ) : (
-                <p className="text-sm text-noche-ink-muted">
+                <div className="flex flex-1 items-center justify-center text-center text-sm text-noche-ink-muted">
                   Información nutricional no disponible para este producto.
-                </p>
+                </div>
               )}
             </div>
           </div>
