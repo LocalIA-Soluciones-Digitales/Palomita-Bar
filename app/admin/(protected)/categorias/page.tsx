@@ -127,40 +127,40 @@ export default function CategoriasAdminPage() {
 
       {formAbierto ? (
         <div className="mt-6 overflow-hidden rounded-xl border border-noche-border bg-noche-surface shadow-sm">
-          <div className="flex items-center justify-between border-b border-noche-border px-4 py-3">
+          <div className="flex items-center justify-between border-b border-noche-border px-3 py-2">
             <div className="flex items-center gap-2">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-noche-primary/10 text-noche-primary">
-                <TagIcon className="h-4 w-4" />
+              <span className="flex h-6.5 w-6.5 items-center justify-center rounded-md bg-noche-primary/10 text-noche-primary">
+                <TagIcon className="h-3.5 w-3.5" />
               </span>
               <div>
-                <p className="text-sm font-medium text-noche-ink">
+                <p className="text-xs font-medium text-noche-ink">
                   {editandoId ? "Editar categoría" : "Nueva categoría"}
                 </p>
-                <p className="text-xs text-noche-ink-faint">Agrupa los productos de la carta.</p>
+                <p className="text-[11px] text-noche-ink-faint">Agrupa los productos de la carta.</p>
               </div>
             </div>
             <button
               type="button"
               onClick={handleCancelar}
-              className="text-xs uppercase tracking-widest2 text-noche-ink-faint hover:text-noche-ink"
+              className="text-[11px] uppercase tracking-widest2 text-noche-ink-faint hover:text-noche-ink"
             >
               Cerrar
             </button>
           </div>
 
-          <div className="flex flex-wrap items-end gap-4 px-4 py-4">
+          <div className="flex flex-wrap items-end gap-3 px-3 py-3">
             <div className="min-w-[10rem] flex-1">
-              <label className="text-xs uppercase tracking-widest2 text-noche-ink-muted">
+              <label className="text-[11px] uppercase tracking-widest2 text-noche-ink-muted">
                 Nombre
               </label>
               <input
                 value={form.nombre}
                 onChange={(e) => setForm((f) => ({ ...f, nombre: e.target.value }))}
-                className="mt-1.5 w-full rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2.5 text-sm text-noche-ink outline-none transition focus:border-noche-primary"
+                className="mt-1 w-full rounded-lg border border-noche-border bg-noche-surface-2 px-2.5 py-1.5 text-sm text-noche-ink outline-none transition focus:border-noche-primary"
               />
             </div>
             <div>
-              <label className="text-xs uppercase tracking-widest2 text-noche-ink-muted">
+              <label className="text-[11px] uppercase tracking-widest2 text-noche-ink-muted">
                 Tipo
               </label>
               <select
@@ -168,21 +168,21 @@ export default function CategoriasAdminPage() {
                 onChange={(e) =>
                   setForm((f) => ({ ...f, tipo: e.target.value as "comida" | "bebida" }))
                 }
-                className="mt-1.5 rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2.5 text-sm text-noche-ink outline-none transition focus:border-noche-primary"
+                className="mt-1 rounded-lg border border-noche-border bg-noche-surface-2 px-2.5 py-1.5 text-sm text-noche-ink outline-none transition focus:border-noche-primary"
               >
                 <option value="comida">Comida</option>
                 <option value="bebida">Bebida</option>
               </select>
             </div>
             <div>
-              <label className="text-xs uppercase tracking-widest2 text-noche-ink-muted">
+              <label className="text-[11px] uppercase tracking-widest2 text-noche-ink-muted">
                 Orden
               </label>
               <input
                 type="number"
                 value={form.orden}
                 onChange={(e) => setForm((f) => ({ ...f, orden: Number(e.target.value) }))}
-                className="mt-1.5 w-20 rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2.5 text-sm text-noche-ink outline-none transition focus:border-noche-primary"
+                className="mt-1 w-20 rounded-lg border border-noche-border bg-noche-surface-2 px-2.5 py-1.5 text-sm text-noche-ink outline-none transition focus:border-noche-primary"
               />
             </div>
             <div className="flex items-center gap-3">
@@ -190,7 +190,7 @@ export default function CategoriasAdminPage() {
                 type="button"
                 onClick={handleGuardar}
                 disabled={guardando}
-                className="flex items-center gap-1.5 rounded-lg bg-noche-primary px-4 py-2 text-xs uppercase tracking-widest2 text-noche-ink transition hover:brightness-110 disabled:opacity-50"
+                className="flex items-center gap-1.5 rounded-lg bg-noche-primary px-3.5 py-1.5 text-[11px] uppercase tracking-widest2 text-noche-ink transition hover:brightness-110 disabled:opacity-50"
               >
                 <PlusIcon className="h-3.5 w-3.5" />
                 {editandoId ? "Guardar cambios" : "Añadir"}
@@ -198,7 +198,7 @@ export default function CategoriasAdminPage() {
               <button
                 type="button"
                 onClick={handleCancelar}
-                className="text-xs uppercase tracking-widest2 text-noche-ink-muted"
+                className="text-[11px] uppercase tracking-widest2 text-noche-ink-muted"
               >
                 Cancelar
               </button>
