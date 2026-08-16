@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import dynamic from "next/dynamic";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import type { Mesa3D } from "@/components/admin/Floorplan3D";
@@ -48,6 +48,7 @@ import {
   PrinterIcon,
   RefreshIcon,
   SwapIcon,
+  TagIcon,
   TrashIcon,
   UnlinkIcon,
   UsersIcon,
@@ -244,6 +245,36 @@ function OcupacionTile({ pct }: { pct: number }) {
         </div>
       </div>
     </div>
+  );
+}
+
+function AccionMesa({
+  icon: Icon,
+  label,
+  onClick,
+  disabled,
+  danger,
+}: {
+  icon: (props: { className?: string }) => ReactNode;
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+  danger?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className={`flex flex-col items-center justify-center gap-1.5 rounded-lg px-1 py-2.5 text-center text-[10px] uppercase leading-tight tracking-widest2 transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+        danger
+          ? "bg-noche-danger/10 text-noche-danger hover:bg-noche-danger/15"
+          : "bg-noche-surface-2 text-noche-ink hover:bg-noche-surface-3"
+      }`}
+    >
+      <Icon className="h-4 w-4 shrink-0" />
+      <span>{label}</span>
+    </button>
   );
 }
 
@@ -781,14 +812,6 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
                               Marcar como limpia
                             </button>
                           ) : null}
-                          <button
-                            type="button"
-                            onClick={() => handleEliminarMesa(mesaSeleccionada)}
-                            className="flex w-full items-center gap-1.5 rounded-lg px-2 py-1.5 text-left text-xs uppercase tracking-widest2 text-noche-danger hover:bg-noche-danger/10"
-                          >
-                            <TrashIcon className="h-3.5 w-3.5" />
-                            Eliminar mesa
-                          </button>
                         </div>
                       ) : null}
                     </div>
@@ -968,54 +991,45 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
                       </button>
                     )}
 
-                    <div className="grid grid-cols-2 gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setMostrarReserva(true)}
-                        className="flex items-center justify-center gap-1.5 rounded-lg bg-noche-surface-2 py-2 text-xs uppercase tracking-widest2 text-noche-ink hover:bg-noche-surface-3"
-                      >
-                        <ClockIcon className="h-3.5 w-3.5" />
-                        Reservar
-                      </button>
-                      <button
-                        type="button"
+                    <div className="grid grid-cols-3 gap-2">
+                      <AccionMesa icon={ClockIcon} label="Reservar" onClick={() => setMostrarReserva(true)} />
+                      <AccionMesa
+                        icon={SwapIcon}
+                        label="Cambiar mesa"
                         onClick={() => setCambiarMesaAbierto((v) => !v)}
-                        className="flex items-center justify-center gap-1.5 rounded-lg bg-noche-surface-2 py-2 text-xs uppercase tracking-widest2 text-noche-ink hover:bg-noche-surface-3"
-                      >
-                        <SwapIcon className="h-3.5 w-3.5" />
-                        Cambiar mesa
-                      </button>
-
+                      />
                       {mesaSeleccionada.union_grupo_id ? (
-                        <button
-                          type="button"
+                        <AccionMesa
+                          icon={UnlinkIcon}
+                          label="Separar mesas"
                           onClick={() => handleSepararGrupo(mesaSeleccionada)}
-                          className="flex items-center justify-center gap-1.5 rounded-lg bg-noche-surface-2 py-2 text-xs uppercase tracking-widest2 text-noche-ink hover:bg-noche-surface-3"
-                        >
-                          <UnlinkIcon className="h-3.5 w-3.5" />
-                          Separar mesas
-                        </button>
+                        />
                       ) : (
-                        <button
-                          type="button"
+                        <AccionMesa
+                          icon={LinkIcon}
+                          label="Unir mesas"
                           onClick={() => {
                             setModoUnion(true);
                             setSeleccionUnion([mesaSeleccionada.id]);
                           }}
-                          className="flex items-center justify-center gap-1.5 rounded-lg bg-noche-surface-2 py-2 text-xs uppercase tracking-widest2 text-noche-ink hover:bg-noche-surface-3"
-                        >
-                          <LinkIcon className="h-3.5 w-3.5" />
-                          Unir mesas
-                        </button>
+                        />
                       )}
-                      <button
-                        type="button"
+                      <AccionMesa
+                        icon={PrinterIcon}
+                        label="Imprimir cuenta"
                         onClick={() => imprimirCuentaMesa(mesaSeleccionada, etiquetaMesa(mesaSeleccionada))}
-                        className="flex items-center justify-center gap-1.5 rounded-lg bg-noche-surface-2 py-2 text-xs uppercase tracking-widest2 text-noche-ink hover:bg-noche-surface-3"
-                      >
-                        <PrinterIcon className="h-3.5 w-3.5" />
-                        Imprimir cuenta
-                      </button>
+                      />
+                      <AccionMesa
+                        icon={TagIcon}
+                        label={mesaSeleccionada.pagando ? "Quitar cobro" : "Marcar pagando"}
+                        onClick={() => handleTogglePagando(mesaSeleccionada)}
+                      />
+                      <AccionMesa
+                        icon={TrashIcon}
+                        label="Eliminar mesa"
+                        danger
+                        onClick={() => handleEliminarMesa(mesaSeleccionada)}
+                      />
                     </div>
                   </div>
                 ) : (
