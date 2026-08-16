@@ -12,17 +12,18 @@ type MobileNavProps = {
 export function MobileNav({ open, onOpenChange }: MobileNavProps) {
   useEffect(() => {
     if (!open) return;
-    const scrollY = window.scrollY;
-    document.body.style.position = "fixed";
-    document.body.style.top = `-${scrollY}px`;
-    document.body.style.left = "0";
-    document.body.style.right = "0";
+    // `position: fixed` on <body> breaks backdrop-filter compositing on
+    // descendant fixed elements in Safari/iOS, so lock scroll with
+    // overflow instead.
+    const html = document.documentElement;
+    const body = document.body;
+    const prevHtmlOverflow = html.style.overflow;
+    const prevBodyOverflow = body.style.overflow;
+    html.style.overflow = "hidden";
+    body.style.overflow = "hidden";
     return () => {
-      document.body.style.position = "";
-      document.body.style.top = "";
-      document.body.style.left = "";
-      document.body.style.right = "";
-      window.scrollTo(0, scrollY);
+      html.style.overflow = prevHtmlOverflow;
+      body.style.overflow = prevBodyOverflow;
     };
   }, [open]);
 
