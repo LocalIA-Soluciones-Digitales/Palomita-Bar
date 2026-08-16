@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { NAV_LINKS } from "@/lib/constants";
 
 type MobileNavProps = {
@@ -10,6 +11,12 @@ type MobileNavProps = {
 };
 
 export function MobileNav({ open, onOpenChange }: MobileNavProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   useEffect(() => {
     if (!open) return;
     // `position: fixed` on <body> breaks backdrop-filter compositing on
@@ -55,37 +62,40 @@ export function MobileNav({ open, onOpenChange }: MobileNavProps) {
         </span>
       </button>
 
-      {open ? (
-        <div className="fixed inset-0 top-16 z-30 flex flex-col overflow-y-auto bg-noche-bg/95 px-6 py-10 backdrop-blur-2xl">
-          <nav className="flex flex-col gap-7">
-            {NAV_LINKS.map((link, index) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => onOpenChange(false)}
-                style={{ transitionDelay: `${index * 40}ms` }}
-                className="font-display text-3xl text-noche-ink transition-colors hover:text-noche-primary"
-              >
-                {link.label}
-              </Link>
-            ))}
-            <Link
-              href="/pedir"
-              onClick={() => onOpenChange(false)}
-              className="mt-4 inline-flex w-fit items-center rounded-full bg-noche-primary px-6 py-3 text-sm font-medium text-white"
-            >
-              Pedir
-            </Link>
-            <Link
-              href="/admin/login"
-              onClick={() => onOpenChange(false)}
-              className="inline-flex w-fit items-center rounded-full border border-noche-border px-6 py-3 text-sm font-medium text-noche-ink/80"
-            >
-              Panel de gestión
-            </Link>
-          </nav>
-        </div>
-      ) : null}
+      {mounted && open
+        ? createPortal(
+            <div className="fixed inset-0 top-16 z-30 flex flex-col overflow-y-auto bg-noche-bg/95 px-6 py-10 backdrop-blur-2xl md:hidden">
+              <nav className="flex flex-col gap-7">
+                {NAV_LINKS.map((link, index) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => onOpenChange(false)}
+                    style={{ transitionDelay: `${index * 40}ms` }}
+                    className="font-display text-3xl text-noche-ink transition-colors hover:text-noche-primary"
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+                <Link
+                  href="/pedir"
+                  onClick={() => onOpenChange(false)}
+                  className="mt-4 inline-flex w-fit items-center rounded-full bg-noche-primary px-6 py-3 text-sm font-medium text-white"
+                >
+                  Pedir
+                </Link>
+                <Link
+                  href="/admin/login"
+                  onClick={() => onOpenChange(false)}
+                  className="inline-flex w-fit items-center rounded-full border border-noche-border px-6 py-3 text-sm font-medium text-noche-ink/80"
+                >
+                  Panel de gestión
+                </Link>
+              </nav>
+            </div>,
+            document.body,
+          )
+        : null}
     </div>
   );
 }
