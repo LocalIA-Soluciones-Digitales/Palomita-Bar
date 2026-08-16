@@ -97,7 +97,7 @@ export function CuentaMesaDrawer({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col justify-end bg-noche-bg/60" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex flex-col justify-end bg-black/50" onClick={onClose}>
       <div
         className="max-h-[85vh] overflow-y-auto rounded-t-2xl bg-noche-bg p-6"
         onClick={(e) => e.stopPropagation()}

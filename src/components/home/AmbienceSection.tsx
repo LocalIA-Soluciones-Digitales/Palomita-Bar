@@ -46,7 +46,9 @@ export function AmbienceSection({ images }: { images: string[] }) {
                 sizes="(min-width: 640px) 25vw, 50vw"
                 className="object-cover transition-transform duration-500 group-hover:scale-110"
               />
-              <div className="absolute inset-0 flex items-center justify-center bg-noche-bg/0 text-white opacity-0 transition-all duration-300 group-hover:bg-noche-bg/50 group-hover:opacity-100">
+              {/* Velo fijo, no ligado al tema: en modo día bg-noche-bg/50 sería
+                  casi blanco y el icono blanco desaparecería sobre la foto. */}
+              <div className="absolute inset-0 flex items-center justify-center bg-black/0 text-white opacity-0 transition-all duration-300 group-hover:bg-black/50 group-hover:opacity-100">
                 <InstagramIcon className="h-7 w-7" />
               </div>
             </a>

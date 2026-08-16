@@ -208,7 +208,7 @@ export function ProductDetailModal({
       aria-modal="true"
       aria-label={producto.nombre}
       onClick={onClose}
-      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-noche-bg/90 p-4 backdrop-blur-md"
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/75 p-4 backdrop-blur-md"
     >
       <div className="flex w-full max-w-5xl items-center justify-center gap-2 [perspective:2000px] sm:gap-4">
         {items.length > 1 ? (

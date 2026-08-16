@@ -217,7 +217,7 @@ export function CartDrawer({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex flex-col justify-end bg-noche-bg/60"
+      className="fixed inset-0 z-50 flex flex-col justify-end bg-black/50"
       onClick={onClose}
     >
       <div
