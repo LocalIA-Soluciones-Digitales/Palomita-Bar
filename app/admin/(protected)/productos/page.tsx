@@ -47,7 +47,7 @@ export default function ProductosAdminPage() {
     cargar();
   }, []);
 
-  const grupos = useMemo(() => {
+  const secciones = useMemo(() => {
     if (!productos) return [];
     const porCategoria = new Map<string, ProductoAdmin[]>();
     for (const producto of productos) {
@@ -58,13 +58,26 @@ export default function ProductosAdminPage() {
     }
 
     const categoriasOrdenadas = [...categorias].sort((a, b) => a.orden - b.orden);
-    const resultado = categoriasOrdenadas
-      .filter((c) => porCategoria.has(c.id))
-      .map((c) => ({ id: c.id, nombre: c.nombre, productos: porCategoria.get(c.id)! }));
+    const gruposPorTipo = (tipo: CategoriaAdmin["tipo"]) =>
+      categoriasOrdenadas
+        .filter((c) => c.tipo === tipo && porCategoria.has(c.id))
+        .map((c) => ({ id: c.id, nombre: c.nombre, productos: porCategoria.get(c.id)! }));
+
+    const resultado = (["comida", "bebida"] as const)
+      .map((tipo) => ({
+        tipo,
+        titulo: tipo === "comida" ? "Carta" : "Coctelería",
+        grupos: gruposPorTipo(tipo),
+      }))
+      .filter((s) => s.grupos.length > 0);
 
     const sinCategoria = porCategoria.get("__sin_categoria__");
     if (sinCategoria) {
-      resultado.push({ id: "__sin_categoria__", nombre: "Sin categoría", productos: sinCategoria });
+      resultado.push({
+        tipo: "comida",
+        titulo: "Sin categoría",
+        grupos: [{ id: "__sin_categoria__", nombre: "Sin categoría", productos: sinCategoria }],
+      });
     }
     return resultado;
   }, [productos, categorias]);
@@ -326,73 +339,82 @@ export default function ProductosAdminPage() {
 
       {error ? <p className="mt-3 text-sm text-noche-danger">{error}</p> : null}
 
-      <div className="mt-6 space-y-5">
+      <div className="mt-6 space-y-8">
         {productos === null ? (
           <p className="text-sm text-noche-ink-muted">Cargando…</p>
-        ) : grupos.length === 0 ? (
+        ) : secciones.length === 0 ? (
           <p className="text-sm text-noche-ink-muted">Todavía no hay productos.</p>
         ) : (
-          grupos.map((grupo) => (
-            <div
-              key={grupo.id}
-              className="overflow-hidden rounded-xl border border-noche-border bg-noche-surface shadow-sm"
-            >
-              <div className="flex items-center justify-between border-b border-noche-border bg-noche-surface-2/60 px-4 py-2.5">
-                <h2 className="font-display text-base text-noche-ink">{grupo.nombre}</h2>
-                <span className="rounded-full bg-noche-surface-2 px-2 py-0.5 text-xs text-noche-ink-muted">
-                  {grupo.productos.length}
-                </span>
-              </div>
-              <div className="divide-y divide-noche-border/50">
-                {grupo.productos.map((producto) => (
-                  <div key={producto.id} className="flex items-center gap-3 px-4 py-2.5">
-                    {producto.imagen_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={producto.imagen_url}
-                        alt=""
-                        className="h-10 w-10 shrink-0 rounded-lg object-cover"
-                      />
-                    ) : (
-                      <div className="h-10 w-10 shrink-0 rounded-lg bg-noche-surface-2" />
-                    )}
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm text-noche-ink">{producto.nombre}</p>
-                      {producto.destacado ? (
-                        <span className="text-xs text-noche-primary">Destacado</span>
-                      ) : null}
+          secciones.map((seccion) => (
+            <div key={seccion.titulo} className="space-y-3">
+              <h2 className="text-xs uppercase tracking-widest2 text-noche-ink-faint">
+                {seccion.titulo}
+              </h2>
+              <div className="space-y-5">
+                {seccion.grupos.map((grupo) => (
+                  <div
+                    key={grupo.id}
+                    className="overflow-hidden rounded-xl border border-noche-border bg-noche-surface shadow-sm"
+                  >
+                    <div className="flex items-center justify-between border-b border-noche-border bg-noche-surface-2/60 px-4 py-2.5">
+                      <h3 className="font-display text-base text-noche-ink">{grupo.nombre}</h3>
+                      <span className="rounded-full bg-noche-surface-2 px-2 py-0.5 text-xs text-noche-ink-muted">
+                        {grupo.productos.length}
+                      </span>
                     </div>
-                    <span className="w-16 shrink-0 text-right text-sm text-noche-ink-muted">
-                      {formatCentimos(producto.precio_centimos)} €
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => handleToggleDisponible(producto)}
-                      className={
-                        producto.disponible
-                          ? "shrink-0 rounded-full bg-noche-positive/15 px-2 py-0.5 text-xs font-medium text-noche-positive"
-                          : "shrink-0 rounded-full bg-noche-surface-2 px-2 py-0.5 text-xs font-medium text-noche-ink-muted"
-                      }
-                    >
-                      {producto.disponible ? "Sí" : "No"}
-                    </button>
-                    <div className="flex shrink-0 items-center gap-3">
-                      <button
-                        type="button"
-                        onClick={() => handleEditar(producto)}
-                        className="text-noche-ink-muted hover:text-noche-primary"
-                        aria-label="Editar"
-                      >
-                        <PencilIcon className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleEliminar(producto.id)}
-                        className="text-noche-ink-muted hover:text-noche-danger"
-                        aria-label="Eliminar"
-                      >
-                        <TrashIcon className="h-3.5 w-3.5" />
-                      </button>
+                    <div className="divide-y divide-noche-border/50">
+                      {grupo.productos.map((producto) => (
+                        <div key={producto.id} className="flex items-center gap-3 px-4 py-2.5">
+                          {producto.imagen_url ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={producto.imagen_url}
+                              alt=""
+                              className="h-10 w-10 shrink-0 rounded-lg object-cover"
+                            />
+                          ) : (
+                            <div className="h-10 w-10 shrink-0 rounded-lg bg-noche-surface-2" />
+                          )}
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm text-noche-ink">{producto.nombre}</p>
+                            {producto.destacado ? (
+                              <span className="text-xs text-noche-primary">Destacado</span>
+                            ) : null}
+                          </div>
+                          <span className="w-16 shrink-0 text-right text-sm text-noche-ink-muted">
+                            {formatCentimos(producto.precio_centimos)} €
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleToggleDisponible(producto)}
+                            className={
+                              producto.disponible
+                                ? "shrink-0 rounded-full bg-noche-positive/15 px-2 py-0.5 text-xs font-medium text-noche-positive"
+                                : "shrink-0 rounded-full bg-noche-surface-2 px-2 py-0.5 text-xs font-medium text-noche-ink-muted"
+                            }
+                          >
+                            {producto.disponible ? "Sí" : "No"}
+                          </button>
+                          <div className="flex shrink-0 items-center gap-3">
+                            <button
+                              type="button"
+                              onClick={() => handleEditar(producto)}
+                              className="text-noche-ink-muted hover:text-noche-primary"
+                              aria-label="Editar"
+                            >
+                              <PencilIcon className="h-3.5 w-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleEliminar(producto.id)}
+                              className="text-noche-ink-muted hover:text-noche-danger"
+                              aria-label="Eliminar"
+                            >
+                              <TrashIcon className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 ))}
