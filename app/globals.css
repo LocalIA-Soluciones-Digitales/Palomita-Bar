@@ -35,7 +35,7 @@
   /* "Modo día": mismas variables --noche-*, valores invertidos para uso a
      pleno sol (terraza, pedido en mesa de día). Activado por ThemeToggle
      vía data-theme="dia" en <html>; ningún componente necesita saberlo,
-     todos leen las mismas clases bg-noche-*/text-noche-*. */
+     todos leen las mismas clases bg-noche-* y text-noche-*. */
   :root[data-theme="dia"] {
     --noche-bg: 0.97 0.012 85;
     --noche-surface: 0.995 0.006 85;
