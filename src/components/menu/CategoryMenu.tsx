@@ -14,9 +14,17 @@ export interface MenuCartControls {
   onDecrement: (productoId: string) => void;
 }
 
+interface OrigenRect {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+}
+
 interface DetalleActivo {
   categoriaId: string;
   index: number;
+  origen: OrigenRect;
 }
 
 export function CategoryMenu({
@@ -145,11 +153,23 @@ export function CategoryMenu({
                       role="button"
                       tabIndex={0}
                       aria-label={`Ver detalle de ${producto.nombre}`}
-                      onClick={() => setDetalle({ categoriaId: categoria.id, index })}
+                      onClick={(e) => {
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        setDetalle({
+                          categoriaId: categoria.id,
+                          index,
+                          origen: { left: rect.left, top: rect.top, width: rect.width, height: rect.height },
+                        });
+                      }}
                       onKeyDown={(e) => {
                         if (e.key === "Enter" || e.key === " ") {
                           e.preventDefault();
-                          setDetalle({ categoriaId: categoria.id, index });
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          setDetalle({
+                            categoriaId: categoria.id,
+                            index,
+                            origen: { left: rect.left, top: rect.top, width: rect.width, height: rect.height },
+                          });
                         }
                       }}
                       className={`group flex cursor-pointer gap-4 rounded-lg border p-4 transition-all duration-300 ${
@@ -261,8 +281,11 @@ export function CategoryMenu({
           items={detalleItems}
           activeIndex={Math.min(detalle.index, detalleItems.length - 1)}
           categoriaNombre={detalleCategoria.nombre}
+          origen={detalle.origen}
           onClose={() => setDetalle(null)}
-          onNavigate={(index) => setDetalle({ categoriaId: detalleCategoria.id, index })}
+          onNavigate={(index) =>
+            setDetalle({ categoriaId: detalleCategoria.id, index, origen: detalle.origen })
+          }
           cart={cart}
         />
       ) : null}

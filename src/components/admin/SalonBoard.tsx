@@ -337,25 +337,23 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
 
   const mesasEscena = useMemo<Mesa3D[]>(
     () =>
-      mesasVisibles
-        .map((mesa, index) => {
-          const estado = estadoMesa(mesa, !!reservaDeMesa(mesa.id), esHoy);
-          const pos = posicionMesa(mesa, index);
-          return {
-            id: mesa.id,
-            numero: mesa.numero,
-            nombre: mesa.nombre,
-            capacidad: mesa.capacidad,
-            estado,
-            pendientes: mesa.pedidos_hoy.filter((p) => p.estado === "RECEIVED").length,
-            unida: !!mesa.union_grupo_id,
-            x: pos.x,
-            y: pos.y,
-            oculta: estadosOcultos.has(estado),
-          };
-        })
-        .filter((m) => !m.oculta)
-        .map(({ oculta: _oculta, ...m }) => m),
+      mesasVisibles.reduce<Mesa3D[]>((acc, mesa, index) => {
+        const estado = estadoMesa(mesa, !!reservaDeMesa(mesa.id), esHoy);
+        if (estadosOcultos.has(estado)) return acc;
+        const pos = posicionMesa(mesa, index);
+        acc.push({
+          id: mesa.id,
+          numero: mesa.numero,
+          nombre: mesa.nombre,
+          capacidad: mesa.capacidad,
+          estado,
+          pendientes: mesa.pedidos_hoy.filter((p) => p.estado === "RECEIVED").length,
+          unida: !!mesa.union_grupo_id,
+          x: pos.x,
+          y: pos.y,
+        });
+        return acc;
+      }, []),
     [mesasVisibles, reservaDeMesa, esHoy, posicionMesa, estadosOcultos],
   );
 

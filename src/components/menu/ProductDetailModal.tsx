@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { formatCentimos } from "@/lib/format";
 import {
   ChevronLeftIcon,
@@ -86,10 +86,18 @@ function Donut({ segments }: { segments: { pctInt: number; color: string }[] }) 
   );
 }
 
+interface OrigenRect {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+}
+
 export function ProductDetailModal({
   items,
   activeIndex,
   categoriaNombre,
+  origen,
   onClose,
   onNavigate,
   cart,
@@ -97,6 +105,7 @@ export function ProductDetailModal({
   items: Producto[];
   activeIndex: number;
   categoriaNombre: string;
+  origen: OrigenRect;
   onClose: () => void;
   onNavigate: (index: number) => void;
   cart?: MenuCartControls;
@@ -110,16 +119,40 @@ export function ProductDetailModal({
   const goPrev = () => onNavigate((activeIndex - 1 + items.length) % items.length);
   const goNext = () => onNavigate((activeIndex + 1) % items.length);
 
-  const [flipped, setFlipped] = useState(false);
-  useEffect(() => {
-    let raf2 = 0;
-    const raf1 = requestAnimationFrame(() => {
-      raf2 = requestAnimationFrame(() => setFlipped(true));
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  // Anima la tarjeta desde el tamaño/posición del click hasta su lugar
+  // final centrado, mientras gira (efecto "volteo" que a la vez amplía).
+  useLayoutEffect(() => {
+    const node = cardRef.current;
+    if (!node) return;
+
+    const finalRect = node.getBoundingClientRect();
+    const originCenterX = origen.left + origen.width / 2;
+    const originCenterY = origen.top + origen.height / 2;
+    const finalCenterX = finalRect.left + finalRect.width / 2;
+    const finalCenterY = finalRect.top + finalRect.height / 2;
+
+    const dx = originCenterX - finalCenterX;
+    const dy = originCenterY - finalCenterY;
+    const sx = Math.max(origen.width / finalRect.width, 0.05);
+    const sy = Math.max(origen.height / finalRect.height, 0.05);
+
+    node.style.transition = "none";
+    node.style.opacity = "0.5";
+    node.style.transform = `translate(${dx}px, ${dy}px) scale(${sx}, ${sy}) rotateY(-130deg)`;
+
+    // Fuerza el reflow para que el estado inicial se pinte antes de animar.
+    void node.getBoundingClientRect();
+
+    const raf = requestAnimationFrame(() => {
+      node.style.transition = "transform 550ms cubic-bezier(0.22, 1, 0.36, 1), opacity 350ms ease-out";
+      node.style.transform = "translate(0, 0) scale(1, 1) rotateY(0deg)";
+      node.style.opacity = "1";
     });
-    return () => {
-      cancelAnimationFrame(raf1);
-      cancelAnimationFrame(raf2);
-    };
+
+    return () => cancelAnimationFrame(raf);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -161,11 +194,10 @@ export function ProductDetailModal({
         ) : null}
 
         <div
+          ref={cardRef}
           onClick={(e) => e.stopPropagation()}
-          className={`relative flex w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-noche-primary/40 bg-noche-surface shadow-[0_0_60px_-15px_oklch(var(--noche-primary)/0.5)] transition-all duration-500 ease-out [transform-style:preserve-3d] ${
-            flipped ? "opacity-100 [transform:rotateY(0deg)]" : "opacity-0 [transform:rotateY(-100deg)]"
-          }`}
-          style={{ maxHeight: "min(85vh, 720px)" }}
+          className="relative flex w-full min-w-0 max-w-3xl flex-col overflow-hidden rounded-2xl border border-noche-primary/40 bg-noche-surface shadow-[0_0_60px_-15px_oklch(var(--noche-primary)/0.5)] [transform-style:preserve-3d] [will-change:transform]"
+          style={{ maxHeight: "min(92vh, 760px)" }}
         >
           <button
             type="button"
@@ -176,16 +208,16 @@ export function ProductDetailModal({
             <CloseIcon className="h-4 w-4" />
           </button>
 
-          <div className="overflow-y-auto p-5 sm:p-8">
-          <div className="grid gap-6 sm:gap-8 md:grid-cols-2">
-            <div className="flex flex-col">
+          <div className="overflow-y-auto p-5 sm:p-6">
+          <div className="grid gap-5 sm:gap-6 md:grid-cols-2">
+            <div className="flex min-w-0 flex-col">
               <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-noche-primary px-3 py-1 text-[10px] font-medium uppercase tracking-widest2 text-white">
                 <StarIcon className="h-3 w-3" />
                 {categoriaNombre}
               </span>
 
               {producto.imagen_url ? (
-                <div className="relative mt-4 h-48 w-full shrink-0 overflow-hidden rounded-xl bg-noche-surface-2 sm:h-56">
+                <div className="relative mt-4 h-40 w-full shrink-0 overflow-hidden rounded-xl bg-noche-surface-2 sm:h-44">
                   <Image
                     src={producto.imagen_url}
                     alt={producto.nombre}
@@ -195,16 +227,16 @@ export function ProductDetailModal({
                   />
                 </div>
               ) : (
-                <div className="mt-4 h-48 w-full shrink-0 rounded-xl bg-noche-surface-2 sm:h-56" />
+                <div className="mt-4 h-40 w-full shrink-0 rounded-xl bg-noche-surface-2 sm:h-44" />
               )}
 
-              <h2 className="mt-5 font-display text-3xl text-noche-ink">{producto.nombre}</h2>
+              <h2 className="mt-4 font-display text-2xl text-noche-ink sm:text-3xl">{producto.nombre}</h2>
               {producto.descripcion ? (
-                <p className="mt-2 text-sm text-noche-ink-muted">{producto.descripcion}</p>
+                <p className="mt-1.5 text-sm text-noche-ink-muted">{producto.descripcion}</p>
               ) : null}
 
               {producto.ingredientes.length > 0 ? (
-                <div className="mt-4 flex flex-wrap gap-1.5">
+                <div className="mt-3 flex flex-wrap gap-1.5">
                   {producto.ingredientes.map((ingrediente) => (
                     <span
                       key={ingrediente}
@@ -216,7 +248,7 @@ export function ProductDetailModal({
                 </div>
               ) : null}
 
-              <div className="mt-auto flex items-center justify-between pt-6">
+              <div className="mt-auto flex items-center justify-between pt-4">
                 <div>
                   <p className="text-2xl font-medium text-noche-primary">
                     {formatCentimos(producto.precio_centimos)} €
@@ -260,7 +292,7 @@ export function ProductDetailModal({
               </div>
             </div>
 
-            <div className="flex flex-col">
+            <div className="flex min-w-0 flex-col">
               {tieneNutricion ? (
                 <>
                   <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-widest2 text-noche-primary">
@@ -309,23 +341,23 @@ export function ProductDetailModal({
 
                   {macros.length > 0 ? (
                     <>
-                      <p className="mt-6 text-xs font-medium uppercase tracking-widest2 text-noche-ink-muted">
+                      <p className="mt-4 text-xs font-medium uppercase tracking-widest2 text-noche-ink-muted">
                         Desglose de macros
                       </p>
-                      <div className="mt-3 flex items-center gap-5 rounded-lg border border-noche-border bg-noche-surface-2 p-4">
+                      <div className="mt-3 flex min-w-0 items-center gap-4 rounded-lg border border-noche-border bg-noche-surface-2 p-3">
                         <Donut segments={macros} />
-                        <ul className="flex-1 space-y-2.5 text-sm">
+                        <ul className="min-w-0 flex-1 space-y-2.5 text-sm">
                           {macros.map((m) => (
-                            <li key={m.key} className="flex items-center justify-between gap-3">
-                              <span className="flex items-center gap-2 text-noche-ink-muted">
+                            <li key={m.key} className="flex min-w-0 items-center justify-between gap-2">
+                              <span className="flex min-w-0 items-center gap-2 truncate text-noche-ink-muted">
                                 <span
                                   aria-hidden="true"
                                   className="h-2.5 w-2.5 shrink-0 rounded-full"
                                   style={{ backgroundColor: m.color }}
                                 />
-                                {m.label}
+                                <span className="truncate">{m.label}</span>
                               </span>
-                              <span className="flex items-center gap-2 whitespace-nowrap">
+                              <span className="flex shrink-0 items-center gap-2 whitespace-nowrap">
                                 <span className="font-medium text-noche-ink">{m.grams}g</span>
                                 <span className="text-xs text-noche-ink-faint">({m.pctInt}%)</span>
                               </span>
@@ -348,7 +380,7 @@ export function ProductDetailModal({
           </div>
 
             {items.length > 1 ? (
-              <div className="mt-6 flex items-center justify-center gap-2">
+              <div className="mt-4 flex items-center justify-center gap-2">
                 {items.map((item, i) => (
                   <button
                     key={item.id}
