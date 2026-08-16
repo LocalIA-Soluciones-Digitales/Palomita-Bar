@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import dynamic from "next/dynamic";
+import QRCode from "qrcode";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import type { Mesa3D } from "@/components/admin/Floorplan3D";
 
@@ -17,6 +18,7 @@ import { formatCentimos } from "@/lib/format";
 import { playNewOrderChime } from "@/lib/notify-sound";
 import {
   actualizarMesaCapacidadAdmin,
+  actualizarMesaNotaAdmin,
   avanzarPedidoAdmin,
   cambiarMesaAdmin,
   crearMesaAdmin,
@@ -46,6 +48,7 @@ import {
   MoreIcon,
   PlusIcon,
   PrinterIcon,
+  QrCodeIcon,
   RefreshIcon,
   SwapIcon,
   TagIcon,
@@ -162,6 +165,25 @@ function posicionAuto(index: number): { x: number; y: number } {
 
 function todayISO(): string {
   return new Date().toLocaleDateString("en-CA", { timeZone: "Europe/Madrid" });
+}
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+
+function pedirUrl(identificador: string): string {
+  return `${SITE_URL}/pedir?mesa=${identificador}`;
+}
+
+const ALERTA_ESPERA_MIN = 8;
+const ALERTA_PAGO_MIN = 6;
+
+function minutosDesde(iso: string, ahoraMs: number): number {
+  return Math.max(0, Math.round((ahoraMs - new Date(iso).getTime()) / 60000));
+}
+
+function formatoTranscurrido(iso: string, ahoraMs: number): string {
+  const mins = minutosDesde(iso, ahoraMs);
+  if (mins < 60) return `hace ${mins} min`;
+  return `hace ${Math.floor(mins / 60)}h ${mins % 60}min`;
 }
 
 function nowHHMM(): string {
@@ -301,6 +323,12 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
   const [camareroForm, setCamareroForm] = useState("");
   const [cambiarMesaAbierto, setCambiarMesaAbierto] = useState(false);
   const [vistaSuperior, setVistaSuperior] = useState(false);
+  const [notaForm, setNotaForm] = useState("");
+  const [notaGuardando, setNotaGuardando] = useState(false);
+  const [qrAbierto, setQrAbierto] = useState(false);
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const [enlaceCopiado, setEnlaceCopiado] = useState(false);
+  const [ahora, setAhora] = useState(() => Date.now());
 
   const [posicionesArrastre, setPosicionesArrastre] = useState<Record<string, { x: number; y: number }>>(
     {},
@@ -308,6 +336,11 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
   const primerRender = useRef(true);
 
   const esHoy = fecha === todayISO();
+
+  useEffect(() => {
+    const t = setInterval(() => setAhora(Date.now()), 30000);
+    return () => clearInterval(t);
+  }, []);
 
   const refetch = useCallback(async () => {
     try {
@@ -375,12 +408,33 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
     setModoUnion(false);
     setSeleccionUnion([]);
     setAccionError(null);
+    setQrAbierto(false);
+    setQrDataUrl(null);
+    setEnlaceCopiado(false);
   }, [mesaSeleccionadaId]);
 
   const mesaSeleccionada = useMemo(
     () => mesas.find((m) => m.id === mesaSeleccionadaId) ?? null,
     [mesas, mesaSeleccionadaId],
   );
+
+  useEffect(() => {
+    setNotaForm(mesaSeleccionada?.nota ?? "");
+  }, [mesaSeleccionada?.id, mesaSeleccionada?.nota]);
+
+  const alertaMesa = useMemo(() => {
+    if (!mesaSeleccionada) return null;
+    if (mesaSeleccionada.pagando && mesaSeleccionada.pagando_at) {
+      const mins = minutosDesde(mesaSeleccionada.pagando_at, ahora);
+      if (mins >= ALERTA_PAGO_MIN) return `Lleva ${mins} min pagando sin cerrar la cuenta.`;
+    }
+    const pendiente = mesaSeleccionada.pedidos_hoy.find((p) => p.estado === "RECEIVED");
+    if (pendiente) {
+      const mins = minutosDesde(pendiente.created_at, ahora);
+      if (mins >= ALERTA_ESPERA_MIN) return `Lleva ${mins} min esperando que tomen su pedido.`;
+    }
+    return null;
+  }, [mesaSeleccionada, ahora]);
 
   const reservaDeMesa = useCallback(
     (mesaId: string) => reservas.find((r) => r.mesa_id === mesaId && r.estado === "CONFIRMADA"),
@@ -588,6 +642,40 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
     }
   };
 
+  const guardarNota = async (mesa: MesaEstadoAdmin) => {
+    if (notaForm === (mesa.nota ?? "")) return;
+    setNotaGuardando(true);
+    try {
+      await actualizarMesaNotaAdmin(mesa.id, notaForm);
+      await refetch();
+    } catch {
+      setAccionError("No se ha podido guardar la nota.");
+    } finally {
+      setNotaGuardando(false);
+    }
+  };
+
+  const abrirQr = async (mesa: MesaEstadoAdmin) => {
+    setQrAbierto((v) => !v);
+    if (!qrDataUrl) {
+      try {
+        setQrDataUrl(await QRCode.toDataURL(pedirUrl(mesa.identificador)));
+      } catch {
+        setAccionError("No se ha podido generar el QR.");
+      }
+    }
+  };
+
+  const copiarEnlaceMesa = async (mesa: MesaEstadoAdmin) => {
+    try {
+      await navigator.clipboard.writeText(pedirUrl(mesa.identificador));
+      setEnlaceCopiado(true);
+      setTimeout(() => setEnlaceCopiado(false), 2000);
+    } catch {
+      setAccionError("No se ha podido copiar el enlace.");
+    }
+  };
+
   const toggleFiltroEstado = (estado: EstadoMesa) => {
     setEstadosOcultos((prev) => {
       const next = new Set(prev);
@@ -783,6 +871,12 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
                         </span>
                       ) : null}
                     </div>
+                    {alertaMesa ? (
+                      <p className="mt-2 flex items-center gap-1.5 rounded-lg bg-amber-500/10 px-2 py-1 text-[11px] text-amber-300">
+                        <ClockIcon className="h-3 w-3 shrink-0" />
+                        {alertaMesa}
+                      </p>
+                    ) : null}
                   </div>
                   <div className="flex shrink-0 items-center gap-1">
                     <div className="relative">
@@ -861,11 +955,29 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
                           })
                         : "-"}
                     </p>
+                    {mesaSeleccionada.entrada_at ? (
+                      <p className="text-[11px] text-noche-ink-faint">
+                        {formatoTranscurrido(mesaSeleccionada.entrada_at, ahora)}
+                      </p>
+                    ) : null}
                   </div>
                   <div className="rounded-lg border border-noche-border bg-noche-surface-2/60 px-3 py-2">
                     <p className="text-xs uppercase tracking-widest2 text-noche-ink-faint">Camarero</p>
                     <p className="mt-1 truncate text-sm text-noche-ink">{mesaSeleccionada.camarero_nombre ?? "-"}</p>
                   </div>
+                </div>
+
+                <div className="mt-2">
+                  <label className="text-xs uppercase tracking-widest2 text-noche-ink-faint">Nota rápida</label>
+                  <textarea
+                    value={notaForm}
+                    onChange={(e) => setNotaForm(e.target.value)}
+                    onBlur={() => guardarNota(mesaSeleccionada)}
+                    disabled={notaGuardando}
+                    placeholder="Alergias, cliente habitual, trona…"
+                    rows={2}
+                    className="mt-1 w-full resize-none rounded-lg border border-noche-border bg-noche-surface-2/60 px-3 py-2 text-sm text-noche-ink placeholder:text-noche-ink-faint disabled:opacity-60"
+                  />
                 </div>
 
                 {accionError ? <p className="mt-3 text-sm text-noche-danger">{accionError}</p> : null}
@@ -1025,12 +1137,52 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
                         onClick={() => handleTogglePagando(mesaSeleccionada)}
                       />
                       <AccionMesa
+                        icon={QrCodeIcon}
+                        label="Ver QR / enlace"
+                        onClick={() => abrirQr(mesaSeleccionada)}
+                      />
+                      <AccionMesa
                         icon={TrashIcon}
                         label="Eliminar mesa"
                         danger
                         onClick={() => handleEliminarMesa(mesaSeleccionada)}
                       />
                     </div>
+
+                    {qrAbierto ? (
+                      <div className="mt-3 rounded-lg border border-noche-border bg-noche-surface-2/60 p-3 text-center">
+                        {qrDataUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={qrDataUrl}
+                            alt={`QR de la mesa ${etiquetaMesa(mesaSeleccionada)}`}
+                            className="mx-auto h-32 w-32"
+                          />
+                        ) : (
+                          <p className="text-xs text-noche-ink-muted">Generando QR…</p>
+                        )}
+                        <p className="mt-2 break-all text-[11px] text-noche-ink-faint">
+                          {pedirUrl(mesaSeleccionada.identificador)}
+                        </p>
+                        <div className="mt-2 flex justify-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => copiarEnlaceMesa(mesaSeleccionada)}
+                            className="rounded-lg border border-noche-border px-3 py-1.5 text-xs uppercase tracking-widest2 text-noche-ink hover:bg-noche-surface-3"
+                          >
+                            {enlaceCopiado ? "¡Copiado!" : "Copiar enlace"}
+                          </button>
+                          <a
+                            href={pedirUrl(mesaSeleccionada.identificador)}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="rounded-lg border border-noche-border px-3 py-1.5 text-xs uppercase tracking-widest2 text-noche-ink hover:bg-noche-surface-3"
+                          >
+                            Abrir
+                          </a>
+                        </div>
+                      </div>
+                    ) : null}
                   </div>
                 ) : (
                   <button

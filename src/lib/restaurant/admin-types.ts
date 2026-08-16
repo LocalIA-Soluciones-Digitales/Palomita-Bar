@@ -40,8 +40,10 @@ export interface MesaAdmin {
   clientes_sentados: number;
   entrada_at: string | null;
   pagando: boolean;
+  pagando_at: string | null;
   por_limpiar: boolean;
   union_grupo_id: string | null;
+  nota: string | null;
 }
 
 export interface ZonaAdmin {
@@ -110,8 +112,10 @@ export interface MesaEstadoAdmin {
   clientes_sentados: number;
   entrada_at: string | null;
   pagando: boolean;
+  pagando_at: string | null;
   por_limpiar: boolean;
   union_grupo_id: string | null;
+  nota: string | null;
   sesion_modo: "JUNTOS" | "SEPARADO" | null;
   pedidos_hoy: PedidoMesaAdmin[];
 }

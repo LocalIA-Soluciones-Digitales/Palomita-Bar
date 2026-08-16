@@ -246,6 +246,16 @@ export async function actualizarMesaCapacidadAdmin(id: string, capacidad: number
   if (error) throw error;
 }
 
+export async function actualizarMesaNotaAdmin(id: string, nota: string): Promise<void> {
+  const supabase = createSupabaseBrowserClient();
+  const { error } = await supabase.rpc("actualizar_mesa_nota_admin", {
+    p_id: id,
+    p_cliente_id: clienteId(),
+    p_nota: nota,
+  });
+  if (error) throw error;
+}
+
 export async function sentarMesaAdmin(
   id: string,
   clientes: number,
