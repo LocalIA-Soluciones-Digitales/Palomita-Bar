@@ -30,6 +30,14 @@
     --noche-ink-muted: 0.72 0.02 300;
     --noche-ink-faint: 0.55 0.02 300;
     --noche-border: 0.32 0.03 300;
+
+    /* Velo del hero (foto de portada): oscuro fijo en modo noche —
+       coincide con el diseño original, no lo toques al ajustar el modo
+       día. Ver "Modo día" más abajo para su contrapartida clara. */
+    --hero-scrim-a: rgb(0 0 0 / 0.75);
+    --hero-scrim-b: rgb(0 0 0 / 0.35);
+    --hero-scrim-c: rgb(0 0 0 / 0.1);
+    --hero-vignette: rgb(0 0 0 / 0.2);
   }
 
   /* "Modo día": mismas variables --noche-*, valores invertidos para uso a
@@ -51,6 +59,15 @@
     --noche-ink-muted: 0.38 0.02 300;
     --noche-ink-faint: 0.55 0.02 300;
     --noche-border: 0.84 0.02 82;
+
+    /* Velo del hero en modo día: crema cálido (mismo tono que el fondo de
+       la página), no negro — evita el hero "moody" y mantiene la lectura
+       editorial clara. Mucho más ligero que la versión original para que
+       la foto se vea nítida, no lavada. */
+    --hero-scrim-a: oklch(var(--noche-bg) / 0.55);
+    --hero-scrim-b: oklch(var(--noche-bg) / 0.22);
+    --hero-scrim-c: oklch(var(--noche-bg) / 0.04);
+    --hero-vignette: oklch(var(--noche-bg) / 0.12);
   }
 }
 
