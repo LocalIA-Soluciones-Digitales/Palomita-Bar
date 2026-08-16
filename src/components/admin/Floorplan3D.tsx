@@ -3,12 +3,12 @@
 import { Canvas, type ThreeEvent } from "@react-three/fiber";
 import { OrbitControls, Text } from "@react-three/drei";
 import * as THREE from "three";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import type { EstadoMesa } from "@/components/admin/SalonBoard";
 
 export type Mesa3D = {
   id: string;
-  numero: number;
+  etiqueta: string;
   nombre: string | null;
   capacidad: number;
   estado: EstadoMesa;
@@ -63,6 +63,8 @@ export default function Floorplan3D({
   onDragMove,
   onDragEnd,
 }: Props) {
+  const [arrastrando, setArrastrando] = useState(false);
+
   return (
     <div className="relative h-full w-full">
       <Canvas
@@ -70,16 +72,19 @@ export default function Floorplan3D({
         dpr={[1, 1.5]}
         camera={{ position: top ? [0, 16, 0.01] : [11, 9.5, 12], fov: 45 }}
       >
-        <ambientLight intensity={1.2} />
-        <directionalLight position={[3, 10, 4]} intensity={1.9} castShadow shadow-mapSize={[2048, 2048]} />
+        <ambientLight intensity={1.15} />
+        <directionalLight position={[3, 10, 4]} intensity={1.8} castShadow shadow-mapSize={[2048, 2048]} />
         <pointLight position={[-4, 4, -2]} intensity={16} color="#d79b72" />
-        <pointLight position={[4, 4, 4]} intensity={12} color="#9c54ff" />
+        <pointLight position={[6.5, 3.2, -1]} intensity={14} color="#b14cff" />
+        <pointLight position={[0, 2.6, -5.6]} intensity={12} color="#e0559b" />
 
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.18, 0]} receiveShadow>
           <planeGeometry args={[FLOOR_W, FLOOR_D]} />
           <meshStandardMaterial color="#262125" roughness={0.85} />
         </mesh>
-        <gridHelper args={[Math.max(FLOOR_W, FLOOR_D), 20, "#3a3238", "#302a2f"]} position={[0, -0.17, 0]} />
+        <gridHelper args={[Math.max(FLOOR_W, FLOOR_D), 20, "#3a3238", "#2c262b"]} position={[0, -0.17, 0]} />
+
+        <Architecture />
 
         {mesas.map((mesa) => (
           <Mesa
@@ -87,12 +92,14 @@ export default function Floorplan3D({
             mesa={mesa}
             selected={seleccionadaId === mesa.id || seleccionUnion.includes(mesa.id)}
             onSelect={onSelect}
+            onDragStateChange={setArrastrando}
             onDragMove={onDragMove}
             onDragEnd={onDragEnd}
           />
         ))}
 
         <OrbitControls
+          enabled={!arrastrando}
           enableDamping
           minDistance={6}
           maxDistance={24}
@@ -109,12 +116,14 @@ function Mesa({
   mesa,
   selected,
   onSelect,
+  onDragStateChange,
   onDragMove,
   onDragEnd,
 }: {
   mesa: Mesa3D;
   selected: boolean;
   onSelect: (id: string) => void;
+  onDragStateChange: (dragging: boolean) => void;
   onDragMove: (id: string, xPct: number, yPct: number) => void;
   onDragEnd: (id: string, xPct: number, yPct: number) => void;
 }) {
@@ -147,7 +156,9 @@ function Mesa({
         castShadow
         onPointerDown={(e) => {
           e.stopPropagation();
+          (e.target as Element).setPointerCapture(e.pointerId);
           dragging.current = true;
+          onDragStateChange(true);
           onSelect(mesa.id);
         }}
         onPointerMove={(e) => {
@@ -157,8 +168,10 @@ function Mesa({
         }}
         onPointerUp={(e) => {
           e.stopPropagation();
+          (e.target as Element).releasePointerCapture(e.pointerId);
           if (dragging.current) {
             dragging.current = false;
+            onDragStateChange(false);
             const hit = e.ray.intersectPlane(FLOOR, new THREE.Vector3());
             if (hit) {
               const [xPct, yPct] = posToPct(hit.x, hit.z);
@@ -175,11 +188,20 @@ function Mesa({
         <meshStandardMaterial
           color={selected ? SELECCION_COLOR : color}
           emissive={selected ? SELECCION_COLOR : color}
-          emissiveIntensity={selected ? 1.1 : 0.2}
+          emissiveIntensity={selected ? 1.1 : 0.25}
         />
       </mesh>
-      <Text position={[0, 1.23, 0]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.3} color="white" anchorX="center" anchorY="middle">
-        {String(mesa.numero)}
+      <Text
+        position={[0, 1.24, 0]}
+        rotation={[-Math.PI / 2, 0, 0]}
+        fontSize={0.42}
+        color="white"
+        outlineWidth={0.035}
+        outlineColor="#171015"
+        anchorX="center"
+        anchorY="middle"
+      >
+        {mesa.etiqueta}
       </Text>
       {selected && (
         <mesh position={[0, 0.03, 0]} rotation={[-Math.PI / 2, 0, 0]}>
@@ -188,15 +210,118 @@ function Mesa({
         </mesh>
       )}
       {mesa.pendientes > 0 && (
-        <Text position={[size * 0.55, 1.55, -size * 0.55]} fontSize={0.24} color="#f472b6" anchorX="center">
+        <Text
+          position={[size * 0.6, 1.6, -size * 0.6]}
+          fontSize={0.26}
+          color="white"
+          outlineWidth={0.025}
+          outlineColor="#171015"
+          anchorX="center"
+        >
           {String(mesa.pendientes)}
         </Text>
       )}
       {mesa.unida && (
-        <Text position={[0, 1.55, 0]} fontSize={0.16} color="#f5d4ff" anchorX="center">
+        <Text
+          position={[0, 1.6, 0]}
+          fontSize={0.17}
+          color="#f5d4ff"
+          outlineWidth={0.02}
+          outlineColor="#171015"
+          anchorX="center"
+        >
           UNIDA
         </Text>
       )}
+    </group>
+  );
+}
+
+function Architecture() {
+  return (
+    <group>
+      <Wall p={[-8.4, 1.5, 0]} s={[0.24, 3, FLOOR_D + 0.3]} />
+      <Wall p={[8.4, 1.5, 0]} s={[0.24, 3, FLOOR_D + 0.3]} />
+      <Wall p={[0, 1.5, -6.1]} s={[FLOOR_W + 0.3, 3, 0.24]} />
+      <Wall p={[0, 1.5, 6.1]} s={[FLOOR_W + 0.3, 3, 0.24]} />
+
+      {/* Pared de ladrillo con el neón de la marca */}
+      <mesh position={[-2, 1.6, -5.95]}>
+        <boxGeometry args={[9.6, 2.7, 0.16]} />
+        <meshStandardMaterial color="#9b725c" roughness={0.96} />
+      </mesh>
+      <Text position={[-2, 2.05, -5.8]} fontSize={0.4} color="#f2ddd3" anchorX="center">
+        PALOMITA
+      </Text>
+
+      {/* Barra */}
+      <group position={[7.1, 0.75, 1.2]} rotation={[0, Math.PI / 2, 0]}>
+        <mesh castShadow>
+          <boxGeometry args={[6, 1.4, 1.05]} />
+          <meshStandardMaterial color="#49332d" roughness={0.8} />
+        </mesh>
+        <mesh position={[0, 0.78, 0]}>
+          <boxGeometry args={[6.16, 0.1, 1.18]} />
+          <meshStandardMaterial color="#d2b28c" roughness={0.55} />
+        </mesh>
+        {[-2.2, -0.7, 0.8, 2.2].map((x) => (
+          <mesh key={x} position={[x, -0.2, 0.75]} castShadow>
+            <cylinderGeometry args={[0.22, 0.22, 0.85, 16]} />
+            <meshStandardMaterial color="#3b2c2b" />
+          </mesh>
+        ))}
+      </group>
+      {/* Botellero detrás de la barra */}
+      <mesh position={[8.15, 1.5, 1.2]}>
+        <boxGeometry args={[0.25, 2.6, 5.6]} />
+        <meshStandardMaterial color="#171519" />
+      </mesh>
+
+      {/* Sofás / banquetas junto a la pared opuesta */}
+      <Banquette position={[-7.7, 0.55, -2.6]} size={[0.7, 0.95, 5.2]} />
+      <Banquette position={[-7.7, 0.55, 3.6]} size={[0.7, 0.95, 3.4]} />
+
+      {/* Ventanal con montantes en la fachada frontal */}
+      <group position={[1, 1.7, 5.98]}>
+        <mesh>
+          <boxGeometry args={[9.4, 2.5, 0.06]} />
+          <meshStandardMaterial color="#243038" transparent opacity={0.3} />
+        </mesh>
+        {Array.from({ length: 10 }).map((_, i) => (
+          <mesh key={i} position={[-4.5 + i * 1, 0, -0.05]}>
+            <boxGeometry args={[0.06, 2.6, 0.06]} />
+            <meshStandardMaterial color="#191619" />
+          </mesh>
+        ))}
+      </group>
+
+      <Text position={[-4.5, 0.02, 4.6]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.32} color="#d5c5c1">
+        SALA PRINCIPAL
+      </Text>
+    </group>
+  );
+}
+
+function Wall({ p, s }: { p: [number, number, number]; s: [number, number, number] }) {
+  return (
+    <mesh position={p}>
+      <boxGeometry args={s} />
+      <meshStandardMaterial color="#17151a" />
+    </mesh>
+  );
+}
+
+function Banquette({ position, size }: { position: [number, number, number]; size: [number, number, number] }) {
+  return (
+    <group position={position}>
+      <mesh castShadow>
+        <boxGeometry args={size} />
+        <meshStandardMaterial color="#30252a" roughness={0.75} />
+      </mesh>
+      <mesh position={[size[0] * 0.35, 0.47, 0]}>
+        <boxGeometry args={[0.28, size[1], size[2]]} />
+        <meshStandardMaterial color="#30252a" roughness={0.75} />
+      </mesh>
     </group>
   );
 }

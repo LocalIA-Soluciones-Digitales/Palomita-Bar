@@ -33,6 +33,7 @@ import {
   separarGrupoMesasAdmin,
   unirMesasAdmin,
 } from "@/lib/restaurant/admin-queries";
+import { etiquetasMesas } from "@/lib/restaurant/mesa-label";
 import { PedidoRapidoForm } from "@/components/admin/PedidoRapidoForm";
 import { ReservaModal } from "@/components/admin/ReservaModal";
 import {
@@ -178,7 +179,7 @@ function escapeHtml(value: string): string {
     .replace(/"/g, "&quot;");
 }
 
-function imprimirCuentaMesa(mesa: MesaEstadoAdmin) {
+function imprimirCuentaMesa(mesa: MesaEstadoAdmin, etiqueta: string) {
   const total = mesa.pedidos_hoy.reduce((sum, p) => sum + p.total_centimos, 0);
   const filas = mesa.pedidos_hoy
     .flatMap((p) => p.items)
@@ -188,7 +189,7 @@ function imprimirCuentaMesa(mesa: MesaEstadoAdmin) {
     )
     .join("");
 
-  const html = `<!doctype html><html><head><meta charset="utf-8"><title>Mesa ${mesa.numero}</title>
+  const html = `<!doctype html><html><head><meta charset="utf-8"><title>Mesa ${etiqueta}</title>
     <style>
       body { font-family: sans-serif; padding: 24px; max-width: 360px; color: #1F1B1A; }
       h2 { margin-bottom: 0; }
@@ -198,7 +199,7 @@ function imprimirCuentaMesa(mesa: MesaEstadoAdmin) {
     </style></head>
     <body>
       <h2>Palomita Bar</h2>
-      <p>Mesa ${mesa.numero}${mesa.nombre ? ` · ${escapeHtml(mesa.nombre)}` : ""}</p>
+      <p>Mesa ${etiqueta}${mesa.nombre ? ` · ${escapeHtml(mesa.nombre)}` : ""}</p>
       <table><tbody>${filas || "<tr><td>Sin líneas</td></tr>"}</tbody>
       <tfoot><tr><td>Total</td><td style="text-align:right">${formatCentimos(total)} €</td></tr></tfoot></table>
     </body></html>`;
@@ -325,6 +326,13 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
     [mesas, zonaActivaId],
   );
 
+  const etiquetaPorMesaId = useMemo(() => etiquetasMesas(mesas, zonas), [mesas, zonas]);
+
+  const etiquetaMesa = useCallback(
+    (mesa: MesaEstadoAdmin) => etiquetaPorMesaId.get(mesa.id) ?? String(mesa.numero),
+    [etiquetaPorMesaId],
+  );
+
   const posicionMesa = useCallback(
     (mesa: MesaEstadoAdmin, index: number): { x: number; y: number } => {
       const enArrastre = posicionesArrastre[mesa.id];
@@ -343,7 +351,7 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
         const pos = posicionMesa(mesa, index);
         acc.push({
           id: mesa.id,
-          numero: mesa.numero,
+          etiqueta: etiquetaMesa(mesa),
           nombre: mesa.nombre,
           capacidad: mesa.capacidad,
           estado,
@@ -354,7 +362,7 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
         });
         return acc;
       }, []),
-    [mesasVisibles, reservaDeMesa, esHoy, posicionMesa, estadosOcultos],
+    [mesasVisibles, reservaDeMesa, esHoy, posicionMesa, etiquetaMesa, estadosOcultos],
   );
 
   const stats = useMemo(() => {
@@ -492,7 +500,7 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
   };
 
   const handleEliminarMesa = async (mesa: MesaEstadoAdmin) => {
-    if (!confirm(`¿Eliminar la mesa ${mesa.numero}? Esta acción no se puede deshacer.`)) return;
+    if (!confirm(`¿Eliminar la mesa ${etiquetaMesa(mesa)}? Esta acción no se puede deshacer.`)) return;
     try {
       await eliminarMesaAdmin(mesa.id);
       setMesaSeleccionadaId(null);
@@ -722,7 +730,7 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
                 <div className="flex items-center justify-between">
                   <div>
                     <h2 className="font-display text-xl text-noche-ink">
-                      Mesa {mesaSeleccionada.numero}
+                      Mesa {etiquetaMesa(mesaSeleccionada)}
                       {mesaSeleccionada.nombre ? ` · ${mesaSeleccionada.nombre}` : ""}
                     </h2>
                     <div className="mt-1 flex flex-wrap items-center gap-1.5">
@@ -890,7 +898,7 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
                         .filter((m) => !m.ocupada && m.id !== mesaSeleccionada.id)
                         .map((m) => (
                           <option key={m.id} value={m.id}>
-                            Mesa {m.numero}
+                            Mesa {etiquetaMesa(m)}
                           </option>
                         ))}
                     </select>
@@ -960,7 +968,7 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
 
                     <button
                       type="button"
-                      onClick={() => imprimirCuentaMesa(mesaSeleccionada)}
+                      onClick={() => imprimirCuentaMesa(mesaSeleccionada, etiquetaMesa(mesaSeleccionada))}
                       className="flex items-center justify-center gap-1.5 rounded-lg bg-noche-surface-2 py-2 text-xs uppercase tracking-widest2 text-noche-ink hover:bg-noche-surface-3"
                     >
                       <PrinterIcon className="h-3.5 w-3.5" />
