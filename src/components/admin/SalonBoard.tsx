@@ -212,6 +212,41 @@ function imprimirCuentaMesa(mesa: MesaEstadoAdmin, etiqueta: string) {
   ventana.print();
 }
 
+function StatTile({
+  label,
+  value,
+  valueClassName,
+}: {
+  label: string;
+  value: number;
+  valueClassName?: string;
+}) {
+  return (
+    <div className="rounded-lg border border-noche-border bg-noche-surface px-4 py-3 text-center">
+      <p className="text-xs uppercase tracking-widest2 text-noche-ink-muted">{label}</p>
+      <p className={`mt-1 font-display text-2xl ${valueClassName ?? "text-noche-ink"}`}>{value}</p>
+    </div>
+  );
+}
+
+function OcupacionTile({ pct }: { pct: number }) {
+  return (
+    <div className="rounded-lg border border-noche-border bg-noche-surface px-4 py-3 text-center">
+      <p className="text-xs uppercase tracking-widest2 text-noche-ink-muted">Ocupación</p>
+      <div
+        className="relative mx-auto mt-1 h-11 w-11 shrink-0 rounded-full"
+        style={{
+          background: `conic-gradient(oklch(var(--noche-primary)) ${pct}%, oklch(var(--noche-surface-2)) ${pct}%)`,
+        }}
+      >
+        <div className="absolute inset-1 flex items-center justify-center rounded-full bg-noche-surface text-[10px] font-medium text-noche-ink">
+          {pct}%
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin[] }) {
   const [mesas, setMesas] = useState<MesaEstadoAdmin[]>(mesasIniciales);
   const [zonas, setZonas] = useState<ZonaAdmin[]>([]);
@@ -611,15 +646,6 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
 
       <div className="mt-4 grid gap-6 lg:grid-cols-[1fr_360px]">
         <div>
-          <div className="flex flex-wrap gap-4 text-xs uppercase tracking-widest2 text-noche-ink-muted">
-            {(Object.keys(ESTILO_MESA) as EstadoMesa[]).map((estado) => (
-              <span key={estado} className="flex items-center gap-1.5">
-                <span className={`h-2.5 w-2.5 rounded-full border ${ESTILO_MESA[estado].badge}`} />
-                {ESTILO_MESA[estado].label}
-              </span>
-            ))}
-          </div>
-
           {errorCarga ? (
             <div className="mt-3 flex items-center justify-between rounded-lg border border-noche-danger/30 bg-noche-danger/10 px-3 py-2 text-sm text-noche-danger">
               <span>No se han podido cargar las mesas.</span>
@@ -682,40 +708,13 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
             />
           </div>
 
-          <div className="mt-4 grid grid-cols-3 gap-3 rounded-lg border border-noche-border bg-noche-surface p-4 sm:grid-cols-6">
-            <div>
-              <p className="text-xs uppercase tracking-widest2 text-noche-ink-muted">Total mesas</p>
-              <p className="font-display text-2xl text-noche-ink">{stats.total}</p>
-            </div>
-            <div>
-              <p className="text-xs uppercase tracking-widest2 text-noche-ink-muted">Libres</p>
-              <p className="font-display text-2xl text-noche-positive">{stats.libres}</p>
-            </div>
-            <div>
-              <p className="text-xs uppercase tracking-widest2 text-noche-ink-muted">Ocupadas</p>
-              <p className="font-display text-2xl text-noche-ink">{stats.ocupadas}</p>
-            </div>
-            <div>
-              <p className="text-xs uppercase tracking-widest2 text-noche-ink-muted">Reservadas</p>
-              <p className="font-display text-2xl text-blue-400">{stats.reservadas}</p>
-            </div>
-            <div>
-              <p className="text-xs uppercase tracking-widest2 text-noche-ink-muted">Clientes</p>
-              <p className="font-display text-2xl text-noche-ink">{stats.clientes}</p>
-            </div>
-            <div className="flex items-center gap-3">
-              <div
-                className="relative h-12 w-12 shrink-0 rounded-full"
-                style={{
-                  background: `conic-gradient(oklch(var(--noche-primary)) ${stats.ocupacionPct}%, oklch(var(--noche-surface-2)) ${stats.ocupacionPct}%)`,
-                }}
-              >
-                <div className="absolute inset-1 flex items-center justify-center rounded-full bg-noche-surface text-[10px] font-medium text-noche-ink">
-                  {stats.ocupacionPct}%
-                </div>
-              </div>
-              <p className="text-xs uppercase tracking-widest2 text-noche-ink-muted">Ocupación</p>
-            </div>
+          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+            <StatTile label="Total mesas" value={stats.total} />
+            <StatTile label="Libres" value={stats.libres} valueClassName="text-noche-positive" />
+            <StatTile label="Ocupadas" value={stats.ocupadas} />
+            <StatTile label="Reservadas" value={stats.reservadas} valueClassName="text-blue-400" />
+            <StatTile label="Clientes" value={stats.clientes} />
+            <OcupacionTile pct={stats.ocupacionPct} />
           </div>
         </div>
 
@@ -753,43 +752,84 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
                       ) : null}
                     </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setMesaSeleccionadaId(null)}
-                    className="flex h-7 w-7 items-center justify-center rounded-full text-noche-ink-faint hover:bg-noche-surface-2 hover:text-noche-ink"
-                  >
-                    <CloseIcon className="h-4 w-4" />
-                  </button>
+                  <div className="flex shrink-0 items-center gap-1">
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() => setMenuAbierto((v) => !v)}
+                        className="flex h-7 w-7 items-center justify-center rounded-full text-noche-ink-faint hover:bg-noche-surface-2 hover:text-noche-ink"
+                        title="Más opciones"
+                      >
+                        <MoreIcon className="h-4 w-4" />
+                      </button>
+                      {menuAbierto ? (
+                        <div className="absolute right-0 z-10 mt-1 w-48 rounded-lg border border-noche-border bg-noche-surface p-2 shadow-lg">
+                          <button
+                            type="button"
+                            onClick={() => handleTogglePagando(mesaSeleccionada)}
+                            className="block w-full rounded-lg px-2 py-1.5 text-left text-xs uppercase tracking-widest2 text-noche-ink hover:bg-noche-surface-2"
+                          >
+                            {mesaSeleccionada.pagando ? "Quitar cobro" : "Marcar pagando"}
+                          </button>
+                          {mesaSeleccionada.por_limpiar ? (
+                            <button
+                              type="button"
+                              onClick={() => handleMarcarLimpia(mesaSeleccionada)}
+                              className="block w-full rounded-lg px-2 py-1.5 text-left text-xs uppercase tracking-widest2 text-noche-ink hover:bg-noche-surface-2"
+                            >
+                              Marcar como limpia
+                            </button>
+                          ) : null}
+                          <button
+                            type="button"
+                            onClick={() => handleEliminarMesa(mesaSeleccionada)}
+                            className="flex w-full items-center gap-1.5 rounded-lg px-2 py-1.5 text-left text-xs uppercase tracking-widest2 text-noche-danger hover:bg-noche-danger/10"
+                          >
+                            <TrashIcon className="h-3.5 w-3.5" />
+                            Eliminar mesa
+                          </button>
+                        </div>
+                      ) : null}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setMesaSeleccionadaId(null)}
+                      className="flex h-7 w-7 items-center justify-center rounded-full text-noche-ink-faint hover:bg-noche-surface-2 hover:text-noche-ink"
+                      title="Cerrar"
+                    >
+                      <CloseIcon className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
 
-                <div className="mt-4 grid grid-cols-2 gap-2 text-sm text-noche-ink">
-                  <div>
+                <div className="mt-4 grid grid-cols-2 gap-2">
+                  <div className="rounded-lg border border-noche-border bg-noche-surface-2/60 px-3 py-2">
                     <p className="text-xs uppercase tracking-widest2 text-noche-ink-faint">Capacidad</p>
-                    <div className="flex items-center gap-2">
+                    <div className="mt-1 flex items-center gap-2">
                       <button
                         type="button"
                         onClick={() => handleCambiarCapacidad(mesaSeleccionada, -1)}
-                        className="flex h-5 w-5 items-center justify-center rounded-full border border-noche-border text-xs"
+                        className="flex h-5 w-5 items-center justify-center rounded-full border border-noche-border text-xs text-noche-ink hover:bg-noche-surface-3"
                       >
                         <MinusIcon className="h-3 w-3" />
                       </button>
-                      <p>{mesaSeleccionada.capacidad} personas</p>
+                      <p className="text-sm text-noche-ink">{mesaSeleccionada.capacidad} personas</p>
                       <button
                         type="button"
                         onClick={() => handleCambiarCapacidad(mesaSeleccionada, 1)}
-                        className="flex h-5 w-5 items-center justify-center rounded-full border border-noche-border text-xs"
+                        className="flex h-5 w-5 items-center justify-center rounded-full border border-noche-border text-xs text-noche-ink hover:bg-noche-surface-3"
                       >
                         <PlusIcon className="h-3 w-3" />
                       </button>
                     </div>
                   </div>
-                  <div>
+                  <div className="rounded-lg border border-noche-border bg-noche-surface-2/60 px-3 py-2">
                     <p className="text-xs uppercase tracking-widest2 text-noche-ink-faint">Clientes</p>
-                    <p>{mesaSeleccionada.clientes_sentados}</p>
+                    <p className="mt-1 text-sm text-noche-ink">{mesaSeleccionada.clientes_sentados}</p>
                   </div>
-                  <div>
+                  <div className="rounded-lg border border-noche-border bg-noche-surface-2/60 px-3 py-2">
                     <p className="text-xs uppercase tracking-widest2 text-noche-ink-faint">Entrada</p>
-                    <p>
+                    <p className="mt-1 text-sm text-noche-ink">
                       {mesaSeleccionada.entrada_at
                         ? new Date(mesaSeleccionada.entrada_at).toLocaleTimeString("es-ES", {
                             hour: "2-digit",
@@ -798,9 +838,9 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
                         : "-"}
                     </p>
                   </div>
-                  <div>
+                  <div className="rounded-lg border border-noche-border bg-noche-surface-2/60 px-3 py-2">
                     <p className="text-xs uppercase tracking-widest2 text-noche-ink-faint">Camarero</p>
-                    <p>{mesaSeleccionada.camarero_nombre ?? "-"}</p>
+                    <p className="mt-1 truncate text-sm text-noche-ink">{mesaSeleccionada.camarero_nombre ?? "-"}</p>
                   </div>
                 </div>
 
@@ -906,12 +946,12 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
                 ) : null}
 
                 {esHoy ? (
-                  <div className="relative mt-4 grid grid-cols-2 gap-2">
+                  <div className="mt-4 space-y-2">
                     {mesaSeleccionada.ocupada ? (
                       <button
                         type="button"
                         onClick={() => handleLiberar(mesaSeleccionada)}
-                        className="flex items-center justify-center gap-1.5 rounded-lg bg-noche-surface-2 py-2 text-xs uppercase tracking-widest2 text-noche-ink hover:bg-noche-surface-3"
+                        className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-noche-surface-2 py-2.5 text-xs uppercase tracking-widest2 text-noche-ink hover:bg-noche-surface-3"
                       >
                         <LogoutIcon className="h-3.5 w-3.5" />
                         Liberar mesa
@@ -920,97 +960,61 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
                       <button
                         type="button"
                         onClick={() => setSentarForm((v) => !v)}
-                        className="flex items-center justify-center gap-1.5 rounded-lg bg-noche-primary/10 py-2 text-xs uppercase tracking-widest2 text-noche-primary hover:bg-noche-primary/15"
+                        className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-noche-primary py-2.5 text-xs uppercase tracking-widest2 text-noche-ink hover:bg-noche-primary-dark"
                       >
                         <UsersIcon className="h-3.5 w-3.5" />
                         Sentar clientes
                       </button>
                     )}
-                    <button
-                      type="button"
-                      onClick={() => setMostrarReserva(true)}
-                      className="flex items-center justify-center gap-1.5 rounded-lg bg-noche-surface-2 py-2 text-xs uppercase tracking-widest2 text-noche-ink hover:bg-noche-surface-3"
-                    >
-                      <ClockIcon className="h-3.5 w-3.5" />
-                      Reservar
-                    </button>
 
-                    {mesaSeleccionada.union_grupo_id ? (
+                    <div className="grid grid-cols-2 gap-2">
                       <button
                         type="button"
-                        onClick={() => handleSepararGrupo(mesaSeleccionada)}
+                        onClick={() => setMostrarReserva(true)}
                         className="flex items-center justify-center gap-1.5 rounded-lg bg-noche-surface-2 py-2 text-xs uppercase tracking-widest2 text-noche-ink hover:bg-noche-surface-3"
                       >
-                        <UnlinkIcon className="h-3.5 w-3.5" />
-                        Separar mesas
+                        <ClockIcon className="h-3.5 w-3.5" />
+                        Reservar
                       </button>
-                    ) : (
                       <button
                         type="button"
-                        onClick={() => {
-                          setModoUnion(true);
-                          setSeleccionUnion([mesaSeleccionada.id]);
-                        }}
+                        onClick={() => setCambiarMesaAbierto((v) => !v)}
                         className="flex items-center justify-center gap-1.5 rounded-lg bg-noche-surface-2 py-2 text-xs uppercase tracking-widest2 text-noche-ink hover:bg-noche-surface-3"
                       >
-                        <LinkIcon className="h-3.5 w-3.5" />
-                        Unir mesas
+                        <SwapIcon className="h-3.5 w-3.5" />
+                        Cambiar mesa
                       </button>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => setCambiarMesaAbierto((v) => !v)}
-                      className="flex items-center justify-center gap-1.5 rounded-lg bg-noche-surface-2 py-2 text-xs uppercase tracking-widest2 text-noche-ink hover:bg-noche-surface-3"
-                    >
-                      <SwapIcon className="h-3.5 w-3.5" />
-                      Cambiar mesa
-                    </button>
 
-                    <button
-                      type="button"
-                      onClick={() => imprimirCuentaMesa(mesaSeleccionada, etiquetaMesa(mesaSeleccionada))}
-                      className="flex items-center justify-center gap-1.5 rounded-lg bg-noche-surface-2 py-2 text-xs uppercase tracking-widest2 text-noche-ink hover:bg-noche-surface-3"
-                    >
-                      <PrinterIcon className="h-3.5 w-3.5" />
-                      Imprimir cuenta
-                    </button>
-                    <div className="relative">
+                      {mesaSeleccionada.union_grupo_id ? (
+                        <button
+                          type="button"
+                          onClick={() => handleSepararGrupo(mesaSeleccionada)}
+                          className="flex items-center justify-center gap-1.5 rounded-lg bg-noche-surface-2 py-2 text-xs uppercase tracking-widest2 text-noche-ink hover:bg-noche-surface-3"
+                        >
+                          <UnlinkIcon className="h-3.5 w-3.5" />
+                          Separar mesas
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setModoUnion(true);
+                            setSeleccionUnion([mesaSeleccionada.id]);
+                          }}
+                          className="flex items-center justify-center gap-1.5 rounded-lg bg-noche-surface-2 py-2 text-xs uppercase tracking-widest2 text-noche-ink hover:bg-noche-surface-3"
+                        >
+                          <LinkIcon className="h-3.5 w-3.5" />
+                          Unir mesas
+                        </button>
+                      )}
                       <button
                         type="button"
-                        onClick={() => setMenuAbierto((v) => !v)}
-                        className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-noche-surface-2 py-2 text-xs uppercase tracking-widest2 text-noche-ink hover:bg-noche-surface-3"
+                        onClick={() => imprimirCuentaMesa(mesaSeleccionada, etiquetaMesa(mesaSeleccionada))}
+                        className="flex items-center justify-center gap-1.5 rounded-lg bg-noche-surface-2 py-2 text-xs uppercase tracking-widest2 text-noche-ink hover:bg-noche-surface-3"
                       >
-                        <MoreIcon className="h-3.5 w-3.5" />
-                        Más opciones
+                        <PrinterIcon className="h-3.5 w-3.5" />
+                        Imprimir cuenta
                       </button>
-                      {menuAbierto ? (
-                        <div className="absolute right-0 z-10 mt-1 w-48 rounded-lg border border-noche-border bg-noche-surface p-2 shadow-lg">
-                          <button
-                            type="button"
-                            onClick={() => handleTogglePagando(mesaSeleccionada)}
-                            className="block w-full rounded-lg px-2 py-1.5 text-left text-xs uppercase tracking-widest2 text-noche-ink hover:bg-noche-surface-2"
-                          >
-                            {mesaSeleccionada.pagando ? "Quitar cobro" : "Marcar pagando"}
-                          </button>
-                          {mesaSeleccionada.por_limpiar ? (
-                            <button
-                              type="button"
-                              onClick={() => handleMarcarLimpia(mesaSeleccionada)}
-                              className="block w-full rounded-lg px-2 py-1.5 text-left text-xs uppercase tracking-widest2 text-noche-ink hover:bg-noche-surface-2"
-                            >
-                              Marcar como limpia
-                            </button>
-                          ) : null}
-                          <button
-                            type="button"
-                            onClick={() => handleEliminarMesa(mesaSeleccionada)}
-                            className="flex w-full items-center gap-1.5 rounded-lg px-2 py-1.5 text-left text-xs uppercase tracking-widest2 text-noche-danger hover:bg-noche-danger/10"
-                          >
-                            <TrashIcon className="h-3.5 w-3.5" />
-                            Eliminar mesa
-                          </button>
-                        </div>
-                      ) : null}
                     </div>
                   </div>
                 ) : (
@@ -1110,6 +1114,18 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
                 ) : null}
               </div>
             )}
+          </div>
+
+          <div className="rounded-lg border border-noche-border bg-noche-surface p-4">
+            <p className="text-xs uppercase tracking-widest2 text-noche-ink-muted">Leyenda de estados</p>
+            <div className="mt-3 space-y-2">
+              {(Object.keys(ESTILO_MESA) as EstadoMesa[]).map((estado) => (
+                <div key={estado} className="flex items-center gap-2 text-sm text-noche-ink">
+                  <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${ESTILO_MESA[estado].badge}`} />
+                  {ESTILO_MESA[estado].label}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
