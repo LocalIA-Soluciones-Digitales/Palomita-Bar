@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 export default function AdminLoginPage() {
@@ -34,7 +35,13 @@ export default function AdminLoginPage() {
 
   return (
     <div className="mx-auto flex min-h-[70vh] max-w-sm flex-col justify-center px-6 py-24">
-      <p className="text-xs uppercase tracking-widest2 text-noche-primary">Palomita</p>
+      <Link
+        href="/"
+        className="text-xs uppercase tracking-widest2 text-noche-ink-muted transition-colors hover:text-noche-primary"
+      >
+        ← Volver al inicio
+      </Link>
+      <p className="mt-6 text-xs uppercase tracking-widest2 text-noche-primary">Palomita</p>
       <h1 className="mt-4 font-display text-3xl text-noche-ink">Acceso equipo</h1>
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-4">
