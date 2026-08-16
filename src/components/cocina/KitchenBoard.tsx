@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { formatCentimos } from "@/lib/format";
 import { playNewOrderChime } from "@/lib/notify-sound";
+import { renderTicketComandaHTML, imprimirTicketHTML } from "@/lib/print/ticket";
 import type { EstadoPedido } from "@/lib/restaurant/types";
 import type { PedidoCocina } from "@/lib/restaurant/cocina-types";
 
@@ -72,6 +73,7 @@ export function KitchenBoard({ pedidosIniciales }: { pedidosIniciales: PedidoCoc
   const [actualizando, setActualizando] = useState<string | null>(null);
   const [tick, setTick] = useState(0);
   const [filtro, setFiltro] = useState<FiltroTipo>("todos");
+  const impresosRef = useRef<Set<string>>(new Set(pedidosIniciales.map((p) => p.id)));
 
   const refetch = useCallback(async () => {
     const supabase = createSupabaseBrowserClient();
@@ -114,6 +116,30 @@ export function KitchenBoard({ pedidosIniciales }: { pedidosIniciales: PedidoCoc
       supabase.removeChannel(channel);
     };
   }, [refetch]);
+
+  useEffect(() => {
+    for (const pedido of pedidos) {
+      if (impresosRef.current.has(pedido.id)) continue;
+      impresosRef.current.add(pedido.id);
+
+      const itemsCocina = pedido.items
+        .filter((item) => item.producto_tipo !== "bebida")
+        .map((item) => ({ cantidad: item.cantidad, nombre: item.producto_nombre, notas: item.notas }));
+
+      if (itemsCocina.length === 0) continue;
+
+      const html = renderTicketComandaHTML({
+        destino: "COCINA",
+        mesaEtiqueta: pedido.mesa_numero ? String(pedido.mesa_numero) : "-",
+        mesaNombre: pedido.mesa_nombre,
+        salonNombre: null,
+        pax: null,
+        notasGenerales: pedido.notas,
+        items: itemsCocina,
+      });
+      imprimirTicketHTML(html);
+    }
+  }, [pedidos]);
 
   const avanzar = async (pedidoId: string, nuevoEstado: EstadoPedido) => {
     setActualizando(pedidoId);

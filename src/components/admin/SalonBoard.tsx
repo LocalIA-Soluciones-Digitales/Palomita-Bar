@@ -37,6 +37,7 @@ import {
   unirMesasAdmin,
 } from "@/lib/restaurant/admin-queries";
 import { etiquetasMesas, prefijoZona } from "@/lib/restaurant/mesa-label";
+import { renderTicketComandaHTML, imprimirTicketHTML } from "@/lib/print/ticket";
 import { PedidoRapidoForm } from "@/components/admin/PedidoRapidoForm";
 import { ReservaModal } from "@/components/admin/ReservaModal";
 import {
@@ -235,6 +236,25 @@ function imprimirCuentaMesa(mesa: MesaEstadoAdmin, etiqueta: string) {
   ventana.document.close();
   ventana.focus();
   ventana.print();
+}
+
+function imprimirComandaMesa(mesa: MesaEstadoAdmin, etiqueta: string, salonNombre: string | null) {
+  const items = mesa.pedidos_hoy
+    .filter((p) => ACTIVOS.includes(p.estado))
+    .flatMap((p) => p.items)
+    .map((item) => ({ cantidad: item.cantidad, nombre: item.producto_nombre, notas: item.notas }));
+
+  const html = renderTicketComandaHTML({
+    destino: "BARRA",
+    mesaEtiqueta: etiqueta,
+    mesaNombre: mesa.nombre,
+    salonNombre,
+    pax: mesa.clientes_sentados,
+    notasGenerales: mesa.nota,
+    items,
+  });
+
+  imprimirTicketHTML(html);
 }
 
 function StatTile({
@@ -1186,6 +1206,17 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
                           }}
                         />
                       )}
+                      <AccionMesa
+                        icon={PrinterIcon}
+                        label="Imprimir comanda"
+                        onClick={() =>
+                          imprimirComandaMesa(
+                            mesaSeleccionada,
+                            etiquetaMesa(mesaSeleccionada),
+                            zonas.find((z) => z.id === mesaSeleccionada.zona_id)?.nombre ?? null,
+                          )
+                        }
+                      />
                       <AccionMesa
                         icon={PrinterIcon}
                         label="Imprimir cuenta"
