@@ -64,8 +64,8 @@ export function MobileNav({ open, onOpenChange }: MobileNavProps) {
 
       {mounted && open
         ? createPortal(
-            <div className="fixed inset-0 top-16 z-30 flex flex-col overflow-y-auto bg-noche-bg/95 px-6 py-10 backdrop-blur-2xl md:hidden">
-              <nav className="flex flex-col gap-7">
+            <div className="fixed inset-0 top-16 z-30 flex flex-col items-center overflow-y-auto bg-noche-bg/90 px-6 py-10 text-center backdrop-blur-2xl md:hidden">
+              <nav className="flex flex-col items-center gap-7">
                 {NAV_LINKS.map((link, index) => (
                   <Link
                     key={link.href}
