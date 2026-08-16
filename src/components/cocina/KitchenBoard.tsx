@@ -44,8 +44,8 @@ const SIGUIENTE_ESTADO: Partial<Record<EstadoPedido, { estado: EstadoPedido; lab
   READY: { estado: "DELIVERED", label: "Entregado" },
 };
 
-function elapsedMinutes(createdAt: string) {
-  const diffMs = Date.now() - new Date(createdAt).getTime();
+function elapsedMinutes(createdAt: string, tick: number) {
+  const diffMs = Date.now() - new Date(createdAt).getTime() + tick * 0;
   return Math.max(0, Math.floor(diffMs / 60000));
 }
 
@@ -153,7 +153,7 @@ export function KitchenBoard({ pedidosIniciales }: { pedidosIniciales: PedidoCoc
               {items.map((pedido) => {
                 const siguiente = SIGUIENTE_ESTADO[pedido.estado];
                 const esNuevo = pedido.estado === "RECEIVED";
-                const minutos = elapsedMinutes(pedido.created_at);
+                const minutos = elapsedMinutes(pedido.created_at, tick);
 
                 return (
                   <div
