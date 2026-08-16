@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { NAV_LINKS, SITE } from "@/lib/constants";
 import { MobileNav } from "@/components/layout/MobileNav";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { InstagramIcon } from "@/components/icons";
 
 export function Header() {
@@ -73,9 +74,13 @@ export function Header() {
           >
             <InstagramIcon className="h-5 w-5" />
           </a>
+          <ThemeToggle />
         </nav>
 
-        <MobileNav open={mobileMenuOpen} onOpenChange={setMobileMenuOpen} />
+        <div className="flex items-center gap-2 md:hidden">
+          <ThemeToggle />
+          <MobileNav open={mobileMenuOpen} onOpenChange={setMobileMenuOpen} />
+        </div>
       </div>
     </header>
   );

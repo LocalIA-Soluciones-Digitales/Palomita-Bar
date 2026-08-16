@@ -5,6 +5,7 @@ import { getPedidoPublico } from "@/lib/restaurant/queries";
 import { formatCentimos } from "@/lib/format";
 import { CheckIcon } from "@/components/icons";
 import { StatusBadge } from "@/components/mesa/StatusBadge";
+import { guardarPedidoActivo, olvidarPedido } from "@/lib/pedido/active-orders";
 import type { EstadoPedido, PedidoPublico } from "@/lib/restaurant/types";
 
 const PASOS: { estado: EstadoPedido; label: string }[] = [
@@ -20,6 +21,14 @@ const INTERVALO_MS = 5000;
 
 export function PedidoStatus({ pedidoInicial }: { pedidoInicial: PedidoPublico }) {
   const [pedido, setPedido] = useState(pedidoInicial);
+
+  useEffect(() => {
+    if (ESTADOS_FINALES.includes(pedido.estado)) {
+      olvidarPedido(pedido.id);
+    } else {
+      guardarPedidoActivo(pedido.id);
+    }
+  }, [pedido.estado, pedido.id]);
 
   useEffect(() => {
     if (ESTADOS_FINALES.includes(pedido.estado)) return;
@@ -61,16 +70,30 @@ export function PedidoStatus({ pedidoInicial }: { pedidoInicial: PedidoPublico }
         <ol className="mt-10 space-y-4">
           {PASOS.map((paso, index) => {
             const alcanzado = index <= pasoActualIndex;
+            const conectorLleno = index < pasoActualIndex;
+            const esUltimo = index === PASOS.length - 1;
             return (
-              <li key={paso.estado} className="flex items-center gap-3">
+              <li key={paso.estado} className="relative flex items-center gap-3">
+                {!esUltimo ? (
+                  <span
+                    aria-hidden="true"
+                    className={`absolute left-[13px] top-7 h-4 w-0.5 transition-colors duration-700 ${
+                      conectorLleno ? "bg-noche-primary" : "bg-noche-surface-2"
+                    }`}
+                  />
+                ) : null}
                 <span
-                  className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${
+                  className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full transition-colors duration-500 ${
                     alcanzado ? "bg-noche-primary text-white" : "bg-noche-surface-2 text-noche-ink-faint"
-                  }`}
+                  } ${index === pasoActualIndex ? "ring-4 ring-noche-primary/25" : ""}`}
                 >
                   {alcanzado ? <CheckIcon className="h-4 w-4" /> : null}
                 </span>
-                <span className={alcanzado ? "text-noche-ink" : "text-noche-ink-faint"}>
+                <span
+                  className={`transition-colors duration-500 ${
+                    alcanzado ? "text-noche-ink" : "text-noche-ink-faint"
+                  }`}
+                >
                   {paso.label}
                 </span>
               </li>

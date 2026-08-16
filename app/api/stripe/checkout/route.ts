@@ -12,12 +12,21 @@ interface PedidoParaPago {
   items: { nombre: string; cantidad: number; precio_unitario_centimos: number }[];
 }
 
+// Tope de seguridad para el importe de propina que acepta el endpoint:
+// evita que una manipulación del body cree una sesión de Stripe por un
+// importe absurdo. 50 € por pedido es más que suficiente en este contexto.
+const TIP_MAX_CENTIMOS = 5000;
+
 export async function POST(request: Request) {
   let pedidoId: string | undefined;
+  let tipCentimos = 0;
 
   try {
     const body = await request.json();
     pedidoId = body?.pedidoId;
+    if (typeof body?.tipCentimos === "number" && Number.isInteger(body.tipCentimos)) {
+      tipCentimos = Math.min(Math.max(body.tipCentimos, 0), TIP_MAX_CENTIMOS);
+    }
   } catch {
     return NextResponse.json({ error: "Solicitud inválida" }, { status: 400 });
   }
@@ -49,14 +58,28 @@ export async function POST(request: Request) {
     const stripe = getStripeClient();
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
-      line_items: pedido.items.map((item) => ({
-        quantity: item.cantidad,
-        price_data: {
-          currency: "eur",
-          unit_amount: item.precio_unitario_centimos,
-          product_data: { name: item.nombre },
-        },
-      })),
+      line_items: [
+        ...pedido.items.map((item) => ({
+          quantity: item.cantidad,
+          price_data: {
+            currency: "eur",
+            unit_amount: item.precio_unitario_centimos,
+            product_data: { name: item.nombre },
+          },
+        })),
+        ...(tipCentimos > 0
+          ? [
+              {
+                quantity: 1,
+                price_data: {
+                  currency: "eur",
+                  unit_amount: tipCentimos,
+                  product_data: { name: "Propina" },
+                },
+              },
+            ]
+          : []),
+      ],
       metadata: { pedido_id: pedido.id },
       success_url: `${siteUrl}/pedido/${pedido.id}`,
       cancel_url: `${siteUrl}/pedido/${pedido.id}`,

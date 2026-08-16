@@ -3,8 +3,9 @@
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { formatCentimos } from "@/lib/format";
-import { EyeIcon, MinusIcon, PlusIcon } from "@/components/icons";
+import { AllergenIcon, EyeIcon, MinusIcon, PlusIcon } from "@/components/icons";
 import { ProductDetailModal } from "@/components/menu/ProductDetailModal";
+import { vibrarSuave } from "@/lib/haptics";
 import type { Categoria, Producto } from "@/lib/restaurant/types";
 
 export interface MenuCartControls {
@@ -239,9 +240,12 @@ export function CategoryMenu({
                                 </span>
                                 <button
                                   type="button"
-                                  onClick={() => cart.onIncrement(producto.id)}
+                                  onClick={() => {
+                                    vibrarSuave();
+                                    cart.onIncrement(producto.id);
+                                  }}
                                   aria-label="Añadir una unidad"
-                                  className="flex h-8 w-8 items-center justify-center rounded-full border border-noche-border text-noche-ink transition-colors hover:border-noche-primary hover:text-noche-primary"
+                                  className="flex h-8 w-8 items-center justify-center rounded-full border border-noche-border text-noche-ink transition-colors hover:border-noche-primary hover:text-noche-primary active:scale-90"
                                 >
                                   <PlusIcon className="h-3.5 w-3.5" />
                                 </button>
@@ -251,9 +255,10 @@ export function CategoryMenu({
                                 type="button"
                                 onClick={(e) => {
                                   e.stopPropagation();
+                                  vibrarSuave();
                                   cart.onAdd(producto);
                                 }}
-                                className="shrink-0 rounded-lg border border-noche-primary px-3 py-1.5 text-xs uppercase tracking-widest2 text-noche-primary transition-colors hover:bg-noche-primary hover:text-white"
+                                className="shrink-0 rounded-lg border border-noche-primary px-3 py-1.5 text-xs uppercase tracking-widest2 text-noche-primary transition-colors hover:bg-noche-primary hover:text-white active:scale-95"
                               >
                                 Añadir
                               </button>
@@ -261,12 +266,20 @@ export function CategoryMenu({
                           ) : null}
                         </div>
 
-                        {tieneNutricion ? (
-                          <span className="mt-1.5 inline-flex items-center gap-1 text-[11px] text-noche-ink-faint">
-                            <EyeIcon className="h-3 w-3" />
-                            Ingredientes y calorías
-                          </span>
-                        ) : null}
+                        <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1">
+                          {tieneNutricion ? (
+                            <span className="inline-flex items-center gap-1 text-[11px] text-noche-ink-faint">
+                              <EyeIcon className="h-3 w-3" />
+                              Ingredientes y calorías
+                            </span>
+                          ) : null}
+                          {producto.alergenos.length > 0 ? (
+                            <span className="inline-flex items-center gap-1 text-[11px] text-noche-ink-faint">
+                              <AllergenIcon className="h-3 w-3" />
+                              {producto.alergenos.join(", ")}
+                            </span>
+                          ) : null}
+                        </div>
                       </div>
                     </div>
                   );

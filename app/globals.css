@@ -31,6 +31,27 @@
     --noche-ink-faint: 0.55 0.02 300;
     --noche-border: 0.32 0.03 300;
   }
+
+  /* "Modo día": mismas variables --noche-*, valores invertidos para uso a
+     pleno sol (terraza, pedido en mesa de día). Activado por ThemeToggle
+     vía data-theme="dia" en <html>; ningún componente necesita saberlo,
+     todos leen las mismas clases bg-noche-*/text-noche-*. */
+  :root[data-theme="dia"] {
+    --noche-bg: 0.97 0.012 85;
+    --noche-surface: 0.995 0.006 85;
+    --noche-surface-2: 0.93 0.016 82;
+    --noche-surface-3: 0.88 0.02 80;
+    --noche-primary: 0.48 0.19 340;
+    --noche-primary-dark: 0.4 0.19 340;
+    --noche-accent: 0.42 0.14 295;
+    --noche-positive: 0.46 0.15 150;
+    --noche-warning: 0.5 0.16 75;
+    --noche-danger: 0.48 0.19 25;
+    --noche-ink: 0.16 0.02 300;
+    --noche-ink-muted: 0.38 0.02 300;
+    --noche-ink-faint: 0.55 0.02 300;
+    --noche-border: 0.84 0.02 82;
+  }
 }
 
 @layer utilities {

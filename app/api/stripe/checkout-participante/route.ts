@@ -12,12 +12,19 @@ interface RepartoParaPago {
   items: { reparto_id: string; pedido_id: string; nombre: string; importe_centimos: number }[];
 }
 
+// Ver nota en app/api/stripe/checkout/route.ts sobre este tope.
+const TIP_MAX_CENTIMOS = 5000;
+
 export async function POST(request: Request) {
   let participanteId: string | undefined;
+  let tipCentimos = 0;
 
   try {
     const body = await request.json();
     participanteId = body?.participanteId;
+    if (typeof body?.tipCentimos === "number" && Number.isInteger(body.tipCentimos)) {
+      tipCentimos = Math.min(Math.max(body.tipCentimos, 0), TIP_MAX_CENTIMOS);
+    }
   } catch {
     return NextResponse.json({ error: "Solicitud inválida" }, { status: 400 });
   }
@@ -50,14 +57,28 @@ export async function POST(request: Request) {
     const stripe = getStripeClient();
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
-      line_items: reparto.items.map((item) => ({
-        quantity: 1,
-        price_data: {
-          currency: "eur",
-          unit_amount: item.importe_centimos,
-          product_data: { name: `Tu parte de: ${item.nombre}` },
-        },
-      })),
+      line_items: [
+        ...reparto.items.map((item) => ({
+          quantity: 1,
+          price_data: {
+            currency: "eur",
+            unit_amount: item.importe_centimos,
+            product_data: { name: `Tu parte de: ${item.nombre}` },
+          },
+        })),
+        ...(tipCentimos > 0
+          ? [
+              {
+                quantity: 1,
+                price_data: {
+                  currency: "eur",
+                  unit_amount: tipCentimos,
+                  product_data: { name: "Propina" },
+                },
+              },
+            ]
+          : []),
+      ],
       metadata: { participante_id: reparto.participante_id },
       success_url: `${siteUrl}/pedido/${pedidoId}`,
       cancel_url: `${siteUrl}/pedido/${pedidoId}`,

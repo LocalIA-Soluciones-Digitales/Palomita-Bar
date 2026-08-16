@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getCarta, getCategorias } from "@/lib/restaurant/queries";
 import { CategoryMenu } from "@/components/menu/CategoryMenu";
+import { buildMenuJsonLd } from "@/lib/restaurant/menu-jsonld";
 
 export const revalidate = 60;
 
@@ -20,9 +21,14 @@ export default async function CocteleriaPage({
     getCarta(),
   ]);
   const bebidas = categorias.filter((categoria) => categoria.tipo === "bebida");
+  const menuJsonLd = buildMenuJsonLd(bebidas, productos, "Coctelería — Palomita Bar");
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-24">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(menuJsonLd) }}
+      />
       <p className="text-xs uppercase tracking-widest2 text-noche-primary">Coctelería</p>
       <h1 className="mt-4 font-display text-5xl text-noche-ink">De la barra</h1>
       <p className="mt-4 max-w-lg text-noche-ink-muted">

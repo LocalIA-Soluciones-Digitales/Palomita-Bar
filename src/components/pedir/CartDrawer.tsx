@@ -8,6 +8,7 @@ import { formatCentimos } from "@/lib/format";
 import { splitEqually } from "@/lib/restaurant/split";
 import { crearPedido, getCarta, validarMesaPorEtiqueta } from "@/lib/restaurant/queries";
 import { CloseIcon, MinusIcon, PlusIcon, ShareIcon, TrashIcon } from "@/components/icons";
+import { vibrarSuave } from "@/lib/haptics";
 import type { PaymentMethod, RepartoInput } from "@/lib/restaurant/types";
 
 interface CambioPrecio {
@@ -44,6 +45,7 @@ export function CartDrawer({
   const [comprobandoPrecios, setComprobandoPrecios] = useState(false);
   const [cambiosPrecio, setCambiosPrecio] = useState<CambioPrecio[] | null>(null);
   const [preciosAceptados, setPreciosAceptados] = useState(false);
+  const [propinaPct, setPropinaPct] = useState(0);
   const router = useRouter();
 
   const effectiveMesaIdentificador = mesaIdentificador ?? resolvedMesaIdentificador;
@@ -55,6 +57,10 @@ export function CartDrawer({
         return sum + (partes[0] ?? 0);
       }, 0)
     : totalCentimos;
+
+  // La propina solo se ofrece con pago online: con pago en local el importe
+  // se cobra en persona y no pasa por Stripe.
+  const propinaCentimos = paymentMethod === "ONLINE" ? Math.round((miParteCentimos * propinaPct) / 100) : 0;
 
   const handleCheckout = async (mesaOverride?: string) => {
     const mesaParaPedido = mesaOverride ?? effectiveMesaIdentificador;
@@ -105,7 +111,9 @@ export function CartDrawer({
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(
-            separado ? { participanteId: participante?.id } : { pedidoId },
+            separado
+              ? { participanteId: participante?.id, tipCentimos: propinaCentimos }
+              : { pedidoId, tipCentimos: propinaCentimos },
           ),
         },
       );
@@ -264,11 +272,12 @@ export function CartDrawer({
                   <button
                     type="button"
                     onClick={() => {
+                      vibrarSuave();
                       increment(line.producto.id);
                       descartarCambiosPrecio();
                     }}
                     aria-label="Añadir una unidad"
-                    className="flex h-8 w-8 items-center justify-center rounded-full border border-noche-border text-noche-ink transition-colors hover:border-noche-primary hover:text-noche-primary"
+                    className="flex h-8 w-8 items-center justify-center rounded-full border border-noche-border text-noche-ink transition-colors hover:border-noche-primary hover:text-noche-primary active:scale-90"
                   >
                     <PlusIcon className="h-3.5 w-3.5" />
                   </button>
@@ -399,6 +408,34 @@ export function CartDrawer({
             </button>
           </div>
         </div>
+
+        {paymentMethod === "ONLINE" ? (
+          <div className="mt-4">
+            <p className="text-xs uppercase tracking-widest2 text-noche-ink-muted">Propina</p>
+            <div className="mt-2 flex gap-2">
+              {[0, 5, 10, 15].map((pct) => (
+                <button
+                  key={pct}
+                  type="button"
+                  onClick={() => setPropinaPct(pct)}
+                  className={`flex-1 rounded-lg border py-2 text-center text-sm transition-colors ${
+                    propinaPct === pct
+                      ? "border-noche-primary bg-noche-primary/10 text-noche-primary"
+                      : "border-noche-border text-noche-ink-muted"
+                  }`}
+                >
+                  {pct === 0 ? "Sin propina" : `${pct}%`}
+                </button>
+              ))}
+            </div>
+            {propinaCentimos > 0 ? (
+              <p className="mt-2 text-xs text-noche-ink-muted">
+                Propina: <span className="text-noche-ink">{formatCentimos(propinaCentimos)} €</span> · Total con propina:{" "}
+                <span className="text-noche-ink">{formatCentimos(miParteCentimos + propinaCentimos)} €</span>
+              </p>
+            ) : null}
+          </div>
+        ) : null}
 
         {error ? <p className="mt-4 text-sm text-noche-danger">{error}</p> : null}
 
