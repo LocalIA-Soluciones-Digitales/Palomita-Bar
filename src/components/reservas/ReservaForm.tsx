@@ -98,7 +98,7 @@ export function ReservaForm() {
           />
         </label>
         <div />
-        <label className="block">
+        <label className="block min-w-0">
           <span className="text-xs uppercase tracking-widest2 text-noche-ink-muted">Fecha</span>
           <input
             type="date"
@@ -106,17 +106,17 @@ export function ReservaForm() {
             min={hoyISO()}
             value={fecha}
             onChange={(e) => setFecha(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-noche-border bg-noche-surface px-4 py-3 text-noche-ink"
+            className="mt-1 w-full min-w-0 rounded-lg border border-noche-border bg-noche-surface px-4 py-3 text-noche-ink"
           />
         </label>
-        <label className="block">
+        <label className="block min-w-0">
           <span className="text-xs uppercase tracking-widest2 text-noche-ink-muted">Hora</span>
           <input
             type="time"
             required
             value={hora}
             onChange={(e) => setHora(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-noche-border bg-noche-surface px-4 py-3 text-noche-ink"
+            className="mt-1 w-full min-w-0 rounded-lg border border-noche-border bg-noche-surface px-4 py-3 text-noche-ink"
           />
         </label>
       </div>
