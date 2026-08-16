@@ -1,0 +1,16 @@
+{
+  "name": "palomita-print-bridge",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Servicio local que escucha los pedidos nuevos de Palomita Bar y los imprime automáticamente (solo comida) en la impresora térmica de cocina.",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0",
+    "dotenv": "^16.4.5",
+    "node-thermal-printer": "^4.4.4"
+  }
+}
