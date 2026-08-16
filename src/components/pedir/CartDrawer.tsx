@@ -6,7 +6,7 @@ import { useCart } from "@/components/cart/cart-context";
 import { useTableSession } from "@/components/mesa/table-session-context";
 import { formatCentimos } from "@/lib/format";
 import { splitEqually } from "@/lib/restaurant/split";
-import { crearPedido, getCarta, validarMesaPorNumero } from "@/lib/restaurant/queries";
+import { crearPedido, getCarta, validarMesaPorEtiqueta } from "@/lib/restaurant/queries";
 import { CloseIcon, MinusIcon, PlusIcon, ShareIcon, TrashIcon } from "@/components/icons";
 import type { PaymentMethod, RepartoInput } from "@/lib/restaurant/types";
 
@@ -186,15 +186,15 @@ export function CartDrawer({
   };
 
   const handleConfirmTableNumber = async () => {
-    const numero = Number.parseInt(tableNumberInput, 10);
-    if (!Number.isInteger(numero) || numero <= 0) {
+    const etiqueta = tableNumberInput.trim();
+    if (etiqueta === "") {
       setTableError("Introduce un número de mesa válido.");
       return;
     }
 
     setResolvingTable(true);
     setTableError(null);
-    const mesa = await validarMesaPorNumero(numero);
+    const mesa = await validarMesaPorEtiqueta(etiqueta);
     setResolvingTable(false);
 
     if (!mesa) {
@@ -438,15 +438,16 @@ export function CartDrawer({
             </p>
             <p className="mt-1 text-sm text-noche-ink-muted">
               No hemos detectado tu mesa. Indica su número para que cocina pueda entregarte el
-              pedido.
+              pedido. Si estás en la terraza usa T y el número (p. ej. T1); en la barra usa B (p.
+              ej. B2).
             </p>
             <input
-              type="number"
-              inputMode="numeric"
-              min={1}
+              type="text"
+              inputMode="text"
+              autoCapitalize="characters"
               value={tableNumberInput}
               onChange={(event) => setTableNumberInput(event.target.value)}
-              placeholder="Nº de mesa"
+              placeholder="Nº de mesa (ej. T1, B2, 5)"
               className="mt-3 w-full rounded-lg border border-noche-border bg-noche-surface px-4 py-3 text-sm text-noche-ink"
             />
             {tableError ? <p className="mt-2 text-sm text-noche-danger">{tableError}</p> : null}

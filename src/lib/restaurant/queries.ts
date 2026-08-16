@@ -54,10 +54,10 @@ export async function validarMesa(identificador: string): Promise<Mesa | null> {
   return data as unknown as Mesa;
 }
 
-export async function validarMesaPorNumero(numero: number): Promise<Mesa | null> {
-  const { data, error } = await supabase.rpc("validar_mesa_numero", {
+export async function validarMesaPorEtiqueta(etiqueta: string): Promise<Mesa | null> {
+  const { data, error } = await supabase.rpc("validar_mesa_etiqueta", {
     p_site_key: siteKey(),
-    p_numero: numero,
+    p_etiqueta: etiqueta,
   });
   if (error || !data) return null;
   return data as unknown as Mesa;
