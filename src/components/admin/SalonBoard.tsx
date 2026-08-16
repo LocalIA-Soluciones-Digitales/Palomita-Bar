@@ -810,11 +810,13 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
           ) : null}
 
           <div className="mt-4 flex items-center justify-between gap-3">
-            <p className="text-xs text-noche-ink-faint">
-              {modoUnion
-                ? "Modo unión: pulsa las mesas que quieres juntar y confirma en el panel."
-                : "Arrastra las mesas para colocarlas como en el local. Pulsa una mesa para ver o tomar pedidos."}
-            </p>
+            {modoUnion ? (
+              <p className="text-xs text-noche-ink-faint">
+                Modo unión: pulsa las mesas que quieres juntar y confirma en el panel.
+              </p>
+            ) : (
+              <div />
+            )}
             <div className="flex shrink-0 items-center gap-2">
               <div className="flex overflow-hidden rounded-lg border border-noche-border text-xs uppercase tracking-widest2">
                 <button
@@ -843,7 +845,7 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
             </div>
           </div>
 
-          <div className="relative mt-2 h-[560px] select-none overflow-hidden rounded-lg border border-noche-border bg-[radial-gradient(ellipse_at_center,_oklch(var(--noche-surface-2))_0%,_oklch(var(--noche-surface))_70%,_oklch(var(--noche-bg))_100%)]">
+          <div className="relative mt-2 h-[600px] select-none overflow-hidden rounded-lg border border-noche-border bg-[radial-gradient(ellipse_at_center,_oklch(var(--noche-surface-2))_0%,_oklch(var(--noche-surface))_70%,_oklch(var(--noche-bg))_100%)]">
             <Floorplan3D
               mesas={mesasEscena}
               seleccionadaId={mesaSeleccionadaId}
