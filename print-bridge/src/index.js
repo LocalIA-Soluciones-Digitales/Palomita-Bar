@@ -35,12 +35,18 @@ async function imprimirComandaCocina(pedido) {
 
   try {
     printer.clear();
+    printer.alignCenter();
+    printer.bold(true);
+    printer.println("PALOMITA BAR");
+    printer.bold(false);
+    printer.drawLine();
+
     printer.alignLeft();
     printer.setTextNormal();
     printer.println(formatFechaHora());
     printer.bold(true);
     printer.println(
-      `Mesa:${pedido.mesa_numero ?? "-"}${pedido.mesa_nombre ? ` · ${pedido.mesa_nombre}` : ""}`,
+      `Mesa: ${pedido.mesa_numero ?? "-"}${pedido.mesa_nombre ? ` · ${pedido.mesa_nombre}` : ""}`,
     );
     printer.bold(false);
     if (pedido.participante_nombre) printer.println(`Pedido de ${pedido.participante_nombre}`);
@@ -50,7 +56,7 @@ async function imprimirComandaCocina(pedido) {
     printer.alignCenter();
     printer.setTextDoubleHeight();
     printer.bold(true);
-    printer.println("COCINA");
+    printer.println("* COCINA *");
     printer.bold(false);
     printer.setTextNormal();
     printer.alignLeft();
@@ -58,10 +64,18 @@ async function imprimirComandaCocina(pedido) {
 
     for (const item of itemsCocina) {
       printer.bold(true);
-      printer.println(`${item.cantidad}  ${item.producto_nombre}`);
+      printer.println(`[${item.cantidad}] ${item.producto_nombre}`);
       printer.bold(false);
-      if (item.notas) printer.println(`   ${item.notas}`);
+      if (item.notas) printer.println(`     ↳ ${item.notas}`);
     }
+
+    printer.drawLine();
+    printer.alignCenter();
+    printer.setTextNormal();
+    printer.println(
+      `${itemsCocina.reduce((n, i) => n + i.cantidad, 0)} producto(s)`,
+    );
+    printer.alignLeft();
 
     printer.newLine();
     printer.cut();

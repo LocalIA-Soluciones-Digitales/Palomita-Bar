@@ -37,7 +37,7 @@ import {
   unirMesasAdmin,
 } from "@/lib/restaurant/admin-queries";
 import { etiquetasMesas, prefijoZona } from "@/lib/restaurant/mesa-label";
-import { renderTicketComandaHTML, imprimirTicketHTML } from "@/lib/print/ticket";
+import { renderTicketComandaHTML, renderTicketCuentaHTML, imprimirTicketHTML } from "@/lib/print/ticket";
 import { PedidoRapidoForm } from "@/components/admin/PedidoRapidoForm";
 import { ReservaModal } from "@/components/admin/ReservaModal";
 import {
@@ -197,45 +197,23 @@ function nowHHMM(): string {
   });
 }
 
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
-
 function imprimirCuentaMesa(mesa: MesaEstadoAdmin, etiqueta: string) {
-  const total = mesa.pedidos_hoy.reduce((sum, p) => sum + p.total_centimos, 0);
-  const filas = mesa.pedidos_hoy
+  const items = mesa.pedidos_hoy
     .flatMap((p) => p.items)
-    .map(
-      (item) =>
-        `<tr><td>${item.cantidad} × ${escapeHtml(item.producto_nombre)}</td><td style="text-align:right">${formatCentimos(item.precio_unitario_centimos * item.cantidad)} €</td></tr>`,
-    )
-    .join("");
+    .map((item) => ({
+      cantidad: item.cantidad,
+      nombre: item.producto_nombre,
+      precioUnitarioCentimos: item.precio_unitario_centimos,
+    }));
 
-  const html = `<!doctype html><html><head><meta charset="utf-8"><title>Mesa ${etiqueta}</title>
-    <style>
-      body { font-family: sans-serif; padding: 24px; max-width: 360px; color: #1F1B1A; }
-      h2 { margin-bottom: 0; }
-      table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 16px; }
-      td { padding: 4px 0; }
-      tfoot td { border-top: 1px solid #1F1B1A; font-weight: bold; padding-top: 8px; }
-    </style></head>
-    <body>
-      <h2>Palomita Bar</h2>
-      <p>Mesa ${etiqueta}${mesa.nombre ? ` · ${escapeHtml(mesa.nombre)}` : ""}</p>
-      <table><tbody>${filas || "<tr><td>Sin líneas</td></tr>"}</tbody>
-      <tfoot><tr><td>Total</td><td style="text-align:right">${formatCentimos(total)} €</td></tr></tfoot></table>
-    </body></html>`;
+  const html = renderTicketCuentaHTML({
+    mesaEtiqueta: etiqueta,
+    mesaNombre: mesa.nombre,
+    camareroNombre: mesa.camarero_nombre,
+    items,
+  });
 
-  const ventana = window.open("", "_blank", "width=400,height=600");
-  if (!ventana) return;
-  ventana.document.write(html);
-  ventana.document.close();
-  ventana.focus();
-  ventana.print();
+  imprimirTicketHTML(html);
 }
 
 function imprimirComandaMesa(mesa: MesaEstadoAdmin, etiqueta: string, salonNombre: string | null) {
@@ -250,6 +228,7 @@ function imprimirComandaMesa(mesa: MesaEstadoAdmin, etiqueta: string, salonNombr
     mesaNombre: mesa.nombre,
     salonNombre,
     pax: mesa.clientes_sentados,
+    camareroNombre: mesa.camarero_nombre,
     notasGenerales: mesa.nota,
     items,
   });

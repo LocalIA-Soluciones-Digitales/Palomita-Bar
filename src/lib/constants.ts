@@ -1,6 +1,7 @@
 export const SITE = {
   name: "Palomita Bar",
   tagline: "Coctelería y picoteo en Barakaldo",
+  nif: "22756634C",
   address: {
     line1: "Gernikako Arbola Etorbidea 6A",
     postalCode: "48902",
