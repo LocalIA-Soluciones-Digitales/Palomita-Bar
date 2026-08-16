@@ -1,11 +1,27 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { NAV_LINKS } from "@/lib/constants";
 
 export function MobileNav() {
   const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    const scrollY = window.scrollY;
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.left = "0";
+    document.body.style.right = "0";
+    return () => {
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.left = "";
+      document.body.style.right = "";
+      window.scrollTo(0, scrollY);
+    };
+  }, [open]);
 
   return (
     <div className="md:hidden">
@@ -36,7 +52,7 @@ export function MobileNav() {
       </button>
 
       {open ? (
-        <div className="fixed inset-0 top-16 z-30 flex flex-col bg-noche-bg/98 px-6 py-10 backdrop-blur-lg">
+        <div className="fixed inset-0 top-16 z-30 flex flex-col overflow-y-auto bg-noche-bg px-6 py-10">
           <nav className="flex flex-col gap-7">
             {NAV_LINKS.map((link, index) => (
               <Link
