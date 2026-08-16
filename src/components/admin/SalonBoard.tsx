@@ -33,7 +33,7 @@ import {
   separarGrupoMesasAdmin,
   unirMesasAdmin,
 } from "@/lib/restaurant/admin-queries";
-import { etiquetasMesas } from "@/lib/restaurant/mesa-label";
+import { etiquetasMesas, prefijoZona } from "@/lib/restaurant/mesa-label";
 import { PedidoRapidoForm } from "@/components/admin/PedidoRapidoForm";
 import { ReservaModal } from "@/components/admin/ReservaModal";
 import {
@@ -391,13 +391,14 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
           capacidad: mesa.capacidad,
           estado,
           pendientes: mesa.pedidos_hoy.filter((p) => p.estado === "RECEIVED").length,
-          unida: !!mesa.union_grupo_id,
+          grupoId: mesa.union_grupo_id,
+          zonaPrefijo: prefijoZona(mesa.zona_id, zonas),
           x: pos.x,
           y: pos.y,
         });
         return acc;
       }, []),
-    [mesasVisibles, reservaDeMesa, esHoy, posicionMesa, etiquetaMesa, estadosOcultos],
+    [mesasVisibles, reservaDeMesa, esHoy, posicionMesa, etiquetaMesa, estadosOcultos, zonas],
   );
 
   const stats = useMemo(() => {
