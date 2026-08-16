@@ -27,7 +27,6 @@ const GESTION_LINKS = [
   { href: "/admin/productos", label: "Productos", icon: BoxIcon },
   { href: "/admin/categorias", label: "Categorías", icon: TagIcon },
   { href: "/admin/ventas", label: "Ventas", icon: ChartBarIcon },
-  { href: "/admin/informes", label: "Informes", icon: ReportIcon },
   { href: "/admin/configuracion", label: "Configuración", icon: SettingsIcon },
 ];
 
