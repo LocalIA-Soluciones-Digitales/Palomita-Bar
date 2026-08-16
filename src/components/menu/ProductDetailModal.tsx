@@ -25,6 +25,12 @@ const MACRO_COLORS = {
   grasas: "#199e70",
 } as const;
 
+const MACRO_ICONS = {
+  proteinas: ProteinIcon,
+  carbohidratos: WheatIcon,
+  grasas: DropletIcon,
+} as const;
+
 function macroBreakdown(producto: Producto) {
   const p = producto.proteinas_g ?? 0;
   const c = producto.carbohidratos_g ?? 0;
@@ -51,39 +57,19 @@ function macroBreakdown(producto: Producto) {
   return floored.map((r) => ({ ...r, color: MACRO_COLORS[r.key] }));
 }
 
-function Donut({ segments }: { segments: { pctInt: number; color: string }[] }) {
-  const radius = 48;
-  const strokeWidth = 20;
-  const circumference = 2 * Math.PI * radius;
-  const gap = 3;
-  let cumulative = 0;
-
+function MacroBar({ segments }: { segments: { pctInt: number; color: string }[] }) {
   return (
-    <svg viewBox="0 0 120 120" className="h-24 w-24 shrink-0 sm:h-32 sm:w-32" role="img" aria-hidden="true">
-      <g transform="rotate(-90 60 60)">
-        <circle cx="60" cy="60" r={radius} fill="none" stroke="currentColor" strokeWidth={strokeWidth} className="text-noche-surface-3" />
-        {segments.map((seg, i) => {
-          const length = (seg.pctInt / 100) * circumference;
-          const visibleLength = Math.max(length - gap, 0);
-          const dashOffset = -cumulative;
-          cumulative += length;
-          return (
-            <circle
-              key={i}
-              cx="60"
-              cy="60"
-              r={radius}
-              fill="none"
-              stroke={seg.color}
-              strokeWidth={strokeWidth}
-              strokeDasharray={`${visibleLength} ${circumference - visibleLength}`}
-              strokeDashoffset={dashOffset}
-              strokeLinecap="round"
-            />
-          );
-        })}
-      </g>
-    </svg>
+    <div className="flex h-2.5 w-full gap-0.5" role="img" aria-hidden="true">
+      {segments.map((seg, i) =>
+        seg.pctInt > 0 ? (
+          <div
+            key={i}
+            className="h-full first:rounded-l-full last:rounded-r-full"
+            style={{ width: `${seg.pctInt}%`, backgroundColor: seg.color }}
+          />
+        ) : null,
+      )}
+    </div>
   );
 }
 
@@ -218,17 +204,17 @@ export function ProductDetailModal({
               </span>
 
               {producto.imagen_url ? (
-                <div className="relative mt-4 aspect-[4/3] max-h-52 w-full shrink-0 overflow-hidden rounded-xl bg-noche-surface-2">
+                <div className="relative mx-auto mt-4 h-44 w-44 shrink-0 overflow-hidden rounded-xl bg-noche-surface-2 sm:h-52 sm:w-52">
                   <Image
                     src={producto.imagen_url}
                     alt={producto.nombre}
                     fill
-                    sizes="(min-width: 640px) 420px, 90vw"
-                    className="object-cover object-[center_65%]"
+                    sizes="(min-width: 640px) 208px, 176px"
+                    className="object-cover"
                   />
                 </div>
               ) : (
-                <div className="mt-4 aspect-[4/3] max-h-52 w-full shrink-0 rounded-xl bg-noche-surface-2" />
+                <div className="mx-auto mt-4 h-44 w-44 shrink-0 rounded-xl bg-noche-surface-2 sm:h-52 sm:w-52" />
               )}
 
               <h2 className="mt-4 font-display text-2xl text-noche-ink sm:text-3xl">{producto.nombre}</h2>
@@ -348,29 +334,33 @@ export function ProductDetailModal({
                   ) : null}
 
                   {macros.length > 0 ? (
-                    <div className="mt-4 flex flex-1 flex-col">
+                    <div className="mt-4">
                       <p className="text-xs font-medium uppercase tracking-widest2 text-noche-ink-muted">
                         Desglose de macros
                       </p>
-                      <div className="mt-3 flex min-w-0 flex-1 items-center gap-5 rounded-lg border border-noche-border bg-noche-surface-2 p-4">
-                        <Donut segments={macros} />
-                        <ul className="min-w-0 flex-1 space-y-3 text-sm">
-                          {macros.map((m) => (
-                            <li key={m.key} className="flex min-w-0 items-center justify-between gap-2">
-                              <span className="flex min-w-0 items-center gap-2 truncate text-noche-ink-muted">
-                                <span
-                                  aria-hidden="true"
-                                  className="h-2.5 w-2.5 shrink-0 rounded-full"
-                                  style={{ backgroundColor: m.color }}
-                                />
-                                <span className="truncate">{m.label}</span>
-                              </span>
-                              <span className="flex shrink-0 items-center gap-2 whitespace-nowrap">
-                                <span className="font-medium text-noche-ink">{m.grams}g</span>
-                                <span className="text-xs text-noche-ink-faint">({m.pctInt}%)</span>
-                              </span>
-                            </li>
-                          ))}
+                      <div className="mt-3 rounded-lg border border-noche-border bg-noche-surface-2 p-4">
+                        <MacroBar segments={macros} />
+                        <ul className="mt-4 space-y-2.5 text-sm">
+                          {macros.map((m) => {
+                            const Icon = MACRO_ICONS[m.key];
+                            return (
+                              <li key={m.key} className="flex items-center justify-between gap-3">
+                                <span className="flex items-center gap-2.5 text-noche-ink-muted">
+                                  <span
+                                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full"
+                                    style={{ backgroundColor: `${m.color}26`, color: m.color }}
+                                  >
+                                    <Icon className="h-3.5 w-3.5" />
+                                  </span>
+                                  {m.label}
+                                </span>
+                                <span className="flex shrink-0 items-center gap-2 whitespace-nowrap">
+                                  <span className="font-medium text-noche-ink">{m.grams}g</span>
+                                  <span className="text-xs text-noche-ink-faint">({m.pctInt}%)</span>
+                                </span>
+                              </li>
+                            );
+                          })}
                         </ul>
                       </div>
                       <p className="mt-2 text-[11px] text-noche-ink-faint">
@@ -378,7 +368,7 @@ export function ProductDetailModal({
                       </p>
                     </div>
                   ) : (
-                    <div className="mt-4 flex flex-1 items-center justify-center rounded-lg border border-dashed border-noche-border p-4 text-center text-sm text-noche-ink-faint">
+                    <div className="mt-4 rounded-lg border border-dashed border-noche-border p-4 text-center text-sm text-noche-ink-faint">
                       Sin datos de macronutrientes.
                     </div>
                   )}
