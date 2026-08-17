@@ -576,6 +576,21 @@ function Architecture() {
       {/* Estantería con plantas y letrero luminoso "Aquí se viene a disfrutar" en el salón, ampliada a lo largo hacia la entrada */}
       <DisplayShelf position={[3.5, 0, 3.6]} depth={5.25} />
 
+      {/* Escalón de bajada entre la barra (elevada) y la sala principal / salón, como el desnivel real de dos peldaños */}
+      <Steps position={[6.5, 0, 0.5]} width={6.6} />
+
+      {/* Rincón de sofás junto al final de la barra: pared de ladrillo con el neón "Palomita", chesterfield y mesas de centro sobre puf, como el rincón real de la sala */}
+      <group position={[8.3, 0, 2.0]} rotation={[0, -Math.PI / 2, 0]}>
+        <mesh position={[0, 1.35, 0]}>
+          <boxGeometry args={[3.2, 2.7, 0.14]} />
+          <meshStandardMaterial color="#b98f5e" roughness={0.98} />
+        </mesh>
+        <NeonLogo position={[0, 1.7, 0.09]} scale={1.1} />
+        <ChesterfieldSofa position={[0, 0, 0.85]} />
+        <RoundPouffeTable position={[-0.75, 0, 1.9]} />
+        <RoundPouffeTable position={[0.35, 0, 2.05]} />
+      </group>
+
       {/* Ventanal con montantes: separa la sala de la terraza exterior, con hueco de puerta */}
       <group position={[0, 1.7, 6.1]}>
         {(() => {
@@ -684,7 +699,7 @@ function Architecture() {
         <planeGeometry args={[21, 4.7]} />
         <meshStandardMaterial color="#a9855f" roughness={0.9} />
       </mesh>
-      <gridHelper args={[21, 21, "#d9c19a", "#8f6c48"]} position={[0, -0.169, 8.35]} />
+      <gridHelper args={[21, 21, "#b89a72", "#9c7d58"]} position={[0, -0.169, 8.35]} />
       {montantes.map((x, i) => (
         <mesh key={i} position={[x, 0.35, 10.55]}>
           <boxGeometry args={[0.05, 0.7, 0.05]} />
@@ -927,6 +942,60 @@ function Maceta({ position }: { position: [number, number, number] }) {
       <mesh position={[0, 0.75, 0]} castShadow>
         <sphereGeometry args={[0.42, 12, 12]} />
         <meshStandardMaterial color="#1f3324" roughness={0.85} />
+      </mesh>
+    </group>
+  );
+}
+
+// Escalón de bajada de dos peldaños entre la barra (más alta) y la sala principal, como el desnivel real del local.
+function Steps({ position, width }: { position: [number, number, number]; width: number }) {
+  return (
+    <group position={position}>
+      <mesh position={[0, 0.09, -0.55]} receiveShadow castShadow>
+        <boxGeometry args={[width, 0.18, 1.0]} />
+        <meshStandardMaterial color="#4a4247" roughness={0.85} />
+      </mesh>
+      <mesh position={[0, -0.03, 0.35]} receiveShadow castShadow>
+        <boxGeometry args={[width, 0.15, 0.9]} />
+        <meshStandardMaterial color="#4a4247" roughness={0.85} />
+      </mesh>
+    </group>
+  );
+}
+
+// Sofá chesterfield de cuero granate con capitoné, como el del rincón de sofás real junto al neón.
+function ChesterfieldSofa({ position }: { position: [number, number, number] }) {
+  return (
+    <group position={position}>
+      <mesh position={[0, 0.28, 0]} castShadow>
+        <boxGeometry args={[1.7, 0.5, 0.75]} />
+        <meshStandardMaterial color="#5a2230" roughness={0.55} />
+      </mesh>
+      <mesh position={[0, 0.65, -0.3]} castShadow>
+        <boxGeometry args={[1.7, 0.55, 0.18]} />
+        <meshStandardMaterial color="#5a2230" roughness={0.55} />
+      </mesh>
+      {[-0.78, 0.78].map((x, i) => (
+        <mesh key={i} position={[x, 0.45, 0]} castShadow>
+          <boxGeometry args={[0.16, 0.42, 0.75]} />
+          <meshStandardMaterial color="#5a2230" roughness={0.55} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+// Mesa de centro redonda apoyada sobre puf, como las mesitas de tapa de mármol y patas puf azules del rincón de sofás real.
+function RoundPouffeTable({ position }: { position: [number, number, number] }) {
+  return (
+    <group position={position}>
+      <mesh position={[0, 0.32, 0]} castShadow>
+        <cylinderGeometry args={[0.34, 0.34, 0.34, 20]} />
+        <meshStandardMaterial color="#1f6b8f" roughness={0.7} />
+      </mesh>
+      <mesh position={[0, 0.52, 0]} castShadow>
+        <cylinderGeometry args={[0.42, 0.42, 0.05, 24]} />
+        <meshStandardMaterial color="#c9b8a0" roughness={0.4} />
       </mesh>
     </group>
   );
