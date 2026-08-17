@@ -68,11 +68,7 @@ export function MesasGestion() {
 
   const handleNuevaZonaChange = (zonaId: string) => {
     setNuevaZonaId(zonaId);
-    const prefijo = prefijoZona(zonaId || null, zonas);
-    setNuevoNumero((prev) => {
-      const resto = prev.replace(/^[A-Za-z]+/, "");
-      return prefijo ? `${prefijo}${resto}` : resto;
-    });
+    setNuevoNumero((prev) => prev.replace(/^[A-Za-z]+/, ""));
   };
 
   const normalizarNumero = (numero: string, prefijo: string): string => {
@@ -95,7 +91,7 @@ export function MesasGestion() {
         nuevaZonaId || null,
         Number(nuevaCapacidad) || 4,
       );
-      setNuevoNumero(prefijo);
+      setNuevoNumero("");
       setNuevoNombre("");
       setNuevaCapacidad("4");
       await cargar();
