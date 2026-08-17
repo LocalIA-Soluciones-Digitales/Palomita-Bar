@@ -132,7 +132,7 @@ export async function getMesasAdmin(): Promise<MesaAdmin[]> {
 }
 
 export async function crearMesaAdmin(
-  numero: number,
+  numero: string,
   nombre?: string,
   zonaId?: string | null,
   capacidad?: number,

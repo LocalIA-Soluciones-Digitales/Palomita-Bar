@@ -1,9 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { crearReservaAdmin } from "@/lib/restaurant/admin-queries";
 import type { MesaEstadoAdmin, ZonaAdmin } from "@/lib/restaurant/admin-types";
-import { etiquetasMesas } from "@/lib/restaurant/mesa-label";
 import { CloseIcon } from "@/components/icons";
 
 export function ReservaModal({
@@ -37,7 +36,6 @@ export function ReservaModal({
   const [error, setError] = useState<string | null>(null);
 
   const mesasFiltradas = zonaId ? mesas.filter((m) => m.zona_id === zonaId) : mesas;
-  const etiquetasPorMesaId = useMemo(() => etiquetasMesas(mesas, zonas), [mesas, zonas]);
 
   const handleGuardar = async () => {
     if (!nombreCliente.trim() || !fecha || !hora) {
@@ -179,7 +177,7 @@ export function ReservaModal({
                 <option value="">Sin asignar</option>
                 {mesasFiltradas.map((mesa) => (
                   <option key={mesa.id} value={mesa.id}>
-                    Mesa {etiquetasPorMesaId.get(mesa.id) ?? mesa.numero}
+                    Mesa {mesa.numero}
                   </option>
                 ))}
               </select>

@@ -29,7 +29,7 @@ export interface Producto {
 
 export interface Mesa {
   id: string;
-  numero: number;
+  numero: string;
   nombre: string | null;
   identificador: string;
   activa: boolean;
@@ -60,7 +60,7 @@ export interface PedidoPublico {
   payment_method: PaymentMethod;
   payment_status: PaymentStatus;
   total_centimos: number;
-  mesa_numero: number | null;
+  mesa_numero: string | null;
   mesa_nombre: string | null;
   created_at: string;
   items: PedidoItemPublico[];
@@ -134,7 +134,7 @@ export interface SesionPublica {
   id: string;
   modo: ModoSesion;
   estado: "ACTIVA" | "CERRADA";
-  mesa_numero: number;
+  mesa_numero: string;
   mesa_nombre: string | null;
   participantes: { id: string; nombre: string }[];
   pedidos: SesionPedidoPublico[];

@@ -27,7 +27,7 @@ export interface ProductoAdmin {
 export interface MesaAdmin {
   id: string;
   cliente_id: string;
-  numero: number;
+  numero: string;
   nombre: string | null;
   identificador: string;
   activa: boolean;
@@ -98,7 +98,7 @@ export interface PedidoMesaAdmin {
 
 export interface MesaEstadoAdmin {
   id: string;
-  numero: number;
+  numero: string;
   nombre: string | null;
   identificador: string;
   activa: boolean;

@@ -59,8 +59,8 @@ export function MesasGestion() {
   }, []);
 
   const handleCrear = async () => {
-    const numero = Number(nuevoNumero);
-    if (!numero || numero <= 0) return;
+    const numero = nuevoNumero.trim();
+    if (!numero) return;
     try {
       await crearMesaAdmin(numero, nuevoNombre.trim(), nuevaZonaId || null, Number(nuevaCapacidad) || 4);
       setNuevoNumero("");
@@ -130,9 +130,10 @@ export function MesasGestion() {
             Número de mesa
           </label>
           <input
-            type="number"
+            type="text"
             value={nuevoNumero}
             onChange={(e) => setNuevoNumero(e.target.value)}
+            placeholder="Ej: 1, T1, B2..."
             className="mt-1 w-24 rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2 text-sm text-noche-ink"
           />
         </div>

@@ -36,7 +36,7 @@ import {
   separarGrupoMesasAdmin,
   unirMesasAdmin,
 } from "@/lib/restaurant/admin-queries";
-import { etiquetasMesas, prefijoZona } from "@/lib/restaurant/mesa-label";
+import { prefijoZona } from "@/lib/restaurant/mesa-label";
 import { renderTicketComandaHTML, renderTicketCuentaHTML, imprimirTicketHTML } from "@/lib/print/ticket";
 import { PedidoRapidoForm } from "@/components/admin/PedidoRapidoForm";
 import { ReservaModal } from "@/components/admin/ReservaModal";
@@ -463,12 +463,7 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
     [mesas, zonaActivaId],
   );
 
-  const etiquetaPorMesaId = useMemo(() => etiquetasMesas(mesas, zonas), [mesas, zonas]);
-
-  const etiquetaMesa = useCallback(
-    (mesa: MesaEstadoAdmin) => etiquetaPorMesaId.get(mesa.id) ?? String(mesa.numero),
-    [etiquetaPorMesaId],
-  );
+  const etiquetaMesa = useCallback((mesa: MesaEstadoAdmin) => mesa.numero, []);
 
   const posicionMesa = useCallback(
     (mesa: MesaEstadoAdmin, index: number): { x: number; y: number } => {
@@ -636,9 +631,13 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
   };
 
   const handleCrearMesaRapida = async () => {
-    const siguienteNumero = mesas.reduce((max, m) => Math.max(max, m.numero), 0) + 1;
+    const siguienteNumero =
+      mesas.reduce((max, m) => {
+        const valor = /^\d+$/.test(m.numero) ? parseInt(m.numero, 10) : 0;
+        return Math.max(max, valor);
+      }, 0) + 1;
     try {
-      const nueva = await crearMesaAdmin(siguienteNumero, undefined, zonaActivaId, 4);
+      const nueva = await crearMesaAdmin(String(siguienteNumero), undefined, zonaActivaId, 4);
       await refetch();
       setMesaSeleccionadaId(nueva.id);
     } catch {
