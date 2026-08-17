@@ -5,6 +5,7 @@ import { eliminarErrorLogAdmin, getErrorLogsAdmin } from "@/lib/restaurant/admin
 import type { ErrorLogAdmin } from "@/lib/restaurant/admin-types";
 import { errorMessage } from "@/lib/format";
 import { TrashIcon } from "@/components/icons";
+import { Stat } from "@/components/admin/Stat";
 
 export default function ErroresAdminPage() {
   const [errores, setErrores] = useState<ErrorLogAdmin[] | null>(null);
@@ -28,21 +29,35 @@ export default function ErroresAdminPage() {
     }
   };
 
+  const fuentesDistintas = errores ? new Set(errores.map((e) => e.source)).size : null;
+  const ultimoRegistro = errores && errores.length > 0 ? errores[0] : null;
+
   return (
-    <div className="max-w-5xl">
+    <div className="mx-auto max-w-6xl">
       <h1 className="font-display text-2xl text-noche-ink">Log de errores</h1>
       <p className="mt-1 text-sm text-noche-ink-muted">Fallos registrados en la web de Palomita.</p>
 
       {error ? <p className="mt-4 text-sm text-noche-danger">{error}</p> : null}
+
+      {errores && errores.length > 0 ? (
+        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <Stat label="Errores registrados" value={String(errores.length)} />
+          <Stat label="Fuentes distintas" value={String(fuentesDistintas)} />
+          <Stat
+            label="Último registrado"
+            value={ultimoRegistro ? new Date(ultimoRegistro.created_at).toLocaleDateString("es-ES") : "—"}
+          />
+        </div>
+      ) : null}
 
       {!errores ? (
         <p className="mt-6 text-sm text-noche-ink-muted">Cargando…</p>
       ) : errores.length === 0 ? (
         <p className="mt-6 text-sm text-noche-ink-muted">Sin errores registrados. Todo en orden.</p>
       ) : (
-        <ul className="mt-6 space-y-2">
+        <ul className="mt-6 grid gap-3 lg:grid-cols-2">
           {errores.map((e) => (
-            <li key={e.id} className="rounded-lg border border-noche-border bg-noche-surface p-4">
+            <li key={e.id} className="self-start rounded-lg border border-noche-border bg-noche-surface p-4">
               <div className="flex items-start justify-between gap-3">
                 <button
                   type="button"

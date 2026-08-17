@@ -27,7 +27,7 @@ export default function ClientesAdminPage() {
       : null;
 
   return (
-    <div className="max-w-5xl">
+    <div className="mx-auto max-w-7xl">
       <h1 className="font-display text-2xl text-noche-ink">Captación de clientes</h1>
 
       {error ? <p className="mt-4 text-sm text-noche-danger">{error}</p> : null}

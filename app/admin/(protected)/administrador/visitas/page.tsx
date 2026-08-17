@@ -59,7 +59,7 @@ export default function VisitasAdminPage() {
   const sesionesUnicas = visitas ? new Set(visitas.map((v) => v.session_id)).size : 0;
 
   return (
-    <div className="max-w-5xl">
+    <div className="mx-auto max-w-7xl">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="font-display text-2xl text-noche-ink">Visitas</h1>
         <div className="flex gap-1">
@@ -96,7 +96,7 @@ export default function VisitasAdminPage() {
             />
           </div>
 
-          <div className="grid gap-6 sm:grid-cols-2">
+          <div className="grid gap-6 lg:grid-cols-3">
             <div>
               <h2 className="font-display text-lg text-noche-ink">Por dispositivo</h2>
               {Object.keys(porDispositivo).length === 0 ? (
@@ -128,24 +128,24 @@ export default function VisitasAdminPage() {
                 </ul>
               )}
             </div>
-          </div>
 
-          <div>
-            <h2 className="font-display text-lg text-noche-ink">Páginas más visitadas</h2>
-            {porPath.length === 0 ? (
-              <p className="mt-2 text-sm text-noche-ink-muted">Sin datos en este periodo.</p>
-            ) : (
-              <ol className="mt-3 space-y-1 text-sm text-noche-ink">
-                {porPath.map(([path, count], i) => (
-                  <li key={path} className="flex justify-between gap-3">
-                    <span className="truncate">
-                      {i + 1}. {path}
-                    </span>
-                    <span className="shrink-0 text-noche-ink-muted">{count}</span>
-                  </li>
-                ))}
-              </ol>
-            )}
+            <div>
+              <h2 className="font-display text-lg text-noche-ink">Páginas más visitadas</h2>
+              {porPath.length === 0 ? (
+                <p className="mt-2 text-sm text-noche-ink-muted">Sin datos en este periodo.</p>
+              ) : (
+                <ol className="mt-3 space-y-1 text-sm text-noche-ink">
+                  {porPath.map(([path, count], i) => (
+                    <li key={path} className="flex justify-between gap-3">
+                      <span className="truncate">
+                        {i + 1}. {path}
+                      </span>
+                      <span className="shrink-0 text-noche-ink-muted">{count}</span>
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </div>
           </div>
         </div>
       )}

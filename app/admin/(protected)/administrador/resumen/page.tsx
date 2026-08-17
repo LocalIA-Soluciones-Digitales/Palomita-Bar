@@ -48,7 +48,7 @@ export default function ResumenAdministradorPage() {
   }, []);
 
   return (
-    <div className="max-w-5xl">
+    <div className="mx-auto max-w-7xl">
       <h1 className="font-display text-2xl text-noche-ink">Resumen</h1>
       <p className="mt-1 text-sm text-noche-ink-muted">Panel administrador — este mes</p>
 
