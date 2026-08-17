@@ -5,6 +5,7 @@ export interface PedidoCocinaItem {
   producto_tipo: "comida" | "bebida" | null;
   cantidad: number;
   notas: string | null;
+  estado: EstadoPedido;
 }
 
 export interface PedidoCocina {
@@ -15,7 +16,7 @@ export interface PedidoCocina {
   notas: string | null;
   total_centimos: number;
   created_at: string;
-  mesa_numero: number | null;
+  mesa_numero: string | null;
   mesa_nombre: string | null;
   participante_nombre: string | null;
   items: PedidoCocinaItem[];

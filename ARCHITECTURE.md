@@ -561,3 +561,38 @@ Sin este montaje, cocina sigue funcionando igual mediante el diálogo de
 impresión del navegador (ya operativo), solo que no automatizado del todo.
 
 Sigue pendiente (ver limitación conocida en §16.3): pulir el mensaje cuando el cambio de precio ocurre a mitad de un segundo intento de confirmación (caso muy raro, dos cambios de precio en segundos).
+
+## 18. Cocina y barra: aceptar/preparar por estación (2026-08-17)
+
+Hasta ahora un pedido mixto (comida + bebida) se aceptaba/preparaba como una sola unidad:
+si cocina pulsaba "Aceptar" o "Empezar preparación", también arrastraba las bebidas, y
+viceversa desde barra. Se separó el progreso por estación:
+
+- `restaurant.pedido_items` gana una columna `estado` (mismo dominio que
+  `restaurant.pedidos.estado`), con su propio trigger de validación de transición
+  (`restaurant.validar_transicion_estado_item_pedido()`, igual que el de pedido salvo que
+  `READY` también permite `CANCELLED`, para no bloquear la cancelación de un pedido mixto
+  donde una estación ya terminó). Backfill aplicado: las líneas de pedidos ya en curso
+  heredaron el estado de su pedido en el momento de la migración, no se resetearon a
+  `RECEIVED`.
+- RPC nueva `avanzar_items_pedido_cocina(pedido_id, tipo, nuevo_estado)` (`tipo` =
+  `comida`/`bebida`, `SECURITY INVOKER`, mismo patrón RLS que el resto de RPC de cocina):
+  avanza solo las líneas de ese tipo (las líneas sin categoría/tipo asignado cuentan para
+  ambas estaciones, igual que ya hacía el filtro visual del tablero) y recalcula
+  `restaurant.pedidos.estado` como el progreso **mínimo** entre comida y bebida — un pedido
+  mixto no pasa a "en preparación" hasta que ambas estaciones han aceptado, ni a "listo"
+  hasta que ambas han terminado.
+- `avanzar_pedido_cocina` (pedido completo) se mantiene para la entrega final ("Entregado",
+  única acción sobre el pedido completo, no por estación) y para el panel de salón
+  (`SalonBoard`); ahora también sincroniza las líneas que se hayan quedado atrás al mover el
+  pedido completo, sin tocar las que ya estén igual o más avanzadas.
+- `KitchenBoard` (`/admin/cocina`): en las pestañas "Cocina"/"Barra" el botón de
+  aceptar/preparar/marcar listo actúa solo sobre las líneas de ese tipo (vía
+  `avanzar_items_pedido_cocina`), y cada tarjeta se coloca en la columna según el progreso
+  de esa estación, no del pedido completo. En la pestaña "Todos" solo se ofrece el botón de
+  pedido completo para pedidos de un solo tipo (comida o bebida, no mixtos); un pedido mixto
+  muestra un aviso para gestionarlo desde la pestaña correspondiente. El botón "Entregado" se
+  muestra igual en cualquier pestaña en cuanto el pedido completo llega a `READY` (ambas
+  estaciones terminadas).
+- SQL de referencia: `supabase/cocina_estado_por_estacion_2026-08-17.sql` (aplicado
+  directamente vía MCP, como el resto del schema `restaurant`).

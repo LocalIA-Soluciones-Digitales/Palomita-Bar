@@ -6,7 +6,7 @@ import { formatCentimos } from "@/lib/format";
 import { playNewOrderChime } from "@/lib/notify-sound";
 import { renderTicketComandaHTML, imprimirTicketHTML } from "@/lib/print/ticket";
 import type { EstadoPedido } from "@/lib/restaurant/types";
-import type { PedidoCocina } from "@/lib/restaurant/cocina-types";
+import type { PedidoCocina, PedidoCocinaItem } from "@/lib/restaurant/cocina-types";
 
 const COLUMNAS: {
   titulo: string;
@@ -44,6 +44,30 @@ const SIGUIENTE_ESTADO: Partial<Record<EstadoPedido, { estado: EstadoPedido; lab
   PREPARING: { estado: "READY", label: "Marcar listo" },
   READY: { estado: "DELIVERED", label: "Entregado" },
 };
+
+const RANGO_ESTADO: Record<EstadoPedido, number> = {
+  RECEIVED: 0,
+  ACCEPTED: 1,
+  PREPARING: 2,
+  READY: 3,
+  DELIVERED: 4,
+  CANCELLED: 5,
+};
+
+/** Estado agregado (el menos avanzado) de las líneas de un tipo; las líneas sin tipo asignado cuentan para ambas estaciones. */
+function estadoGrupo(items: PedidoCocinaItem[], tipo: "comida" | "bebida"): EstadoPedido {
+  const relevantes = items.filter((item) => item.producto_tipo === tipo || item.producto_tipo === null);
+  if (relevantes.length === 0) return "RECEIVED";
+  return relevantes.reduce((acc, item) => (RANGO_ESTADO[item.estado] < RANGO_ESTADO[acc.estado] ? item : acc)).estado;
+}
+
+function tieneTipo(items: PedidoCocinaItem[], tipo: "comida" | "bebida") {
+  return items.some((item) => item.producto_tipo === tipo || item.producto_tipo === null);
+}
+
+function esMixto(items: PedidoCocinaItem[]) {
+  return items.some((item) => item.producto_tipo === "comida") && items.some((item) => item.producto_tipo === "bebida");
+}
 
 function elapsedMinutes(createdAt: string, tick: number) {
   const diffMs = Date.now() - new Date(createdAt).getTime() + tick * 0;
@@ -154,6 +178,20 @@ export function KitchenBoard({ pedidosIniciales }: { pedidosIniciales: PedidoCoc
     setActualizando(null);
   };
 
+  const avanzarItems = async (pedidoId: string, tipo: "comida" | "bebida", nuevoEstado: EstadoPedido) => {
+    setActualizando(pedidoId);
+    const supabase = createSupabaseBrowserClient();
+    const { error } = await supabase.rpc("avanzar_items_pedido_cocina", {
+      p_pedido_id: pedidoId,
+      p_tipo: tipo,
+      p_nuevo_estado: nuevoEstado,
+    });
+    if (!error) {
+      await refetch();
+    }
+    setActualizando(null);
+  };
+
   return (
     <div className="mt-6">
       <div className="flex gap-2">
@@ -176,11 +214,13 @@ export function KitchenBoard({ pedidosIniciales }: { pedidosIniciales: PedidoCoc
       <div className="mt-4 grid gap-4 lg:grid-cols-3">
       {COLUMNAS.map((columna) => {
         const items = pedidos
-          .filter((p) => columna.estados.includes(p.estado))
           .filter(
             (p) =>
               filtro === "todos" ||
               p.items.some((item) => item.producto_tipo === null || item.producto_tipo === filtro),
+          )
+          .filter((p) =>
+            columna.estados.includes(filtro === "todos" ? p.estado : estadoGrupo(p.items, filtro)),
           )
           .sort((a, b) => a.created_at.localeCompare(b.created_at));
 
@@ -209,9 +249,42 @@ export function KitchenBoard({ pedidosIniciales }: { pedidosIniciales: PedidoCoc
               ) : null}
 
               {items.map((pedido) => {
-                const siguiente = SIGUIENTE_ESTADO[pedido.estado];
-                const esNuevo = pedido.estado === "RECEIVED";
+                const estadoCard = filtro === "todos" ? pedido.estado : estadoGrupo(pedido.items, filtro);
+                const esNuevo = estadoCard === "RECEIVED";
                 const minutos = elapsedMinutes(pedido.created_at, tick);
+                const mixto = esMixto(pedido.items);
+
+                // Cuando el pedido completo ya está listo (todas sus estaciones), entregar es una
+                // acción única, no gestionada por estación.
+                let accion: { label: string; onClick: () => void } | null = null;
+                let estacionLista = false;
+                let avisoMixto = false;
+
+                if (pedido.estado === "READY") {
+                  accion = { label: "Entregado", onClick: () => avanzar(pedido.id, "DELIVERED") };
+                } else if (filtro === "todos") {
+                  if (mixto) {
+                    avisoMixto = true;
+                  } else {
+                    const siguiente = SIGUIENTE_ESTADO[pedido.estado];
+                    if (siguiente) {
+                      accion = { label: siguiente.label, onClick: () => avanzar(pedido.id, siguiente.estado) };
+                    }
+                  }
+                } else if (tieneTipo(pedido.items, filtro)) {
+                  const estadoEstacion = estadoGrupo(pedido.items, filtro);
+                  if (estadoEstacion === "READY") {
+                    estacionLista = true;
+                  } else {
+                    const siguiente = SIGUIENTE_ESTADO[estadoEstacion];
+                    if (siguiente) {
+                      accion = {
+                        label: siguiente.label,
+                        onClick: () => avanzarItems(pedido.id, filtro, siguiente.estado),
+                      };
+                    }
+                  }
+                }
 
                 return (
                   <div
@@ -298,15 +371,23 @@ export function KitchenBoard({ pedidosIniciales }: { pedidosIniciales: PedidoCoc
                       )}
                     </div>
 
-                    {siguiente ? (
+                    {accion ? (
                       <button
                         type="button"
                         disabled={actualizando === pedido.id}
-                        onClick={() => avanzar(pedido.id, siguiente.estado)}
+                        onClick={accion.onClick}
                         className="mt-3 w-full rounded-lg bg-noche-primary py-3 text-sm font-bold uppercase tracking-widest2 text-noche-ink transition-colors hover:bg-noche-primary-dark active:scale-[0.98] disabled:opacity-50"
                       >
-                        {actualizando === pedido.id ? "…" : siguiente.label}
+                        {actualizando === pedido.id ? "…" : accion.label}
                       </button>
+                    ) : estacionLista ? (
+                      <p className="mt-3 rounded-lg bg-noche-positive/15 py-2 text-center text-xs font-bold uppercase tracking-widest2 text-noche-positive">
+                        Listo — esperando el resto del pedido
+                      </p>
+                    ) : avisoMixto ? (
+                      <p className="mt-3 text-center text-xs text-noche-ink-muted">
+                        Pedido mixto: gestiona comida y bebida desde las pestañas Cocina / Barra
+                      </p>
                     ) : null}
                   </div>
                 );
