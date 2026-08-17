@@ -3,7 +3,7 @@
 import { Canvas, type ThreeEvent } from "@react-three/fiber";
 import { OrbitControls, Text } from "@react-three/drei";
 import * as THREE from "three";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import type { EstadoMesa } from "@/components/admin/SalonBoard";
 import type { PrefijoZona } from "@/lib/restaurant/mesa-label";
 
@@ -513,12 +513,12 @@ function Architecture() {
         <Banquette position={[0, 0.55, 0]} size={[0.7, 0.95, 8]} />
       </group>
 
-      {/* Pared izquierda: acabado en piedra con el logo de neón de Palomita, como junto al sofá del local */}
-      <mesh position={[-10.25, 1.6, -1]} rotation={[0, Math.PI / 2, 0]}>
-        <boxGeometry args={[9.6, 2.7, 0.16]} />
-        <meshStandardMaterial color="#c7b092" roughness={0.96} />
-      </mesh>
+      {/* Pared izquierda: pared de ladrillo con el logo de neón de Palomita, chesterfield y mesas de centro sobre puf, como el rincón de sofás real */}
+      <BrickWall position={[-10.25, 1.6, -1]} rotation={[0, Math.PI / 2, 0]} size={[9.6, 2.7, 0.16]} />
       <NeonLogo position={[-10.06, 2.0, -1]} rotation={[0, Math.PI / 2, 0]} scale={1.4} />
+      <ChesterfieldSofa position={[-9.3, 0, -1]} rotation={[0, Math.PI / 2, 0]} />
+      <RoundPouffeTable position={[-8.25, 0, -0.25]} />
+      <RoundPouffeTable position={[-8.1, 0, -1.35]} />
 
       {/* Barra en L: tramo pegado a la pared derecha, ampliado hacia el frente hasta el hueco del salón */}
       <group position={[9.55, 0.75, -2.0]} rotation={[0, Math.PI / 2, 0]}>
@@ -580,18 +580,6 @@ function Architecture() {
 
       {/* Escalón de bajada entre la barra (elevada) y la sala principal / salón, como el desnivel real de dos peldaños */}
       <Steps position={[6.5, 0, 0.5]} width={6.6} />
-
-      {/* Rincón de sofás junto al final de la barra: pared de ladrillo con el neón "Palomita", chesterfield y mesas de centro sobre puf, como el rincón real de la sala */}
-      <group position={[8.3, 0, 2.0]} rotation={[0, -Math.PI / 2, 0]}>
-        <mesh position={[0, 1.35, 0]}>
-          <boxGeometry args={[3.2, 2.7, 0.14]} />
-          <meshStandardMaterial color="#b98f5e" roughness={0.98} />
-        </mesh>
-        <NeonLogo position={[0, 1.7, 0.09]} scale={1.1} />
-        <ChesterfieldSofa position={[0, 0, 0.85]} />
-        <RoundPouffeTable position={[-0.75, 0, 1.9]} />
-        <RoundPouffeTable position={[0.35, 0, 2.05]} />
-      </group>
 
       {/* Ventanal con montantes: separa la sala de la terraza exterior, con hueco de puerta */}
       <group position={[0, 1.7, 6.1]}>
@@ -968,9 +956,15 @@ function Steps({ position, width }: { position: [number, number, number]; width:
 }
 
 // Sofá chesterfield de cuero granate con capitoné, como el del rincón de sofás real junto al neón.
-function ChesterfieldSofa({ position }: { position: [number, number, number] }) {
+function ChesterfieldSofa({
+  position,
+  rotation = [0, 0, 0],
+}: {
+  position: [number, number, number];
+  rotation?: [number, number, number];
+}) {
   return (
-    <group position={position}>
+    <group position={position} rotation={rotation}>
       <mesh position={[0, 0.28, 0]} castShadow>
         <boxGeometry args={[1.7, 0.5, 0.75]} />
         <meshStandardMaterial color="#5a2230" roughness={0.55} />
@@ -986,6 +980,58 @@ function ChesterfieldSofa({ position }: { position: [number, number, number] }) 
         </mesh>
       ))}
     </group>
+  );
+}
+
+// Pared de ladrillo visto con textura procedural (hiladas a canto corrido), como la pared del rincón de sofás real.
+function useBrickTexture() {
+  return useMemo(() => {
+    if (typeof document === "undefined") return null;
+    const canvas = document.createElement("canvas");
+    canvas.width = 256;
+    canvas.height = 128;
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+      ctx.fillStyle = "#8a6a4a";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      const brickW = 42;
+      const brickH = 20;
+      const gap = 3;
+      let row = 0;
+      for (let y = -brickH; y < canvas.height + brickH; y += brickH) {
+        const offset = row % 2 === 0 ? 0 : brickW / 2;
+        for (let x = -brickW; x < canvas.width + brickW; x += brickW) {
+          const shade = 52 + Math.random() * 14;
+          ctx.fillStyle = `hsl(26, 38%, ${shade}%)`;
+          ctx.fillRect(x + offset + gap / 2, y + gap / 2, brickW - gap, brickH - gap);
+        }
+        row += 1;
+      }
+    }
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.RepeatWrapping;
+    texture.repeat.set(4, 1.4);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    return texture;
+  }, []);
+}
+
+function BrickWall({
+  position,
+  rotation = [0, 0, 0],
+  size,
+}: {
+  position: [number, number, number];
+  rotation?: [number, number, number];
+  size: [number, number, number];
+}) {
+  const brickTexture = useBrickTexture();
+  return (
+    <mesh position={position} rotation={rotation}>
+      <boxGeometry args={size} />
+      <meshStandardMaterial map={brickTexture ?? undefined} color={brickTexture ? undefined : "#8a6a4a"} roughness={0.96} />
+    </mesh>
   );
 }
 
