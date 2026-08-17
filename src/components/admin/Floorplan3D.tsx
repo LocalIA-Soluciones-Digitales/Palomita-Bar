@@ -629,16 +629,16 @@ function Architecture() {
           <meshStandardMaterial color="#d8cdb8" roughness={0.8} />
         </mesh>
 
-        {/* Toldo con el logo de neón */}
-        <mesh position={[0, 2.62, 0.2]} castShadow>
+        {/* Toldo con el logo de neón: por encima del dintel (y=2.53) para que no se solape con la puerta */}
+        <mesh position={[0, 3.25, 0.2]} castShadow>
           <boxGeometry args={[PUERTA_ANCHO + 0.7, 0.09, 0.42]} />
           <meshStandardMaterial color="#4a1f2e" roughness={0.7} />
         </mesh>
-        <mesh position={[0, 2.5, 0.02]}>
+        <mesh position={[0, 3.1, 0.02]}>
           <boxGeometry args={[1.55, 1.55, 0.05]} />
           <meshStandardMaterial color="#171519" />
         </mesh>
-        <NeonLogo position={[0, 2.5, 0.09]} scale={0.85} />
+        <NeonLogo position={[0, 3.1, 0.09]} scale={0.85} />
       </group>
 
       {/* Terraza exterior */}
