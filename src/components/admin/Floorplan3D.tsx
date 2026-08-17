@@ -57,8 +57,11 @@ const PRIORIDAD_ESTADO: EstadoMesa[] = [
 type Region = { xMin: number; xMax: number; zMin: number; zMax: number };
 
 // Sala principal: interior del local (ensanchado horizontalmente). Barra: esquina fondo-derecha (en L). Terraza: exterior, más allá del ventanal.
+const REGION_SALA: Region = { xMin: -9.2, xMax: 5.6, zMin: -5.6, zMax: 5.6 };
+
 const REGIONES: Record<PrefijoZona, Region> = {
-  "": { xMin: -9.2, xMax: 5.6, zMin: -5.6, zMax: 5.6 },
+  "": REGION_SALA,
+  S: REGION_SALA,
   B: { xMin: 8.0, xMax: 9.4, zMin: -5.4, zMax: -0.8 },
   T: { xMin: -10.2, xMax: 10.2, zMin: 6.4, zMax: 10.3 },
 };
