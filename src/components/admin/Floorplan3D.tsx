@@ -56,14 +56,16 @@ const PRIORIDAD_ESTADO: EstadoMesa[] = [
 
 type Region = { xMin: number; xMax: number; zMin: number; zMax: number };
 
-// Sala principal: interior del local (ensanchado horizontalmente). Barra: esquina fondo-derecha (en L). Terraza: exterior, más allá del ventanal.
+// Sala principal: interior del local (ensanchado horizontalmente). Barra: esquina fondo-derecha (en L, ampliada). Terraza: exterior, más allá del ventanal.
 const REGION_SALA: Region = { xMin: -9.2, xMax: 5.6, zMin: -5.6, zMax: 5.6 };
 
 const REGIONES: Record<PrefijoZona, Region> = {
   "": REGION_SALA,
   S: REGION_SALA,
-  B: { xMin: 8.0, xMax: 9.4, zMin: -5.4, zMax: -0.8 },
+  B: { xMin: 4.3, xMax: 9.6, zMin: -5.6, zMax: -0.5 },
   T: { xMin: -10.2, xMax: 10.2, zMin: 6.4, zMax: 10.3 },
+  // Salón: zona nueva junto a la barra, engloba la barra ampliada y las mesas de la zona de barra.
+  L: { xMin: 3.2, xMax: 9.8, zMin: -5.9, zMax: -0.2 },
 };
 
 const FLOOR = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
@@ -447,6 +449,50 @@ function MesaUnida({
 const PUERTA_X = 5;
 const PUERTA_ANCHO = 1.8;
 
+// Logo de neón "Palomita": aro rosa + texto, como el cartel neón real del local.
+function NeonLogo({
+  position,
+  rotation = [0, 0, 0],
+  scale = 1,
+}: {
+  position: [number, number, number];
+  rotation?: [number, number, number];
+  scale?: number;
+}) {
+  return (
+    <group position={position} rotation={rotation} scale={scale}>
+      <mesh>
+        <torusGeometry args={[0.58, 0.032, 16, 48]} />
+        <meshStandardMaterial color="#ff6fb0" emissive="#ff2f8f" emissiveIntensity={2.4} toneMapped={false} />
+      </mesh>
+      <Text
+        position={[0, 0.05, 0.03]}
+        fontSize={0.22}
+        color="#ffb3d9"
+        outlineWidth={0.012}
+        outlineColor="#ff2f8f"
+        anchorX="center"
+        anchorY="middle"
+      >
+        Palomita
+      </Text>
+      <Text
+        position={[0, -0.18, 0.03]}
+        fontSize={0.09}
+        color="#ffb3d9"
+        outlineWidth={0.006}
+        outlineColor="#ff2f8f"
+        anchorX="center"
+        anchorY="middle"
+        letterSpacing={0.15}
+      >
+        bar
+      </Text>
+      <pointLight position={[0, 0, 0.5]} intensity={5} distance={3.5} color="#ff2f8f" />
+    </group>
+  );
+}
+
 function Architecture() {
   const numMontantes = 23;
   const montantes = Array.from({ length: numMontantes }).map((_, i) => -10 + i * 0.94);
@@ -465,14 +511,12 @@ function Architecture() {
         <Banquette position={[0, 0.55, 0]} size={[0.7, 0.95, 8]} />
       </group>
 
-      {/* Cartel de la marca en la pared izquierda */}
+      {/* Pared izquierda: acabado en piedra con el logo de neón de Palomita, como junto al sofá del local */}
       <mesh position={[-10.25, 1.6, -1]} rotation={[0, Math.PI / 2, 0]}>
         <boxGeometry args={[9.6, 2.7, 0.16]} />
-        <meshStandardMaterial color="#9b725c" roughness={0.96} />
+        <meshStandardMaterial color="#c7b092" roughness={0.96} />
       </mesh>
-      <Text position={[-10.1, 2.05, -1]} rotation={[0, Math.PI / 2, 0]} fontSize={0.4} color="#f2ddd3" anchorX="center">
-        PALOMITA
-      </Text>
+      <NeonLogo position={[-10.08, 2.1, -1]} rotation={[0, Math.PI / 2, 0]} scale={0.85} />
 
       {/* Barra en L: tramo pegado a la pared derecha */}
       <group position={[9.55, 0.75, -3.1]} rotation={[0, Math.PI / 2, 0]}>
@@ -485,14 +529,14 @@ function Architecture() {
           <meshStandardMaterial color="#d2b28c" roughness={0.55} />
         </mesh>
       </group>
-      {/* Barra en L: tramo pegado a la pared del fondo, se une con el anterior en la esquina */}
-      <group position={[7.95, 0.75, -5.25]}>
+      {/* Barra en L: tramo pegado a la pared del fondo, ampliado hacia la izquierda; se une con el anterior en la esquina */}
+      <group position={[7.05, 0.75, -5.25]}>
         <mesh castShadow>
-          <boxGeometry args={[4.3, 1.4, 1.05]} />
+          <boxGeometry args={[6.1, 1.4, 1.05]} />
           <meshStandardMaterial color="#49332d" roughness={0.8} />
         </mesh>
         <mesh position={[0, 0.78, 0]}>
-          <boxGeometry args={[4.46, 0.1, 1.18]} />
+          <boxGeometry args={[6.26, 0.1, 1.18]} />
           <meshStandardMaterial color="#d2b28c" roughness={0.55} />
         </mesh>
       </group>
@@ -502,12 +546,15 @@ function Architecture() {
         <meshStandardMaterial color="#171519" />
       </mesh>
       {/* Botellero detrás de la barra (pared del fondo) */}
-      <mesh position={[7.95, 1.5, -6.0]}>
-        <boxGeometry args={[4.5, 2.6, 0.25]} />
+      <mesh position={[7.05, 1.5, -6.0]}>
+        <boxGeometry args={[6.3, 2.6, 0.25]} />
         <meshStandardMaterial color="#171519" />
       </mesh>
       <Text position={[8.7, 0.02, -3.1]} rotation={[-Math.PI / 2, 0, Math.PI / 2]} fontSize={0.3} color="#d5c5c1">
         BARRA
+      </Text>
+      <Text position={[6, 0.02, -1.4]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.32} color="#d5c5c1">
+        SALÓN
       </Text>
 
       {/* Ventanal con montantes: separa la sala de la terraza exterior, con hueco de puerta */}
@@ -553,20 +600,10 @@ function Architecture() {
           <meshStandardMaterial color="#3a2a22" roughness={0.6} />
         </mesh>
         <mesh position={[0, 2.55, 0.02]}>
-          <boxGeometry args={[PUERTA_ANCHO + 0.6, 0.5, 0.05]} />
+          <boxGeometry args={[1.05, 1.05, 0.05]} />
           <meshStandardMaterial color="#171519" />
         </mesh>
-        <Text
-          position={[0, 2.55, 0.07]}
-          fontSize={0.28}
-          color="#ff5fa8"
-          outlineWidth={0.03}
-          outlineColor="#171015"
-          anchorX="center"
-          anchorY="middle"
-        >
-          PALOMITA BAR
-        </Text>
+        <NeonLogo position={[0, 2.55, 0.08]} scale={0.5} />
       </group>
 
       {/* Terraza exterior */}
