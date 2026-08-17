@@ -64,8 +64,8 @@ const REGIONES: Record<PrefijoZona, Region> = {
   S: REGION_SALA,
   B: { xMin: 4.3, xMax: 9.6, zMin: -5.6, zMax: -0.5 },
   T: { xMin: -10.2, xMax: 10.2, zMin: 6.4, zMax: 10.3 },
-  // Salón: zona nueva junto a la barra, engloba la barra ampliada y las mesas de la zona de barra.
-  L: { xMin: 3.2, xMax: 9.8, zMin: -5.9, zMax: -0.2 },
+  // Salón: hueco junto a la pared derecha, entre el final de la barra ampliada y la puerta de entrada.
+  L: { xMin: 3.0, xMax: 9.8, zMin: 1.6, zMax: 5.7 },
 };
 
 const FLOOR = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
@@ -488,7 +488,7 @@ function NeonLogo({
       >
         bar
       </Text>
-      <pointLight position={[0, 0, 0.5]} intensity={5} distance={3.5} color="#ff2f8f" />
+      <pointLight position={[0, 0, 0.5]} intensity={7} distance={4.5} color="#ff2f8f" />
     </group>
   );
 }
@@ -516,16 +516,16 @@ function Architecture() {
         <boxGeometry args={[9.6, 2.7, 0.16]} />
         <meshStandardMaterial color="#c7b092" roughness={0.96} />
       </mesh>
-      <NeonLogo position={[-10.08, 2.1, -1]} rotation={[0, Math.PI / 2, 0]} scale={0.85} />
+      <NeonLogo position={[-10.06, 2.0, -1]} rotation={[0, Math.PI / 2, 0]} scale={1.4} />
 
-      {/* Barra en L: tramo pegado a la pared derecha */}
-      <group position={[9.55, 0.75, -3.1]} rotation={[0, Math.PI / 2, 0]}>
+      {/* Barra en L: tramo pegado a la pared derecha, ampliado hacia el frente hasta el hueco del salón */}
+      <group position={[9.55, 0.75, -2.0]} rotation={[0, Math.PI / 2, 0]}>
         <mesh castShadow>
-          <boxGeometry args={[4.8, 1.4, 1.05]} />
+          <boxGeometry args={[7.0, 1.4, 1.05]} />
           <meshStandardMaterial color="#49332d" roughness={0.8} />
         </mesh>
         <mesh position={[0, 0.78, 0]}>
-          <boxGeometry args={[4.96, 0.1, 1.18]} />
+          <boxGeometry args={[7.16, 0.1, 1.18]} />
           <meshStandardMaterial color="#d2b28c" roughness={0.55} />
         </mesh>
       </group>
@@ -541,8 +541,8 @@ function Architecture() {
         </mesh>
       </group>
       {/* Botellero detrás de la barra (pared derecha) */}
-      <mesh position={[10.3, 1.5, -3.3]}>
-        <boxGeometry args={[0.25, 2.6, 5.3]} />
+      <mesh position={[10.3, 1.5, -2.2]}>
+        <boxGeometry args={[0.25, 2.6, 7.5]} />
         <meshStandardMaterial color="#171519" />
       </mesh>
       {/* Botellero detrás de la barra (pared del fondo) */}
@@ -550,10 +550,10 @@ function Architecture() {
         <boxGeometry args={[6.3, 2.6, 0.25]} />
         <meshStandardMaterial color="#171519" />
       </mesh>
-      <Text position={[8.7, 0.02, -3.1]} rotation={[-Math.PI / 2, 0, Math.PI / 2]} fontSize={0.3} color="#d5c5c1">
+      <Text position={[8.7, 0.02, -2.0]} rotation={[-Math.PI / 2, 0, Math.PI / 2]} fontSize={0.3} color="#d5c5c1">
         BARRA
       </Text>
-      <Text position={[6, 0.02, -1.4]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.32} color="#d5c5c1">
+      <Text position={[6.4, 0.02, 3.6]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.32} color="#d5c5c1">
         SALÓN
       </Text>
 
@@ -589,21 +589,56 @@ function Architecture() {
           ))}
       </group>
 
-      {/* Puerta de entrada con cartel neón */}
+      {/* Puerta de entrada: hojas acristaladas con marco, umbral y toldo con el neón */}
       <group position={[PUERTA_X, 0, 6.08]}>
-        <mesh position={[-PUERTA_ANCHO * 0.27, 1.15, 0]} castShadow>
-          <boxGeometry args={[PUERTA_ANCHO * 0.46, 2.3, 0.09]} />
-          <meshStandardMaterial color="#3a2a22" roughness={0.6} />
+        {/* Jambas laterales y dintel */}
+        <mesh position={[-PUERTA_ANCHO / 2 - 0.07, 1.2, 0]} castShadow>
+          <boxGeometry args={[0.14, 2.5, 0.16]} />
+          <meshStandardMaterial color="#2b1f18" roughness={0.55} />
         </mesh>
-        <mesh position={[PUERTA_ANCHO * 0.27, 1.15, 0]} castShadow>
-          <boxGeometry args={[PUERTA_ANCHO * 0.46, 2.3, 0.09]} />
-          <meshStandardMaterial color="#3a2a22" roughness={0.6} />
+        <mesh position={[PUERTA_ANCHO / 2 + 0.07, 1.2, 0]} castShadow>
+          <boxGeometry args={[0.14, 2.5, 0.16]} />
+          <meshStandardMaterial color="#2b1f18" roughness={0.55} />
         </mesh>
-        <mesh position={[0, 2.55, 0.02]}>
-          <boxGeometry args={[1.05, 1.05, 0.05]} />
+        <mesh position={[0, 2.46, 0]} castShadow>
+          <boxGeometry args={[PUERTA_ANCHO + 0.35, 0.14, 0.16]} />
+          <meshStandardMaterial color="#2b1f18" roughness={0.55} />
+        </mesh>
+
+        {/* Hojas de puerta con cristal */}
+        {[-1, 1].map((lado) => (
+          <group key={lado} position={[lado * PUERTA_ANCHO * 0.27, 0, 0]}>
+            <mesh position={[0, 1.15, 0]} castShadow>
+              <boxGeometry args={[PUERTA_ANCHO * 0.44, 2.3, 0.08]} />
+              <meshStandardMaterial color="#3a2a22" roughness={0.55} />
+            </mesh>
+            <mesh position={[0, 1.2, 0.005]}>
+              <boxGeometry args={[PUERTA_ANCHO * 0.32, 1.8, 0.03]} />
+              <meshStandardMaterial color="#9cc3d6" roughness={0.1} metalness={0.1} transparent opacity={0.32} />
+            </mesh>
+            <mesh position={[lado * -0.14, 1.0, 0.06]}>
+              <boxGeometry args={[0.03, 0.75, 0.03]} />
+              <meshStandardMaterial color="#111013" metalness={0.7} roughness={0.25} />
+            </mesh>
+          </group>
+        ))}
+
+        {/* Umbral */}
+        <mesh position={[0, 0.02, 0]}>
+          <boxGeometry args={[PUERTA_ANCHO + 0.35, 0.04, 0.32]} />
+          <meshStandardMaterial color="#d8cdb8" roughness={0.8} />
+        </mesh>
+
+        {/* Toldo con el logo de neón */}
+        <mesh position={[0, 2.62, 0.2]} castShadow>
+          <boxGeometry args={[PUERTA_ANCHO + 0.7, 0.09, 0.42]} />
+          <meshStandardMaterial color="#4a1f2e" roughness={0.7} />
+        </mesh>
+        <mesh position={[0, 2.5, 0.02]}>
+          <boxGeometry args={[1.55, 1.55, 0.05]} />
           <meshStandardMaterial color="#171519" />
         </mesh>
-        <NeonLogo position={[0, 2.55, 0.08]} scale={0.5} />
+        <NeonLogo position={[0, 2.5, 0.09]} scale={0.85} />
       </group>
 
       {/* Terraza exterior */}
