@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { getCarta, getCategorias, crearPedido } from "@/lib/restaurant/queries";
 import { formatCentimos } from "@/lib/format";
 import type { Categoria, Producto } from "@/lib/restaurant/types";
-import { MinusIcon, PlusIcon } from "@/components/icons";
+import { PlusIcon } from "@/components/icons";
+import { ProductGridPicker } from "@/components/admin/ProductGridPicker";
 
 export function PedidoRapidoForm({
   mesaIdentificador,
@@ -75,20 +76,20 @@ export function PedidoRapidoForm({
       <button
         type="button"
         onClick={() => setAbierto(true)}
-        className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg border border-noche-border py-2 text-xs uppercase tracking-widest2 text-noche-ink-muted hover:border-noche-primary hover:text-noche-ink"
+        className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg border border-noche-border py-2.5 text-xs uppercase tracking-widest2 text-noche-ink-muted transition-colors hover:border-noche-primary hover:text-noche-ink"
       >
         <PlusIcon className="h-3.5 w-3.5" />
-        Nuevo pedido (barra)
+        Nuevo pedido
       </button>
     );
   }
 
-  const productosCategoria = productos.filter((p) => p.categoria_id === categoriaActiva);
-
   return (
-    <div className="mt-3 rounded-lg border border-noche-border bg-noche-surface-2/60 p-3">
+    <div className="mt-3 rounded-xl border border-noche-border bg-noche-surface-2/60 p-3">
       <div className="flex items-center justify-between">
-        <p className="text-xs uppercase tracking-widest2 text-noche-ink-muted">Nuevo pedido</p>
+        <p className="text-xs font-semibold uppercase tracking-widest2 text-noche-ink-muted">
+          Nuevo pedido
+        </p>
         <button
           type="button"
           onClick={() => setAbierto(false)}
@@ -102,66 +103,28 @@ export function PedidoRapidoForm({
         <p className="mt-3 text-sm text-noche-ink-muted">Cargando carta…</p>
       ) : (
         <>
-          <div className="mt-3 flex flex-wrap gap-1">
-            {categorias.map((c) => (
-              <button
-                key={c.id}
-                type="button"
-                onClick={() => setCategoriaActiva(c.id)}
-                className={`rounded-lg px-2.5 py-1 text-[11px] uppercase tracking-widest2 ${
-                  categoriaActiva === c.id
-                    ? "bg-noche-primary/15 text-noche-primary"
-                    : "bg-noche-surface text-noche-ink-muted"
-                }`}
-              >
-                {c.nombre}
-              </button>
-            ))}
-          </div>
-
-          <div className="mt-3 max-h-56 space-y-1 overflow-y-auto">
-            {productosCategoria.map((producto) => {
-              const cantidad = cantidades[producto.id] ?? 0;
-              return (
-                <div key={producto.id} className="flex items-center justify-between gap-2 py-1">
-                  <div className="min-w-0">
-                    <p className="truncate text-sm text-noche-ink">{producto.nombre}</p>
-                    <p className="text-xs text-noche-ink-muted">
-                      {formatCentimos(producto.precio_centimos)} €
-                    </p>
-                  </div>
-                  <div className="flex shrink-0 items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setCantidad(producto.id, -1)}
-                      disabled={cantidad === 0}
-                      className="flex h-7 w-7 items-center justify-center rounded-full border border-noche-border text-noche-ink disabled:opacity-30"
-                    >
-                      <MinusIcon className="h-3 w-3" />
-                    </button>
-                    <span className="w-4 text-center text-sm text-noche-ink">{cantidad}</span>
-                    <button
-                      type="button"
-                      onClick={() => setCantidad(producto.id, 1)}
-                      className="flex h-7 w-7 items-center justify-center rounded-full border border-noche-border text-noche-ink"
-                    >
-                      <PlusIcon className="h-3 w-3" />
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          <ProductGridPicker
+            categorias={categorias}
+            productos={productos}
+            categoriaActiva={categoriaActiva}
+            onCategoriaChange={setCategoriaActiva}
+            cantidades={cantidades}
+            onCantidadChange={setCantidad}
+            className="mt-3"
+            listMaxHeightClassName="max-h-56"
+          />
 
           {error ? <p className="mt-2 text-xs text-noche-danger">{error}</p> : null}
 
-          <div className="mt-3 flex items-center justify-between border-t border-noche-border pt-2">
-            <span className="text-sm font-medium text-noche-ink">{formatCentimos(totalCentimos)} €</span>
+          <div className="mt-3 flex items-center justify-between border-t border-noche-border pt-2.5">
+            <span className="text-sm font-medium text-noche-ink">
+              {formatCentimos(totalCentimos)} €
+            </span>
             <button
               type="button"
               disabled={lineas.length === 0 || enviando}
               onClick={handleEnviar}
-              className="rounded-lg bg-noche-primary px-4 py-2 text-xs uppercase tracking-widest2 text-noche-ink disabled:opacity-40"
+              className="rounded-lg bg-noche-primary px-4 py-2 text-xs uppercase tracking-widest2 text-noche-ink transition-colors hover:bg-noche-primary-dark disabled:opacity-40"
             >
               {enviando ? "Enviando…" : "Enviar a cocina"}
             </button>

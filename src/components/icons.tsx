@@ -493,6 +493,15 @@ export function BellIcon({ className }: { className?: string }) {
   );
 }
 
+export function GlassIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} className={className}>
+      <path d="M4.5 4.5h15L12 13.5 4.5 4.5z" strokeLinejoin="round" />
+      <path d="M12 13.5V19M8.5 19h7" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export function AllergenIcon({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} className={className}>

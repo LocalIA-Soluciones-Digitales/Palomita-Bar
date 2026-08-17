@@ -13,6 +13,7 @@ import {
   EyeIcon,
   FireIcon,
   GaugeIcon,
+  GlassIcon,
   LogoutIcon,
   ReportIcon,
   SettingsIcon,
@@ -24,6 +25,7 @@ import {
 const GESTION_LINKS = [
   { href: "/admin/cocina", label: "Cocina", icon: FireIcon },
   { href: "/admin/mesas", label: "Mesas", icon: TableIcon },
+  { href: "/admin/barra", label: "Barra", icon: GlassIcon },
   { href: "/admin/productos", label: "Productos", icon: BoxIcon },
   { href: "/admin/categorias", label: "Categorías", icon: TagIcon },
   { href: "/admin/ventas", label: "Ventas", icon: ChartBarIcon },
