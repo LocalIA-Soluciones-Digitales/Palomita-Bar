@@ -540,22 +540,40 @@ function Architecture() {
           <meshStandardMaterial color="#d2b28c" roughness={0.55} />
         </mesh>
       </group>
-      {/* Botellero detrás de la barra (pared derecha) */}
+      {/* Botellero detrás de la barra (pared derecha), retroiluminado en violeta como el real */}
       <mesh position={[10.3, 1.5, -2.2]}>
         <boxGeometry args={[0.25, 2.6, 7.5]} />
         <meshStandardMaterial color="#171519" />
       </mesh>
-      {/* Botellero detrás de la barra (pared del fondo) */}
+      <mesh position={[10.17, 1.5, -2.2]}>
+        <boxGeometry args={[0.02, 2.5, 7.3]} />
+        <meshStandardMaterial color="#7a3dff" emissive="#8b4cff" emissiveIntensity={2.2} toneMapped={false} />
+      </mesh>
+      {/* Botellero detrás de la barra (pared del fondo), retroiluminado en violeta */}
       <mesh position={[7.05, 1.5, -6.0]}>
         <boxGeometry args={[6.3, 2.6, 0.25]} />
         <meshStandardMaterial color="#171519" />
       </mesh>
+      <mesh position={[7.05, 1.5, -5.87]}>
+        <boxGeometry args={[6.1, 2.5, 0.02]} />
+        <meshStandardMaterial color="#7a3dff" emissive="#8b4cff" emissiveIntensity={2.2} toneMapped={false} />
+      </mesh>
+      {/* Taburetes altos junto a la barra, como en el local real */}
+      {[-4.6, -3.4, -2.2].map((x, i) => (
+        <BarStool key={i} position={[x, 0, -1.1]} />
+      ))}
+      {/* Pantalla de TV sobre la esquina de la barra */}
+      <TvScreen position={[8.9, 2.55, -5.85]} rotation={[0, 0, 0]} />
       <Text position={[8.7, 0.02, -2.0]} rotation={[-Math.PI / 2, 0, Math.PI / 2]} fontSize={0.3} color="#d5c5c1">
         BARRA
       </Text>
       <Text position={[6.4, 0.02, 3.6]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.32} color="#d5c5c1">
         SALÓN
       </Text>
+      {/* Neón rosa circular en la zona de salón, como el cartel "Santísima Trinidad" del local */}
+      <NeonLogo position={[4.6, 1.9, 1.75]} rotation={[0, -Math.PI / 2, 0]} scale={0.9} />
+      {/* Estantería con plantas y letrero luminoso "Aquí se viene a disfrutar" en el salón */}
+      <DisplayShelf position={[3.5, 0, 3.6]} />
 
       {/* Ventanal con montantes: separa la sala de la terraza exterior, con hueco de puerta */}
       <group position={[0, 1.7, 6.1]}>
@@ -589,16 +607,16 @@ function Architecture() {
           ))}
       </group>
 
-      {/* Puerta de entrada: hojas acristaladas con marco, umbral y toldo con el neón */}
+      {/* Puerta de entrada: hojas acristaladas blancas con marco, umbral y toldo con el neón */}
       <group position={[PUERTA_X, 0, 6.08]}>
-        {/* Zócalo de fachada en ladrillo granate bajo el escaparate, como en la fachada real */}
+        {/* Zócalo de fachada gris bajo el escaparate, como en la fachada real */}
         <mesh position={[-1.55, 0.45, -0.02]}>
           <boxGeometry args={[1.4, 0.9, 0.1]} />
-          <meshStandardMaterial color="#5a2a24" roughness={0.85} />
+          <meshStandardMaterial color="#7a7a7e" roughness={0.85} />
         </mesh>
         <mesh position={[1.55, 0.45, -0.02]}>
           <boxGeometry args={[1.4, 0.9, 0.1]} />
-          <meshStandardMaterial color="#5a2a24" roughness={0.85} />
+          <meshStandardMaterial color="#7a7a7e" roughness={0.85} />
         </mesh>
 
         {/* Cartel "Palomita Bar" en cursiva sobre la puerta, como el rótulo metálico real */}
@@ -606,38 +624,38 @@ function Architecture() {
           Palomita Bar
         </Text>
 
-        {/* Bancos de madera a ambos lados de la puerta, como en el acceso real */}
-        <WoodBench position={[-1.55, 0, 0.28]} />
+        {/* Maceta con planta junto a la puerta, como el ficus real de la entrada */}
+        <PottedPlant position={[-1.35, 0, 0.5]} />
         <WoodBench position={[1.55, 0, 0.28]} />
 
-        {/* Jambas laterales y dintel */}
+        {/* Jambas laterales y dintel, en blanco como el marco real */}
         <mesh position={[-PUERTA_ANCHO / 2 - 0.07, 1.2, 0]} castShadow>
           <boxGeometry args={[0.14, 2.5, 0.16]} />
-          <meshStandardMaterial color="#2b1f18" roughness={0.55} />
+          <meshStandardMaterial color="#e8e6e2" roughness={0.5} />
         </mesh>
         <mesh position={[PUERTA_ANCHO / 2 + 0.07, 1.2, 0]} castShadow>
           <boxGeometry args={[0.14, 2.5, 0.16]} />
-          <meshStandardMaterial color="#2b1f18" roughness={0.55} />
+          <meshStandardMaterial color="#e8e6e2" roughness={0.5} />
         </mesh>
         <mesh position={[0, 2.46, 0]} castShadow>
           <boxGeometry args={[PUERTA_ANCHO + 0.35, 0.14, 0.16]} />
-          <meshStandardMaterial color="#2b1f18" roughness={0.55} />
+          <meshStandardMaterial color="#e8e6e2" roughness={0.5} />
         </mesh>
 
-        {/* Hojas de puerta con cristal */}
+        {/* Hojas de puerta blancas con cristal y tirador en forma de clave de sol */}
         {[-1, 1].map((lado) => (
           <group key={lado} position={[lado * PUERTA_ANCHO * 0.27, 0, 0]}>
             <mesh position={[0, 1.15, 0]} castShadow>
               <boxGeometry args={[PUERTA_ANCHO * 0.44, 2.3, 0.08]} />
-              <meshStandardMaterial color="#3a2a22" roughness={0.55} />
+              <meshStandardMaterial color="#e8e6e2" roughness={0.4} />
             </mesh>
             <mesh position={[0, 1.2, 0.005]}>
               <boxGeometry args={[PUERTA_ANCHO * 0.32, 1.8, 0.03]} />
-              <meshStandardMaterial color="#9cc3d6" roughness={0.1} metalness={0.1} transparent opacity={0.32} />
+              <meshStandardMaterial color="#bcd4de" roughness={0.05} metalness={0.1} transparent opacity={0.28} />
             </mesh>
             <mesh position={[lado * -0.14, 1.0, 0.06]}>
               <boxGeometry args={[0.03, 0.75, 0.03]} />
-              <meshStandardMaterial color="#111013" metalness={0.7} roughness={0.25} />
+              <meshStandardMaterial color="#3a2f1a" metalness={0.8} roughness={0.2} />
             </mesh>
           </group>
         ))}
@@ -722,14 +740,14 @@ function PorticoColumn({ position }: { position: [number, number, number] }) {
 function AwningTerraza({ position, width }: { position: [number, number, number]; width: number }) {
   return (
     <group position={position}>
-      <mesh position={[0, 2.85, 0]} rotation={[0.18, 0, 0]} castShadow>
+      <mesh position={[0, 2.85, 0]} rotation={[0.18, 0, 0]}>
         <boxGeometry args={[width, 0.08, 2.6]} />
-        <meshStandardMaterial color="#7a2436" roughness={0.75} />
+        <meshStandardMaterial color="#7a2436" roughness={0.75} transparent opacity={0.38} depthWrite={false} />
       </mesh>
       {/* Faldón frontal con el nombre */}
       <mesh position={[0, 2.35, 1.28]}>
         <boxGeometry args={[width, 0.55, 0.05]} />
-        <meshStandardMaterial color="#6e1f2f" roughness={0.75} />
+        <meshStandardMaterial color="#6e1f2f" roughness={0.75} transparent opacity={0.55} depthWrite={false} />
       </mesh>
       <Text
         position={[0, 2.35, 1.31]}
@@ -809,6 +827,85 @@ function WoodBench({ position }: { position: [number, number, number] }) {
           <meshStandardMaterial color="#5b3a24" roughness={0.85} />
         </mesh>
       ))}
+    </group>
+  );
+}
+
+// Taburete alto de barra, como los de patas metálicas del local real.
+function BarStool({ position }: { position: [number, number, number] }) {
+  return (
+    <group position={position}>
+      <mesh position={[0, 0.35, 0]} castShadow>
+        <cylinderGeometry args={[0.02, 0.02, 0.7, 8]} />
+        <meshStandardMaterial color="#d8d3c8" metalness={0.6} roughness={0.35} />
+      </mesh>
+      <mesh position={[0, 0.72, 0]} castShadow>
+        <cylinderGeometry args={[0.24, 0.24, 0.06, 16]} />
+        <meshStandardMaterial color="#1c1a1c" roughness={0.7} />
+      </mesh>
+    </group>
+  );
+}
+
+// Pantalla de TV en pared, como las que hay sobre la barra y el salón del local.
+function TvScreen({
+  position,
+  rotation = [0, 0, 0],
+}: {
+  position: [number, number, number];
+  rotation?: [number, number, number];
+}) {
+  return (
+    <group position={position} rotation={rotation}>
+      <mesh>
+        <boxGeometry args={[1.1, 0.65, 0.04]} />
+        <meshStandardMaterial color="#0a0a0c" roughness={0.4} />
+      </mesh>
+      <mesh position={[0, 0, 0.025]}>
+        <planeGeometry args={[1.0, 0.55]} />
+        <meshStandardMaterial color="#3a6fd8" emissive="#3a6fd8" emissiveIntensity={1.4} toneMapped={false} />
+      </mesh>
+    </group>
+  );
+}
+
+// Estantería expositora con velas y letrero luminoso, como la del salón real ("Aquí se viene a disfrutar").
+function DisplayShelf({ position }: { position: [number, number, number] }) {
+  return (
+    <group position={position}>
+      <mesh position={[0, 0.9, 0]} castShadow>
+        <boxGeometry args={[1.3, 1.8, 0.4]} />
+        <meshStandardMaterial color="#1c1a1c" wireframe />
+      </mesh>
+      <mesh position={[0, 1.35, 0.15]}>
+        <boxGeometry args={[0.7, 0.22, 0.02]} />
+        <meshStandardMaterial color="#f4f1ea" emissive="#f4f1ea" emissiveIntensity={0.6} toneMapped={false} />
+      </mesh>
+      <pointLight position={[0, 1.35, 0.4]} intensity={3} distance={2.5} color="#ff9fd0" />
+    </group>
+  );
+}
+
+// Maceta con ficus junto a la entrada, como la planta real del acceso.
+function PottedPlant({ position }: { position: [number, number, number] }) {
+  return (
+    <group position={position}>
+      <mesh position={[0, 0.22, 0]} castShadow>
+        <cylinderGeometry args={[0.24, 0.19, 0.42, 16]} />
+        <meshStandardMaterial color="#c9955a" roughness={0.8} />
+      </mesh>
+      <mesh position={[0, 0.55, 0]} castShadow>
+        <cylinderGeometry args={[0.03, 0.03, 0.7, 6]} />
+        <meshStandardMaterial color="#5b4326" roughness={0.9} />
+      </mesh>
+      <mesh position={[0, 1.05, 0.05]} castShadow>
+        <sphereGeometry args={[0.42, 10, 10]} />
+        <meshStandardMaterial color="#3d6b3a" roughness={0.85} />
+      </mesh>
+      <mesh position={[-0.15, 0.85, -0.1]} castShadow>
+        <sphereGeometry args={[0.26, 8, 8]} />
+        <meshStandardMaterial color="#456b3e" roughness={0.85} />
+      </mesh>
     </group>
   );
 }
