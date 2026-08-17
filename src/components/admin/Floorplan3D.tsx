@@ -700,7 +700,7 @@ function Architecture() {
       <PorticoColumn position={[8.2, 0, 6.7]} />
 
       {/* Toldo granate de la terraza con el nombre del bar, sobre las mesas exteriores */}
-      <AwningTerraza position={[-4.4, 0, 8.1]} width={11.6} />
+      <AwningTerraza position={[1.6, 0, 8.1]} width={16.4} />
 
       {/* Arbolado detrás de la terraza, como en la plaza real */}
       <StreetTree position={[-9.2, 0, 9.9]} />
