@@ -559,8 +559,11 @@ function Architecture() {
         <meshStandardMaterial color="#7a3dff" emissive="#8b4cff" emissiveIntensity={2.2} toneMapped={false} />
       </mesh>
       {/* Taburetes altos junto a la barra, como en el local real */}
-      {[-4.6, -3.4, -2.2].map((x, i) => (
-        <BarStool key={i} position={[x, 0, -1.1]} />
+      {[-4.0, -2.3, -0.6, 1.1].map((z, i) => (
+        <BarStool key={`v-${i}`} position={[8.0, 0, z]} />
+      ))}
+      {[5.2, 6.7].map((x, i) => (
+        <BarStool key={`h-${i}`} position={[x, 0, -4.2]} />
       ))}
       {/* Pantalla de TV sobre la esquina de la barra */}
       <TvScreen position={[8.9, 2.55, -5.85]} rotation={[0, 0, 0]} />
