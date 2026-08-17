@@ -122,7 +122,9 @@ export default function Floorplan3D({
           <planeGeometry args={[21, 12]} />
           <meshStandardMaterial color="#262125" roughness={0.85} />
         </mesh>
-        <gridHelper args={[21, 24, "#3a3238", "#2c262b"]} position={[0, -0.17, 0]} />
+        <group position={[0, -0.17, 0]} scale={[21 / 12, 1, 1]}>
+          <gridHelper args={[12, 14, "#3a3238", "#2c262b"]} />
+        </group>
 
         <Architecture />
 
@@ -699,7 +701,9 @@ function Architecture() {
         <planeGeometry args={[21, 4.7]} />
         <meshStandardMaterial color="#a9855f" roughness={0.9} />
       </mesh>
-      <gridHelper args={[21, 21, "#b89a72", "#9c7d58"]} position={[0, -0.169, 8.35]} />
+      <group position={[0, -0.169, 8.35]} scale={[21 / 4.7, 1, 1]}>
+        <gridHelper args={[4.7, 6, "#b8946e", "#ae8a64"]} />
+      </group>
       {montantes.map((x, i) => (
         <mesh key={i} position={[x, 0.35, 10.55]}>
           <boxGeometry args={[0.05, 0.7, 0.05]} />
