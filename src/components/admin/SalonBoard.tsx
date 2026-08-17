@@ -849,6 +849,7 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
               seleccionadaId={mesaSeleccionadaId}
               seleccionUnion={seleccionUnion}
               top={vistaSuperior}
+              focusZona={zonaActivaId ? prefijoZona(zonaActivaId, zonas) : null}
               onSelect={handleMesaSelect}
               onDragMove={handleMesaDragMove}
               onDragEnd={handleMesaDragEnd}
