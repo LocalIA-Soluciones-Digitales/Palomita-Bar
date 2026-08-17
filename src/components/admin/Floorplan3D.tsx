@@ -56,11 +56,11 @@ const PRIORIDAD_ESTADO: EstadoMesa[] = [
 
 type Region = { xMin: number; xMax: number; zMin: number; zMax: number };
 
-// Sala principal: interior del local. Barra: franja frente a la barra. Terraza: exterior, más allá del ventanal.
+// Sala principal: interior del local (ensanchado horizontalmente). Barra: esquina fondo-derecha. Terraza: exterior, más allá del ventanal.
 const REGIONES: Record<PrefijoZona, Region> = {
-  "": { xMin: -7.2, xMax: 5.2, zMin: -5.6, zMax: 5.6 },
-  B: { xMin: 5.7, xMax: 6.6, zMin: -1.6, zMax: 3.9 },
-  T: { xMin: -7.6, xMax: 7.6, zMin: 6.4, zMax: 10.3 },
+  "": { xMin: -9.2, xMax: 7.6, zMin: -5.6, zMax: 5.6 },
+  B: { xMin: 8.0, xMax: 9.4, zMin: -5.4, zMax: -0.8 },
+  T: { xMin: -10.2, xMax: 10.2, zMin: 6.4, zMax: 10.3 },
 };
 
 const FLOOR = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
@@ -114,10 +114,10 @@ export default function Floorplan3D({
         <hemisphereLight args={["#3a3f52", "#0c0910", 0.5]} />
 
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.18, 0]} receiveShadow>
-          <planeGeometry args={[17, 12]} />
+          <planeGeometry args={[21, 12]} />
           <meshStandardMaterial color="#262125" roughness={0.85} />
         </mesh>
-        <gridHelper args={[17, 20, "#3a3238", "#2c262b"]} position={[0, -0.17, 0]} />
+        <gridHelper args={[21, 24, "#3a3238", "#2c262b"]} position={[0, -0.17, 0]} />
 
         <Architecture />
 
@@ -441,81 +441,136 @@ function MesaUnida({
   );
 }
 
+const PUERTA_X = 5;
+const PUERTA_ANCHO = 1.8;
+
 function Architecture() {
+  const numMontantes = 23;
+  const montantes = Array.from({ length: numMontantes }).map((_, i) => -10 + i * 0.94);
+
   return (
     <group>
-      <Wall p={[-8.4, 1.5, -0.9]} s={[0.24, 3, 10.7]} />
-      <Wall p={[8.4, 1.5, -0.9]} s={[0.24, 3, 10.7]} />
-      <Wall p={[0, 1.5, -6.1]} s={[17.3, 3, 0.24]} />
+      <Wall p={[-10.4, 1.5, -0.9]} s={[0.24, 3, 10.7]} />
+      <Wall p={[10.4, 1.5, -0.9]} s={[0.24, 3, 10.7]} />
+      <Wall p={[0, 1.5, -6.1]} s={[21.3, 3, 0.24]} />
 
-      {/* Pared de ladrillo con el neón de la marca */}
-      <mesh position={[-2, 1.6, -5.95]}>
+      {/* Sofás / banquetas contra la pared del fondo */}
+      <group position={[-5.2, 0, -5.7]} rotation={[0, Math.PI / 2, 0]}>
+        <Banquette position={[0, 0.55, 0]} size={[0.7, 0.95, 8]} />
+      </group>
+      <group position={[5.2, 0, -5.7]} rotation={[0, Math.PI / 2, 0]}>
+        <Banquette position={[0, 0.55, 0]} size={[0.7, 0.95, 8]} />
+      </group>
+
+      {/* Cartel de la marca en la pared izquierda */}
+      <mesh position={[-10.25, 1.6, -1]} rotation={[0, Math.PI / 2, 0]}>
         <boxGeometry args={[9.6, 2.7, 0.16]} />
         <meshStandardMaterial color="#9b725c" roughness={0.96} />
       </mesh>
-      <Text position={[-2, 2.05, -5.8]} fontSize={0.4} color="#f2ddd3" anchorX="center">
+      <Text position={[-10.1, 2.05, -1]} rotation={[0, Math.PI / 2, 0]} fontSize={0.4} color="#f2ddd3" anchorX="center">
         PALOMITA
       </Text>
 
-      {/* Barra */}
-      <group position={[7.1, 0.75, 1.2]} rotation={[0, Math.PI / 2, 0]}>
+      {/* Barra: esquina del fondo a la derecha */}
+      <group position={[9.55, 0.75, -3.1]} rotation={[0, Math.PI / 2, 0]}>
         <mesh castShadow>
-          <boxGeometry args={[6, 1.4, 1.05]} />
+          <boxGeometry args={[4.8, 1.4, 1.05]} />
           <meshStandardMaterial color="#49332d" roughness={0.8} />
         </mesh>
         <mesh position={[0, 0.78, 0]}>
-          <boxGeometry args={[6.16, 0.1, 1.18]} />
+          <boxGeometry args={[4.96, 0.1, 1.18]} />
           <meshStandardMaterial color="#d2b28c" roughness={0.55} />
         </mesh>
       </group>
       {/* Botellero detrás de la barra */}
-      <mesh position={[8.15, 1.5, 1.2]}>
-        <boxGeometry args={[0.25, 2.6, 5.6]} />
+      <mesh position={[10.3, 1.5, -3.1]}>
+        <boxGeometry args={[0.25, 2.6, 4.9]} />
         <meshStandardMaterial color="#171519" />
       </mesh>
-      <Text position={[6.15, 0.02, 1.1]} rotation={[-Math.PI / 2, 0, Math.PI / 2]} fontSize={0.3} color="#d5c5c1">
+      <Text position={[8.7, 0.02, -3.1]} rotation={[-Math.PI / 2, 0, Math.PI / 2]} fontSize={0.3} color="#d5c5c1">
         BARRA
       </Text>
 
-      {/* Sofás / banquetas junto a la pared opuesta */}
-      <Banquette position={[-7.7, 0.55, -2.6]} size={[0.7, 0.95, 5.2]} />
-      <Banquette position={[-7.7, 0.55, 3.6]} size={[0.7, 0.95, 3.4]} />
-
-      {/* Ventanal con montantes: separa la sala de la terraza exterior */}
+      {/* Ventanal con montantes: separa la sala de la terraza exterior, con hueco de puerta */}
       <group position={[0, 1.7, 6.1]}>
-        <mesh>
-          <boxGeometry args={[16.6, 2.5, 0.06]} />
-          <meshStandardMaterial color="#243038" transparent opacity={0.22} />
+        {(() => {
+          const bordeIzq = -10.3;
+          const bordeDer = 10.3;
+          const puertaIzq = PUERTA_X - PUERTA_ANCHO / 2;
+          const puertaDer = PUERTA_X + PUERTA_ANCHO / 2;
+          const panelIzqAncho = puertaIzq - bordeIzq;
+          const panelDerAncho = bordeDer - puertaDer;
+          return (
+            <>
+              <mesh position={[bordeIzq + panelIzqAncho / 2, 0, 0]}>
+                <boxGeometry args={[panelIzqAncho, 2.5, 0.06]} />
+                <meshStandardMaterial color="#243038" transparent opacity={0.22} />
+              </mesh>
+              <mesh position={[puertaDer + panelDerAncho / 2, 0, 0]}>
+                <boxGeometry args={[panelDerAncho, 2.5, 0.06]} />
+                <meshStandardMaterial color="#243038" transparent opacity={0.22} />
+              </mesh>
+            </>
+          );
+        })()}
+        {montantes
+          .filter((x) => Math.abs(x - PUERTA_X) > PUERTA_ANCHO / 2 + 0.1)
+          .map((x, i) => (
+            <mesh key={i} position={[x, 0, -0.05]}>
+              <boxGeometry args={[0.06, 2.6, 0.06]} />
+              <meshStandardMaterial color="#191619" />
+            </mesh>
+          ))}
+      </group>
+
+      {/* Puerta de entrada con cartel neón */}
+      <group position={[PUERTA_X, 0, 6.08]}>
+        <mesh position={[-PUERTA_ANCHO * 0.27, 1.15, 0]} castShadow>
+          <boxGeometry args={[PUERTA_ANCHO * 0.46, 2.3, 0.09]} />
+          <meshStandardMaterial color="#3a2a22" roughness={0.6} />
         </mesh>
-        {Array.from({ length: 18 }).map((_, i) => (
-          <mesh key={i} position={[-8 + i * 0.94, 0, -0.05]}>
-            <boxGeometry args={[0.06, 2.6, 0.06]} />
-            <meshStandardMaterial color="#191619" />
-          </mesh>
-        ))}
+        <mesh position={[PUERTA_ANCHO * 0.27, 1.15, 0]} castShadow>
+          <boxGeometry args={[PUERTA_ANCHO * 0.46, 2.3, 0.09]} />
+          <meshStandardMaterial color="#3a2a22" roughness={0.6} />
+        </mesh>
+        <mesh position={[0, 2.55, 0.02]}>
+          <boxGeometry args={[PUERTA_ANCHO + 0.6, 0.5, 0.05]} />
+          <meshStandardMaterial color="#171519" />
+        </mesh>
+        <Text
+          position={[0, 2.55, 0.07]}
+          fontSize={0.28}
+          color="#ff5fa8"
+          outlineWidth={0.03}
+          outlineColor="#171015"
+          anchorX="center"
+          anchorY="middle"
+        >
+          PALOMITA BAR
+        </Text>
       </group>
 
       {/* Terraza exterior */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.18, 8.35]} receiveShadow>
-        <planeGeometry args={[17, 4.7]} />
+        <planeGeometry args={[21, 4.7]} />
         <meshStandardMaterial color="#1c2420" roughness={0.92} />
       </mesh>
-      <gridHelper args={[17, 12, "#33403a", "#28322d"]} position={[0, -0.17, 8.35]} />
-      {Array.from({ length: 18 }).map((_, i) => (
-        <mesh key={i} position={[-8 + i * 0.94, 0.35, 10.55]}>
+      <gridHelper args={[21, 12, "#33403a", "#28322d"]} position={[0, -0.17, 8.35]} />
+      {montantes.map((x, i) => (
+        <mesh key={i} position={[x, 0.35, 10.55]}>
           <boxGeometry args={[0.05, 0.7, 0.05]} />
           <meshStandardMaterial color="#171519" />
         </mesh>
       ))}
-      <Maceta position={[-7.6, 0, 7]} />
-      <Maceta position={[7.6, 0, 7]} />
-      <Maceta position={[-7.6, 0, 10.1]} />
-      <Maceta position={[7.6, 0, 10.1]} />
+      <Maceta position={[-9.7, 0, 7]} />
+      <Maceta position={[9.7, 0, 7]} />
+      <Maceta position={[-9.7, 0, 10.1]} />
+      <Maceta position={[9.7, 0, 10.1]} />
       <Text position={[0, 0.02, 9.5]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.32} color="#c9d8cf">
         TERRAZA
       </Text>
 
-      <Text position={[-2.5, 0.02, 4.6]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.32} color="#d5c5c1">
+      <Text position={[-1, 0.02, 4.6]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.32} color="#d5c5c1">
         SALA PRINCIPAL
       </Text>
     </group>
