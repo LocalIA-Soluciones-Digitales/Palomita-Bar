@@ -38,6 +38,7 @@ export function MesasGestion() {
   const [nuevaCapacidad, setNuevaCapacidad] = useState("4");
   const [nombreEditado, setNombreEditado] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
+  const [mensaje, setMensaje] = useState<string | null>(null);
 
   const cargar = async () => {
     try {
@@ -59,6 +60,12 @@ export function MesasGestion() {
     cargar();
   }, []);
 
+  useEffect(() => {
+    if (!mensaje) return;
+    const timeout = setTimeout(() => setMensaje(null), 4000);
+    return () => clearTimeout(timeout);
+  }, [mensaje]);
+
   const handleNuevaZonaChange = (zonaId: string) => {
     setNuevaZonaId(zonaId);
     const prefijo = prefijoZona(zonaId || null, zonas);
@@ -68,15 +75,31 @@ export function MesasGestion() {
     });
   };
 
+  const normalizarNumero = (numero: string, prefijo: string): string => {
+    const trimmed = numero.trim();
+    if (!prefijo) return trimmed;
+    if (trimmed.toUpperCase().startsWith(prefijo)) return trimmed.toUpperCase();
+    const resto = trimmed.replace(/^[A-Za-z]+/, "");
+    return `${prefijo}${resto}`;
+  };
+
   const handleCrear = async () => {
-    const numero = nuevoNumero.trim();
+    const prefijo = prefijoZona(nuevaZonaId || null, zonas);
+    const numero = normalizarNumero(nuevoNumero, prefijo);
     if (!numero) return;
+    setError(null);
     try {
-      await crearMesaAdmin(numero, nuevoNombre.trim(), nuevaZonaId || null, Number(nuevaCapacidad) || 4);
-      setNuevoNumero("");
+      const mesaCreada = await crearMesaAdmin(
+        numero,
+        nuevoNombre.trim(),
+        nuevaZonaId || null,
+        Number(nuevaCapacidad) || 4,
+      );
+      setNuevoNumero(prefijo);
       setNuevoNombre("");
       setNuevaCapacidad("4");
       await cargar();
+      setMensaje(`Mesa ${mesaCreada.numero} creada correctamente.`);
     } catch (err) {
       setError(mensajeError("No se ha podido crear la mesa (¿ya existe ese número?).", err));
     }
@@ -192,6 +215,12 @@ export function MesasGestion() {
           Crear mesa
         </button>
       </div>
+
+      {mensaje ? (
+        <div className="mt-3 rounded-lg border border-noche-positive/30 bg-noche-positive/10 px-3 py-2 text-sm text-noche-positive">
+          {mensaje}
+        </div>
+      ) : null}
 
       {error ? (
         <div className="mt-3 flex items-center justify-between rounded-lg border border-noche-danger/30 bg-noche-danger/10 px-3 py-2 text-sm text-noche-danger">
