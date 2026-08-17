@@ -13,6 +13,7 @@ import {
   regenerarQrMesaAdmin,
 } from "@/lib/restaurant/admin-queries";
 import type { MesaAdmin, ZonaAdmin } from "@/lib/restaurant/admin-types";
+import { prefijoZona } from "@/lib/restaurant/mesa-label";
 import { DownloadIcon, PlusIcon, RefreshIcon } from "@/components/icons";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
@@ -57,6 +58,15 @@ export function MesasGestion() {
   useEffect(() => {
     cargar();
   }, []);
+
+  const handleNuevaZonaChange = (zonaId: string) => {
+    setNuevaZonaId(zonaId);
+    const prefijo = prefijoZona(zonaId || null, zonas);
+    setNuevoNumero((prev) => {
+      const resto = prev.replace(/^[A-Za-z]+/, "");
+      return prefijo ? `${prefijo}${resto}` : resto;
+    });
+  };
 
   const handleCrear = async () => {
     const numero = nuevoNumero.trim();
@@ -152,7 +162,7 @@ export function MesasGestion() {
           <label className="text-xs uppercase tracking-widest2 text-noche-ink-muted">Zona</label>
           <select
             value={nuevaZonaId}
-            onChange={(e) => setNuevaZonaId(e.target.value)}
+            onChange={(e) => handleNuevaZonaChange(e.target.value)}
             className="mt-1 w-40 rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2 text-sm text-noche-ink"
           >
             <option value="">Sin zona</option>
