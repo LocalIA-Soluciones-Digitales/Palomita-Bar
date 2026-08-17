@@ -602,6 +602,43 @@ function Architecture() {
           ))}
       </group>
 
+      {/* Ventanas con persiana a lo largo de todo el ventanal, a ambos lados de la puerta, como el escaparate real */}
+      <group position={[0, 0, 6.08]}>
+        {(() => {
+          const bordeIzq = -10.3;
+          const bordeDer = 10.3;
+          const puertaIzq = PUERTA_X - PUERTA_ANCHO / 2;
+          const puertaDer = PUERTA_X + PUERTA_ANCHO / 2;
+          const paso = 1.88;
+          const anchoVentana = 1.7;
+          const posiciones: number[] = [];
+          for (let x = bordeIzq + anchoVentana / 2 + 0.2; x < puertaIzq - anchoVentana / 2; x += paso) {
+            posiciones.push(x);
+          }
+          for (let x = puertaDer + anchoVentana / 2 + 0.2; x < bordeDer - anchoVentana / 2; x += paso) {
+            posiciones.push(x);
+          }
+          return posiciones.map((x, i) => (
+            <VentanaPersiana key={i} position={[x, 0, -0.02]} width={anchoVentana} height={2.3} />
+          ));
+        })()}
+      </group>
+
+      {/* Escalón pequeño de bajada de la barra al pasillo del salón, junto a la esquina de la barra en L */}
+      <group position={[8.1, 0, -1.3]}>
+        <mesh position={[0, 0.09, -0.3]} receiveShadow castShadow>
+          <boxGeometry args={[2.2, 0.18, 0.55]} />
+          <meshStandardMaterial color="#4a4247" roughness={0.85} />
+        </mesh>
+        <mesh position={[0, -0.03, 0.25]} receiveShadow castShadow>
+          <boxGeometry args={[2.2, 0.15, 0.5]} />
+          <meshStandardMaterial color="#4a4247" roughness={0.85} />
+        </mesh>
+      </group>
+
+      {/* Viga vista en la sala principal, como la viga metálica del techo real */}
+      <RoofBeam position={[-2.2, 2.7, 0.6]} rotation={[0.05, 0.2, 0.05]} length={3.4} />
+
       {/* Puerta de entrada: hojas acristaladas blancas con marco, umbral y toldo con el neón */}
       <group position={[PUERTA_X, 0, 6.08]}>
         {/* Ventanales con persiana de madera a ambos lados de la puerta, como el escaparate real */}
@@ -808,6 +845,24 @@ function VentanaPersiana({
         </mesh>
       ))}
     </group>
+  );
+}
+
+// Viga vista de techo, como la viga metálica del local real.
+function RoofBeam({
+  position,
+  rotation = [0, 0, 0],
+  length,
+}: {
+  position: [number, number, number];
+  rotation?: [number, number, number];
+  length: number;
+}) {
+  return (
+    <mesh position={position} rotation={rotation} castShadow>
+      <boxGeometry args={[length, 0.12, 0.12]} />
+      <meshStandardMaterial color="#3a3630" roughness={0.7} metalness={0.15} />
+    </mesh>
   );
 }
 
