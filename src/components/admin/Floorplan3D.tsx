@@ -1,9 +1,10 @@
 "use client";
 
-import { Canvas, type ThreeEvent } from "@react-three/fiber";
+import { Canvas, useThree, type ThreeEvent } from "@react-three/fiber";
 import { OrbitControls, Text } from "@react-three/drei";
 import * as THREE from "three";
-import { useMemo, useRef, useState } from "react";
+import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { EstadoMesa } from "@/components/admin/SalonBoard";
 import type { PrefijoZona } from "@/lib/restaurant/mesa-label";
 
@@ -25,6 +26,7 @@ type Props = {
   seleccionadaId: string | null;
   seleccionUnion: string[];
   top: boolean;
+  focusZona: PrefijoZona | null;
   onSelect: (id: string) => void;
   onDragMove: (id: string, xPct: number, yPct: number) => void;
   onDragEnd: (id: string, xPct: number, yPct: number) => void;
@@ -68,6 +70,62 @@ const REGIONES: Record<PrefijoZona, Region> = {
   L: { xMin: 3.0, xMax: 9.8, zMin: 1.6, zMax: 5.7 },
 };
 
+type CameraConfig = {
+  position: [number, number, number];
+  target: [number, number, number];
+  minDistance: number;
+  maxDistance: number;
+};
+
+// Misma dirección de encuadre que la vista general (11, 10, 12.65) normalizada, reutilizada para cada zona.
+const DIR_3D = { x: 0.564, y: 0.513, z: 0.649 };
+
+function cameraConfigFor(zona: PrefijoZona | null, top: boolean): CameraConfig {
+  if (zona === null) {
+    return top
+      ? { position: [0, 20, 2], target: [0, 0, 1.5], minDistance: 6, maxDistance: 28 }
+      : { position: [11, 10, 15], target: [0, 0, 1.5], minDistance: 6, maxDistance: 28 };
+  }
+  const region = REGIONES[zona];
+  const centerX = (region.xMin + region.xMax) / 2;
+  const centerZ = (region.zMin + region.zMax) / 2;
+  const maxDim = Math.max(region.xMax - region.xMin, region.zMax - region.zMin);
+  const target: [number, number, number] = [centerX, 0, centerZ];
+  if (top) {
+    const height = Math.max(maxDim * 0.98, 7);
+    return {
+      position: [centerX, height, centerZ],
+      target,
+      minDistance: Math.max(height * 0.4, 4),
+      maxDistance: Math.max(height * 1.8, 10),
+    };
+  }
+  const distance = Math.max(maxDim * 0.956, 7);
+  return {
+    position: [centerX + DIR_3D.x * distance, DIR_3D.y * distance, centerZ + DIR_3D.z * distance],
+    target,
+    minDistance: Math.max(distance * 0.5, 6),
+    maxDistance: Math.max(distance * 2.2, 28),
+  };
+}
+
+function CameraSync({
+  config,
+  controlsRef,
+}: {
+  config: CameraConfig;
+  controlsRef: React.RefObject<OrbitControlsImpl | null>;
+}) {
+  const { camera } = useThree();
+  useEffect(() => {
+    camera.position.set(...config.position);
+    camera.updateProjectionMatrix();
+    controlsRef.current?.target.set(...config.target);
+    controlsRef.current?.update();
+  }, [config, camera, controlsRef]);
+  return null;
+}
+
 const FLOOR = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
 
 function pctToPos(xPct: number, yPct: number, region: Region): [number, number] {
@@ -91,11 +149,14 @@ export default function Floorplan3D({
   seleccionadaId,
   seleccionUnion,
   top,
+  focusZona,
   onSelect,
   onDragMove,
   onDragEnd,
 }: Props) {
   const [arrastrando, setArrastrando] = useState(false);
+  const orbitRef = useRef<OrbitControlsImpl | null>(null);
+  const cameraConfig = useMemo(() => cameraConfigFor(focusZona, top), [focusZona, top]);
 
   const sueltas = mesas.filter((m) => !m.grupoId);
   const grupos = new Map<string, Mesa3D[]>();
@@ -109,7 +170,7 @@ export default function Floorplan3D({
       <Canvas
         shadows
         dpr={[1, 1.5]}
-        camera={{ position: top ? [0, 20, 2] : [11, 10, 15], fov: 45 }}
+        camera={{ position: cameraConfig.position, fov: 45 }}
       >
         <ambientLight intensity={1.15} />
         <directionalLight position={[3, 10, 4]} intensity={1.8} castShadow shadow-mapSize={[2048, 2048]} />
@@ -152,14 +213,16 @@ export default function Floorplan3D({
           />
         ))}
 
+        <CameraSync config={cameraConfig} controlsRef={orbitRef} />
         <OrbitControls
+          ref={orbitRef}
           enabled={!arrastrando}
           enableDamping
-          minDistance={6}
-          maxDistance={28}
+          minDistance={cameraConfig.minDistance}
+          maxDistance={cameraConfig.maxDistance}
           minPolarAngle={top ? 0 : 0.4}
           maxPolarAngle={top ? 0.04 : Math.PI / 2.05}
-          target={[0, 0, 1.5]}
+          target={cameraConfig.target}
         />
       </Canvas>
     </div>
@@ -624,8 +687,8 @@ function Architecture() {
         })()}
       </group>
 
-      {/* Escalón pequeño de bajada de la barra al pasillo del salón, junto a la esquina de la barra en L */}
-      <group position={[8.1, 0, -1.3]}>
+      {/* Escalón pequeño de bajada de la barra al pasillo del salón, junto a la mesa B2 */}
+      <group position={[9.3, 0, -1.9]} rotation={[0, Math.PI / 2, 0]}>
         <mesh position={[0, 0.09, -0.3]} receiveShadow castShadow>
           <boxGeometry args={[2.2, 0.18, 0.55]} />
           <meshStandardMaterial color="#4a4247" roughness={0.85} />
@@ -636,8 +699,8 @@ function Architecture() {
         </mesh>
       </group>
 
-      {/* Viga vista en la sala principal, como la viga metálica del techo real */}
-      <RoofBeam position={[-2.2, 2.7, 0.6]} rotation={[0.05, 0.2, 0.05]} length={3.4} />
+      {/* Columna en la sala principal, en el lugar donde antes estaba la viga */}
+      <PorticoColumn position={[-2.2, 0, 0.6]} />
 
       {/* Puerta de entrada: hojas acristaladas blancas con marco, umbral y toldo con el neón */}
       <group position={[PUERTA_X, 0, 6.08]}>
@@ -845,24 +908,6 @@ function VentanaPersiana({
         </mesh>
       ))}
     </group>
-  );
-}
-
-// Viga vista de techo, como la viga metálica del local real.
-function RoofBeam({
-  position,
-  rotation = [0, 0, 0],
-  length,
-}: {
-  position: [number, number, number];
-  rotation?: [number, number, number];
-  length: number;
-}) {
-  return (
-    <mesh position={position} rotation={rotation} castShadow>
-      <boxGeometry args={[length, 0.12, 0.12]} />
-      <meshStandardMaterial color="#3a3630" roughness={0.7} metalness={0.15} />
-    </mesh>
   );
 }
 
