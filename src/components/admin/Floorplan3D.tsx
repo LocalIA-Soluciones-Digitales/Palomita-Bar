@@ -591,6 +591,25 @@ function Architecture() {
 
       {/* Puerta de entrada: hojas acristaladas con marco, umbral y toldo con el neón */}
       <group position={[PUERTA_X, 0, 6.08]}>
+        {/* Zócalo de fachada en ladrillo granate bajo el escaparate, como en la fachada real */}
+        <mesh position={[-1.55, 0.45, -0.02]}>
+          <boxGeometry args={[1.4, 0.9, 0.1]} />
+          <meshStandardMaterial color="#5a2a24" roughness={0.85} />
+        </mesh>
+        <mesh position={[1.55, 0.45, -0.02]}>
+          <boxGeometry args={[1.4, 0.9, 0.1]} />
+          <meshStandardMaterial color="#5a2a24" roughness={0.85} />
+        </mesh>
+
+        {/* Cartel "Palomita Bar" en cursiva sobre la puerta, como el rótulo metálico real */}
+        <Text position={[0, 2.75, 0.02]} fontSize={0.32} color="#1c1a1c" anchorX="center" anchorY="middle">
+          Palomita Bar
+        </Text>
+
+        {/* Bancos de madera a ambos lados de la puerta, como en el acceso real */}
+        <WoodBench position={[-1.55, 0, 0.28]} />
+        <WoodBench position={[1.55, 0, 0.28]} />
+
         {/* Jambas laterales y dintel */}
         <mesh position={[-PUERTA_ANCHO / 2 - 0.07, 1.2, 0]} castShadow>
           <boxGeometry args={[0.14, 2.5, 0.16]} />
@@ -629,8 +648,8 @@ function Architecture() {
           <meshStandardMaterial color="#d8cdb8" roughness={0.8} />
         </mesh>
 
-        {/* Toldo con el logo de neón: por encima del dintel (y=2.53) para que no se solape con la puerta */}
-        <mesh position={[0, 3.25, 0.2]} castShadow>
+        {/* Toldo con el logo de neón: por encima del logo (y=3.1, radio ~0.53) para que no se solape con él */}
+        <mesh position={[0, 3.85, 0.2]} castShadow>
           <boxGeometry args={[PUERTA_ANCHO + 0.7, 0.09, 0.42]} />
           <meshStandardMaterial color="#4a1f2e" roughness={0.7} />
         </mesh>
@@ -641,29 +660,113 @@ function Architecture() {
         <NeonLogo position={[0, 3.1, 0.09]} scale={0.85} />
       </group>
 
-      {/* Terraza exterior */}
+      {/* Terraza exterior: pórtico de piedra con soportales, suelo de baldosa cálida y toldo granate */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.18, 8.35]} receiveShadow>
         <planeGeometry args={[21, 4.7]} />
-        <meshStandardMaterial color="#1c2420" roughness={0.92} />
+        <meshStandardMaterial color="#a9855f" roughness={0.9} />
       </mesh>
-      <gridHelper args={[21, 12, "#33403a", "#28322d"]} position={[0, -0.17, 8.35]} />
+      <gridHelper args={[21, 21, "#d9c19a", "#8f6c48"]} position={[0, -0.169, 8.35]} />
       {montantes.map((x, i) => (
         <mesh key={i} position={[x, 0.35, 10.55]}>
           <boxGeometry args={[0.05, 0.7, 0.05]} />
           <meshStandardMaterial color="#171519" />
         </mesh>
       ))}
+
+      {/* Pilares de piedra del pórtico, como el soportal real de la entrada */}
+      <PorticoColumn position={[-6.6, 0, 6.7]} />
+      <PorticoColumn position={[-1.4, 0, 6.7]} />
+      <PorticoColumn position={[8.2, 0, 6.7]} />
+
+      {/* Toldo granate de la terraza con el nombre del bar, sobre las mesas exteriores */}
+      <AwningTerraza position={[-4.4, 0, 8.1]} width={11.6} />
+
+      {/* Arbolado detrás de la terraza, como en la plaza real */}
+      <StreetTree position={[-9.2, 0, 9.9]} />
+      <StreetTree position={[-3.4, 0, 10.1]} />
+      <StreetTree position={[2.6, 0, 10.1]} />
+      <StreetTree position={[8.6, 0, 9.8]} />
+
       <Maceta position={[-9.7, 0, 7]} />
       <Maceta position={[9.7, 0, 7]} />
       <Maceta position={[-9.7, 0, 10.1]} />
       <Maceta position={[9.7, 0, 10.1]} />
-      <Text position={[0, 0.02, 9.5]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.32} color="#c9d8cf">
+      <Text position={[0, 0.02, 9.5]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.32} color="#3a2e22">
         TERRAZA
       </Text>
 
       <Text position={[-1, 0.02, 4.6]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.32} color="#d5c5c1">
         SALA PRINCIPAL
       </Text>
+    </group>
+  );
+}
+
+// Pilar cuadrado de piedra del soportal, como el porche de acceso real al local.
+function PorticoColumn({ position }: { position: [number, number, number] }) {
+  return (
+    <group position={position}>
+      <mesh position={[0, 1.9, 0]} castShadow receiveShadow>
+        <boxGeometry args={[0.62, 3.8, 0.62]} />
+        <meshStandardMaterial color="#c9bda8" roughness={0.95} />
+      </mesh>
+      <mesh position={[0, 3.85, 0]}>
+        <boxGeometry args={[0.9, 0.12, 0.9]} />
+        <meshStandardMaterial color="#b3a68e" roughness={0.9} />
+      </mesh>
+    </group>
+  );
+}
+
+// Toldo granate desplegable con el nombre del local, como el que cubre las mesas de la terraza real.
+function AwningTerraza({ position, width }: { position: [number, number, number]; width: number }) {
+  return (
+    <group position={position}>
+      <mesh position={[0, 2.85, 0]} rotation={[0.18, 0, 0]} castShadow>
+        <boxGeometry args={[width, 0.08, 2.6]} />
+        <meshStandardMaterial color="#7a2436" roughness={0.75} />
+      </mesh>
+      {/* Faldón frontal con el nombre */}
+      <mesh position={[0, 2.35, 1.28]}>
+        <boxGeometry args={[width, 0.55, 0.05]} />
+        <meshStandardMaterial color="#6e1f2f" roughness={0.75} />
+      </mesh>
+      <Text
+        position={[0, 2.35, 1.31]}
+        fontSize={0.26}
+        color="#f3d7de"
+        anchorX="center"
+        anchorY="middle"
+      >
+        Palomita
+      </Text>
+      {/* Postes de soporte del toldo */}
+      {[-width / 2 + 0.3, 0, width / 2 - 0.3].map((x, i) => (
+        <mesh key={i} position={[x, 1.4, 1.15]}>
+          <cylinderGeometry args={[0.035, 0.035, 2.8, 8]} />
+          <meshStandardMaterial color="#171519" metalness={0.4} roughness={0.5} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+// Árbol estilizado de la plaza, para ambientar el fondo de la terraza.
+function StreetTree({ position }: { position: [number, number, number] }) {
+  return (
+    <group position={position}>
+      <mesh position={[0, 1.1, 0]} castShadow>
+        <cylinderGeometry args={[0.1, 0.14, 2.2, 8]} />
+        <meshStandardMaterial color="#4a3626" roughness={0.9} />
+      </mesh>
+      <mesh position={[0, 2.6, 0]} castShadow>
+        <sphereGeometry args={[1.1, 12, 12]} />
+        <meshStandardMaterial color="#3a5a34" roughness={0.85} />
+      </mesh>
+      <mesh position={[0.5, 2.9, 0.3]} castShadow>
+        <sphereGeometry args={[0.7, 10, 10]} />
+        <meshStandardMaterial color="#456b3e" roughness={0.85} />
+      </mesh>
     </group>
   );
 }
@@ -688,6 +791,24 @@ function Banquette({ position, size }: { position: [number, number, number]; siz
         <boxGeometry args={[0.28, size[1], size[2]]} />
         <meshStandardMaterial color="#30252a" roughness={0.75} />
       </mesh>
+    </group>
+  );
+}
+
+// Banco de madera junto a la entrada, como los que flanquean la puerta real.
+function WoodBench({ position }: { position: [number, number, number] }) {
+  return (
+    <group position={position}>
+      <mesh position={[0, 0.42, 0]} castShadow>
+        <boxGeometry args={[0.85, 0.06, 0.4]} />
+        <meshStandardMaterial color="#7a5334" roughness={0.85} />
+      </mesh>
+      {[-0.35, 0.35].map((x, i) => (
+        <mesh key={i} position={[x, 0.2, 0]}>
+          <boxGeometry args={[0.08, 0.4, 0.38]} />
+          <meshStandardMaterial color="#5b3a24" roughness={0.85} />
+        </mesh>
+      ))}
     </group>
   );
 }
