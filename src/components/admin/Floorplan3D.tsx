@@ -573,10 +573,8 @@ function Architecture() {
       <Text position={[6.4, 0.02, 3.6]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.32} color="#d5c5c1">
         SALÓN
       </Text>
-      {/* Neón rosa circular en la zona de salón, como el cartel "Santísima Trinidad" del local */}
-      <NeonLogo position={[4.6, 1.9, 1.75]} rotation={[0, -Math.PI / 2, 0]} scale={0.9} />
-      {/* Estantería con plantas y letrero luminoso "Aquí se viene a disfrutar" en el salón */}
-      <DisplayShelf position={[3.5, 0, 3.6]} />
+      {/* Estantería con plantas y letrero luminoso "Aquí se viene a disfrutar" en el salón, ampliada a lo largo hacia la entrada */}
+      <DisplayShelf position={[3.5, 0, 3.6]} depth={5.25} />
 
       {/* Ventanal con montantes: separa la sala de la terraza exterior, con hueco de puerta */}
       <group position={[0, 1.7, 6.1]}>
@@ -873,18 +871,24 @@ function TvScreen({
 }
 
 // Estantería expositora con velas y letrero luminoso, como la del salón real ("Aquí se viene a disfrutar").
-function DisplayShelf({ position }: { position: [number, number, number] }) {
+function DisplayShelf({
+  position,
+  depth = 0.4,
+}: {
+  position: [number, number, number];
+  depth?: number;
+}) {
   return (
     <group position={position}>
       <mesh position={[0, 0.9, 0]} castShadow>
-        <boxGeometry args={[1.3, 1.8, 0.4]} />
+        <boxGeometry args={[1.3, 1.8, depth]} />
         <meshStandardMaterial color="#1c1a1c" wireframe />
       </mesh>
-      <mesh position={[0, 1.35, 0.15]}>
+      <mesh position={[0, 1.35, depth * 0.38]}>
         <boxGeometry args={[0.7, 0.22, 0.02]} />
         <meshStandardMaterial color="#f4f1ea" emissive="#f4f1ea" emissiveIntensity={0.6} toneMapped={false} />
       </mesh>
-      <pointLight position={[0, 1.35, 0.4]} intensity={3} distance={2.5} color="#ff9fd0" />
+      <pointLight position={[0, 1.35, depth * 0.5]} intensity={3} distance={2.5} color="#ff9fd0" />
     </group>
   );
 }
