@@ -316,16 +316,13 @@ export function KitchenBoard({ pedidosIniciales }: { pedidosIniciales: PedidoCoc
                     ) : null}
 
                     <ul className="mt-3 space-y-1.5">
-                      {pedido.items.map((item, index) => {
-                        const fueraDeFiltro =
-                          filtro !== "todos" &&
-                          item.producto_tipo !== null &&
-                          item.producto_tipo !== filtro;
-                        return (
-                          <li
-                            key={index}
-                            className={`flex items-start gap-2 ${fueraDeFiltro ? "opacity-35" : ""}`}
-                          >
+                      {pedido.items
+                        .filter(
+                          (item) =>
+                            filtro === "todos" || item.producto_tipo === null || item.producto_tipo === filtro,
+                        )
+                        .map((item, index) => (
+                          <li key={index} className="flex items-start gap-2">
                             <span className="mt-0.5 flex h-6 min-w-6 shrink-0 items-center justify-center rounded-md bg-noche-primary/20 px-1.5 text-sm font-bold text-noche-primary">
                               {item.cantidad}
                             </span>
@@ -340,8 +337,7 @@ export function KitchenBoard({ pedidosIniciales }: { pedidosIniciales: PedidoCoc
                               ) : null}
                             </div>
                           </li>
-                        );
-                      })}
+                        ))}
                     </ul>
 
                     {pedido.notas ? (
