@@ -575,11 +575,11 @@ function Architecture() {
       <Text position={[6.4, 0.02, 3.6]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.32} color="#d5c5c1">
         SALÓN
       </Text>
-      {/* Estantería con plantas y letrero luminoso "Aquí se viene a disfrutar" en el salón, ampliada a lo largo hacia la entrada */}
-      <DisplayShelf position={[3.5, 0, 3.6]} depth={5.25} />
-
       {/* Escalón de bajada entre la barra (elevada) y la sala principal / salón, como el desnivel real de dos peldaños */}
       <Steps position={[6.5, 0, 0.5]} width={6.6} />
+
+      {/* Viga vista en diagonal en la sala principal, como la viga metálica del techo real */}
+      <RoofBeam position={[-1.4, 2.7, 3.8]} rotation={[0.08, 0.65, 0.12]} length={4.6} />
 
       {/* Ventanal con montantes: separa la sala de la terraza exterior, con hueco de puerta */}
       <group position={[0, 1.7, 6.1]}>
@@ -615,15 +615,9 @@ function Architecture() {
 
       {/* Puerta de entrada: hojas acristaladas blancas con marco, umbral y toldo con el neón */}
       <group position={[PUERTA_X, 0, 6.08]}>
-        {/* Zócalo de fachada gris bajo el escaparate, como en la fachada real */}
-        <mesh position={[-1.55, 0.45, -0.02]}>
-          <boxGeometry args={[1.4, 0.9, 0.1]} />
-          <meshStandardMaterial color="#7a7a7e" roughness={0.85} />
-        </mesh>
-        <mesh position={[1.55, 0.45, -0.02]}>
-          <boxGeometry args={[1.4, 0.9, 0.1]} />
-          <meshStandardMaterial color="#7a7a7e" roughness={0.85} />
-        </mesh>
+        {/* Ventanales con persiana de madera a ambos lados de la puerta, como el escaparate real */}
+        <VentanaPersiana position={[-1.55, 0, -0.02]} />
+        <VentanaPersiana position={[1.55, 0, -0.02]} />
 
         {/* Cartel "Palomita Bar" en cursiva sobre la puerta, como el rótulo metálico real */}
         <Text position={[0, 2.75, 0.02]} fontSize={0.32} color="#1c1a1c" anchorX="center" anchorY="middle">
@@ -797,6 +791,55 @@ function StreetTree({ position }: { position: [number, number, number] }) {
   );
 }
 
+// Ventanal con persiana veneciana de madera entornada, como los ventanales del salón real con vistas a la calle.
+function VentanaPersiana({
+  position,
+  width = 1.4,
+  height = 2.2,
+}: {
+  position: [number, number, number];
+  width?: number;
+  height?: number;
+}) {
+  const numLamas = 12;
+  return (
+    <group position={position}>
+      <mesh position={[0, height / 2 + 0.15, 0]} castShadow>
+        <boxGeometry args={[width, height, 0.08]} />
+        <meshStandardMaterial color="#171519" />
+      </mesh>
+      <mesh position={[0, height / 2 + 0.15, 0.025]}>
+        <planeGeometry args={[width - 0.12, height - 0.12]} />
+        <meshStandardMaterial color="#f6d998" emissive="#f2c76a" emissiveIntensity={0.85} toneMapped={false} />
+      </mesh>
+      {Array.from({ length: numLamas }).map((_, i) => (
+        <mesh key={i} position={[0, 0.28 + i * ((height - 0.2) / numLamas), 0.05]}>
+          <boxGeometry args={[width - 0.1, 0.035, 0.02]} />
+          <meshStandardMaterial color="#5a3d24" roughness={0.7} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+// Viga vista de techo, como la viga metálica diagonal del local real.
+function RoofBeam({
+  position,
+  rotation = [0, 0, 0],
+  length,
+}: {
+  position: [number, number, number];
+  rotation?: [number, number, number];
+  length: number;
+}) {
+  return (
+    <mesh position={position} rotation={rotation} castShadow>
+      <boxGeometry args={[length, 0.12, 0.12]} />
+      <meshStandardMaterial color="#3a3630" roughness={0.7} metalness={0.15} />
+    </mesh>
+  );
+}
+
 function Wall({ p, s }: { p: [number, number, number]; s: [number, number, number] }) {
   return (
     <mesh position={p}>
@@ -873,29 +916,6 @@ function TvScreen({
         <planeGeometry args={[1.0, 0.55]} />
         <meshStandardMaterial color="#3a6fd8" emissive="#3a6fd8" emissiveIntensity={1.4} toneMapped={false} />
       </mesh>
-    </group>
-  );
-}
-
-// Estantería expositora con velas y letrero luminoso, como la del salón real ("Aquí se viene a disfrutar").
-function DisplayShelf({
-  position,
-  depth = 0.4,
-}: {
-  position: [number, number, number];
-  depth?: number;
-}) {
-  return (
-    <group position={position}>
-      <mesh position={[0, 0.9, 0]} castShadow>
-        <boxGeometry args={[1.3, 1.8, depth]} />
-        <meshStandardMaterial color="#1c1a1c" wireframe />
-      </mesh>
-      <mesh position={[0, 1.35, depth * 0.38]}>
-        <boxGeometry args={[0.7, 0.22, 0.02]} />
-        <meshStandardMaterial color="#f4f1ea" emissive="#f4f1ea" emissiveIntensity={0.6} toneMapped={false} />
-      </mesh>
-      <pointLight position={[0, 1.35, depth * 0.5]} intensity={3} distance={2.5} color="#ff9fd0" />
     </group>
   );
 }
