@@ -6,7 +6,7 @@ import { SettingsIcon } from "@/components/icons";
 
 export default function ConfiguracionAdminPage() {
   return (
-    <div className="max-w-lg">
+    <div className="mx-auto max-w-6xl">
       <div className="flex items-center gap-2">
         <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-noche-primary/10 text-noche-primary">
           <SettingsIcon className="h-4.5 w-4.5" />
@@ -17,8 +17,10 @@ export default function ConfiguracionAdminPage() {
         </div>
       </div>
 
-      <CamarerosGestion />
-      <HorarioGestion />
+      <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
+        <CamarerosGestion />
+        <HorarioGestion />
+      </div>
     </div>
   );
 }

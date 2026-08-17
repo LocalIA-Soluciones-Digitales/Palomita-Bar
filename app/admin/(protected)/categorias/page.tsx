@@ -9,6 +9,7 @@ import {
 import type { CategoriaAdmin } from "@/lib/restaurant/admin-types";
 import { errorMessage } from "@/lib/format";
 import { PencilIcon, PlusIcon, TagIcon, TrashIcon } from "@/components/icons";
+import { Stat } from "@/components/admin/Stat";
 
 const COMBINING_MARKS = new RegExp("[\\u0300-\\u036f]", "g");
 
@@ -62,6 +63,15 @@ export default function CategoriasAdminPage() {
       .filter((g) => g.items.length > 0);
   }, [categorias]);
 
+  const stats = useMemo(() => {
+    if (!categorias) return null;
+    return {
+      total: categorias.length,
+      bebida: categorias.filter((c) => c.tipo === "bebida").length,
+      comida: categorias.filter((c) => c.tipo === "comida").length,
+    };
+  }, [categorias]);
+
   const handleGuardar = async () => {
     if (!form.nombre.trim()) return;
     setGuardando(true);
@@ -110,7 +120,7 @@ export default function CategoriasAdminPage() {
   };
 
   return (
-    <div className="max-w-3xl">
+    <div className="mx-auto max-w-6xl">
       <div className="flex items-center justify-between gap-4">
         <h1 className="font-display text-2xl text-noche-ink">Categorías</h1>
         {!formAbierto ? (
@@ -125,8 +135,16 @@ export default function CategoriasAdminPage() {
         ) : null}
       </div>
 
+      {stats ? (
+        <div className="mt-6 grid grid-cols-3 gap-3 sm:max-w-md">
+          <Stat label="Categorías" value={String(stats.total)} />
+          <Stat label="Bebida" value={String(stats.bebida)} />
+          <Stat label="Comida" value={String(stats.comida)} />
+        </div>
+      ) : null}
+
       {formAbierto ? (
-        <div className="mt-6 overflow-hidden rounded-xl border border-noche-border bg-noche-surface shadow-sm">
+        <div className="mt-6 max-w-2xl overflow-hidden rounded-xl border border-noche-border bg-noche-surface shadow-sm">
           <div className="flex items-center justify-between border-b border-noche-border px-3 py-2">
             <div className="flex items-center gap-2">
               <span className="flex h-6.5 w-6.5 items-center justify-center rounded-md bg-noche-primary/10 text-noche-primary">
@@ -209,7 +227,7 @@ export default function CategoriasAdminPage() {
 
       {error ? <p className="mt-3 text-sm text-noche-danger">{error}</p> : null}
 
-      <div className="mt-6 space-y-5">
+      <div className="mt-6 grid gap-5 lg:grid-cols-2">
         {categorias === null ? (
           <p className="text-sm text-noche-ink-muted">Cargando…</p>
         ) : grupos.length === 0 ? (
@@ -218,7 +236,7 @@ export default function CategoriasAdminPage() {
           grupos.map((grupo) => (
             <div
               key={grupo.tipo}
-              className="overflow-hidden rounded-xl border border-noche-border bg-noche-surface shadow-sm"
+              className="self-start overflow-hidden rounded-xl border border-noche-border bg-noche-surface shadow-sm"
             >
               <div className="flex items-center justify-between border-b border-noche-border bg-noche-surface-2/60 px-4 py-2.5">
                 <h2 className="font-display text-base text-noche-ink">{TIPO_LABEL[grupo.tipo]}</h2>

@@ -20,7 +20,7 @@ export default function VentasAdminPage() {
   if (!ventas) return <p className="text-sm text-noche-ink-muted">Cargando…</p>;
 
   return (
-    <div className="max-w-4xl">
+    <div className="mx-auto max-w-7xl">
       <h1 className="font-display text-2xl text-noche-ink">Ventas de hoy</h1>
 
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -33,7 +33,7 @@ export default function VentasAdminPage() {
         />
       </div>
 
-      <div className="mt-6 grid gap-4 sm:grid-cols-2">
+      <div className="mt-6 grid gap-4 lg:grid-cols-3">
         <div className="rounded-lg border border-noche-border bg-noche-surface p-4">
           <p className="text-xs uppercase tracking-widest2 text-noche-ink-muted">Pago</p>
           <div className="mt-3 flex justify-between text-sm text-noche-ink">
@@ -58,7 +58,7 @@ export default function VentasAdminPage() {
           </div>
         </div>
 
-        <div className="rounded-lg border border-noche-border bg-noche-surface p-4 sm:col-span-2">
+        <div className="rounded-lg border border-noche-border bg-noche-surface p-4">
           <p className="text-xs uppercase tracking-widest2 text-noche-ink-muted">Más vendidos hoy</p>
           <div className="mt-3 space-y-1">
             {ventas.top_productos.length === 0 ? (

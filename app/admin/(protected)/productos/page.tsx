@@ -11,6 +11,7 @@ import {
 import type { CategoriaAdmin, ProductoAdmin } from "@/lib/restaurant/admin-types";
 import { errorMessage, formatCentimos } from "@/lib/format";
 import { BoxIcon, CheckIcon, PencilIcon, PlusIcon, TrashIcon } from "@/components/icons";
+import { Stat } from "@/components/admin/Stat";
 
 const FORM_VACIO = {
   nombre: "",
@@ -80,6 +81,16 @@ export default function ProductosAdminPage() {
       });
     }
     return resultado;
+  }, [productos, categorias]);
+
+  const stats = useMemo(() => {
+    if (!productos) return null;
+    return {
+      total: productos.length,
+      disponibles: productos.filter((p) => p.disponible).length,
+      destacados: productos.filter((p) => p.destacado).length,
+      categorias: categorias.length,
+    };
   }, [productos, categorias]);
 
   const handleSubirImagen = async (file: File) => {
@@ -178,7 +189,7 @@ export default function ProductosAdminPage() {
   };
 
   return (
-    <div className="max-w-4xl">
+    <div className="mx-auto max-w-7xl">
       <div className="flex items-center justify-between gap-4">
         <h1 className="font-display text-2xl text-noche-ink">Productos</h1>
         {!formAbierto ? (
@@ -193,8 +204,17 @@ export default function ProductosAdminPage() {
         ) : null}
       </div>
 
+      {stats ? (
+        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <Stat label="Productos" value={String(stats.total)} />
+          <Stat label="Disponibles" value={String(stats.disponibles)} />
+          <Stat label="Destacados" value={String(stats.destacados)} />
+          <Stat label="Categorías" value={String(stats.categorias)} />
+        </div>
+      ) : null}
+
       {formAbierto ? (
-        <div className="mt-6 overflow-hidden rounded-xl border border-noche-border bg-noche-surface shadow-sm">
+        <div className="mt-6 max-w-3xl overflow-hidden rounded-xl border border-noche-border bg-noche-surface shadow-sm">
           <div className="flex items-center justify-between border-b border-noche-border px-3 py-2">
             <div className="flex items-center gap-2">
               <span className="flex h-6.5 w-6.5 items-center justify-center rounded-md bg-noche-primary/10 text-noche-primary">
@@ -370,11 +390,11 @@ export default function ProductosAdminPage() {
               <h2 className="text-xs uppercase tracking-widest2 text-noche-ink-faint">
                 {seccion.titulo}
               </h2>
-              <div className="space-y-5">
+              <div className="grid gap-5 lg:grid-cols-2 xl:grid-cols-3">
                 {seccion.grupos.map((grupo) => (
                   <div
                     key={grupo.id}
-                    className="overflow-hidden rounded-xl border border-noche-border bg-noche-surface shadow-sm"
+                    className="overflow-hidden self-start rounded-xl border border-noche-border bg-noche-surface shadow-sm"
                   >
                     <div className="flex items-center justify-between border-b border-noche-border bg-noche-surface-2/60 px-4 py-2.5">
                       <h3 className="font-display text-base text-noche-ink">{grupo.nombre}</h3>
