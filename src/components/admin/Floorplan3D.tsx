@@ -56,9 +56,9 @@ const PRIORIDAD_ESTADO: EstadoMesa[] = [
 
 type Region = { xMin: number; xMax: number; zMin: number; zMax: number };
 
-// Sala principal: interior del local (ensanchado horizontalmente). Barra: esquina fondo-derecha. Terraza: exterior, más allá del ventanal.
+// Sala principal: interior del local (ensanchado horizontalmente). Barra: esquina fondo-derecha (en L). Terraza: exterior, más allá del ventanal.
 const REGIONES: Record<PrefijoZona, Region> = {
-  "": { xMin: -9.2, xMax: 7.6, zMin: -5.6, zMax: 5.6 },
+  "": { xMin: -9.2, xMax: 5.6, zMin: -5.6, zMax: 5.6 },
   B: { xMin: 8.0, xMax: 9.4, zMin: -5.4, zMax: -0.8 },
   T: { xMin: -10.2, xMax: 10.2, zMin: 6.4, zMax: 10.3 },
 };
@@ -471,7 +471,7 @@ function Architecture() {
         PALOMITA
       </Text>
 
-      {/* Barra: esquina del fondo a la derecha */}
+      {/* Barra en L: tramo pegado a la pared derecha */}
       <group position={[9.55, 0.75, -3.1]} rotation={[0, Math.PI / 2, 0]}>
         <mesh castShadow>
           <boxGeometry args={[4.8, 1.4, 1.05]} />
@@ -482,9 +482,25 @@ function Architecture() {
           <meshStandardMaterial color="#d2b28c" roughness={0.55} />
         </mesh>
       </group>
-      {/* Botellero detrás de la barra */}
-      <mesh position={[10.3, 1.5, -3.1]}>
-        <boxGeometry args={[0.25, 2.6, 4.9]} />
+      {/* Barra en L: tramo pegado a la pared del fondo, se une con el anterior en la esquina */}
+      <group position={[7.95, 0.75, -5.25]}>
+        <mesh castShadow>
+          <boxGeometry args={[4.3, 1.4, 1.05]} />
+          <meshStandardMaterial color="#49332d" roughness={0.8} />
+        </mesh>
+        <mesh position={[0, 0.78, 0]}>
+          <boxGeometry args={[4.46, 0.1, 1.18]} />
+          <meshStandardMaterial color="#d2b28c" roughness={0.55} />
+        </mesh>
+      </group>
+      {/* Botellero detrás de la barra (pared derecha) */}
+      <mesh position={[10.3, 1.5, -3.3]}>
+        <boxGeometry args={[0.25, 2.6, 5.3]} />
+        <meshStandardMaterial color="#171519" />
+      </mesh>
+      {/* Botellero detrás de la barra (pared del fondo) */}
+      <mesh position={[7.95, 1.5, -6.0]}>
+        <boxGeometry args={[4.5, 2.6, 0.25]} />
         <meshStandardMaterial color="#171519" />
       </mesh>
       <Text position={[8.7, 0.02, -3.1]} rotation={[-Math.PI / 2, 0, Math.PI / 2]} fontSize={0.3} color="#d5c5c1">
