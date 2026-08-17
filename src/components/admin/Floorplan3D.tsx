@@ -505,14 +505,6 @@ function Architecture() {
       <Wall p={[10.4, 1.5, -0.9]} s={[0.24, 3, 10.7]} />
       <Wall p={[0, 1.5, -6.1]} s={[21.3, 3, 0.24]} />
 
-      {/* Sofás / banquetas contra la pared del fondo */}
-      <group position={[-5.2, 0, -5.7]} rotation={[0, Math.PI / 2, 0]}>
-        <Banquette position={[0, 0.55, 0]} size={[0.7, 0.95, 8]} />
-      </group>
-      <group position={[5.2, 0, -5.7]} rotation={[0, Math.PI / 2, 0]}>
-        <Banquette position={[0, 0.55, 0]} size={[0.7, 0.95, 8]} />
-      </group>
-
       {/* Pared izquierda: pared de ladrillo con el logo de neón de Palomita, chesterfield y mesas de centro sobre puf, como el rincón de sofás real */}
       <BrickWall position={[-10.25, 1.6, -1]} rotation={[0, Math.PI / 2, 0]} size={[9.6, 2.7, 0.16]} />
       <NeonLogo position={[-10.06, 2.0, -1]} rotation={[0, Math.PI / 2, 0]} scale={1.4} />
@@ -575,12 +567,6 @@ function Architecture() {
       <Text position={[6.4, 0.02, 3.6]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.32} color="#d5c5c1">
         SALÓN
       </Text>
-      {/* Escalón de bajada entre la barra (elevada) y la sala principal / salón, como el desnivel real de dos peldaños */}
-      <Steps position={[6.5, 0, 0.5]} width={6.6} />
-
-      {/* Viga vista en diagonal en la sala principal, como la viga metálica del techo real */}
-      <RoofBeam position={[-1.4, 2.7, 3.8]} rotation={[0.08, 0.65, 0.12]} length={4.6} />
-
       {/* Ventanal con montantes: separa la sala de la terraza exterior, con hueco de puerta */}
       <group position={[0, 1.7, 6.1]}>
         {(() => {
@@ -822,45 +808,12 @@ function VentanaPersiana({
   );
 }
 
-// Viga vista de techo, como la viga metálica diagonal del local real.
-function RoofBeam({
-  position,
-  rotation = [0, 0, 0],
-  length,
-}: {
-  position: [number, number, number];
-  rotation?: [number, number, number];
-  length: number;
-}) {
-  return (
-    <mesh position={position} rotation={rotation} castShadow>
-      <boxGeometry args={[length, 0.12, 0.12]} />
-      <meshStandardMaterial color="#3a3630" roughness={0.7} metalness={0.15} />
-    </mesh>
-  );
-}
-
 function Wall({ p, s }: { p: [number, number, number]; s: [number, number, number] }) {
   return (
     <mesh position={p}>
       <boxGeometry args={s} />
       <meshStandardMaterial color="#17151a" />
     </mesh>
-  );
-}
-
-function Banquette({ position, size }: { position: [number, number, number]; size: [number, number, number] }) {
-  return (
-    <group position={position}>
-      <mesh castShadow>
-        <boxGeometry args={size} />
-        <meshStandardMaterial color="#30252a" roughness={0.75} />
-      </mesh>
-      <mesh position={[size[0] * 0.35, 0.47, 0]}>
-        <boxGeometry args={[0.28, size[1], size[2]]} />
-        <meshStandardMaterial color="#30252a" roughness={0.75} />
-      </mesh>
-    </group>
   );
 }
 
@@ -954,22 +907,6 @@ function Maceta({ position }: { position: [number, number, number] }) {
       <mesh position={[0, 0.75, 0]} castShadow>
         <sphereGeometry args={[0.42, 12, 12]} />
         <meshStandardMaterial color="#1f3324" roughness={0.85} />
-      </mesh>
-    </group>
-  );
-}
-
-// Escalón de bajada de dos peldaños entre la barra (más alta) y la sala principal, como el desnivel real del local.
-function Steps({ position, width }: { position: [number, number, number]; width: number }) {
-  return (
-    <group position={position}>
-      <mesh position={[0, 0.09, -0.55]} receiveShadow castShadow>
-        <boxGeometry args={[width, 0.18, 1.0]} />
-        <meshStandardMaterial color="#4a4247" roughness={0.85} />
-      </mesh>
-      <mesh position={[0, -0.03, 0.35]} receiveShadow castShadow>
-        <boxGeometry args={[width, 0.15, 0.9]} />
-        <meshStandardMaterial color="#4a4247" roughness={0.85} />
       </mesh>
     </group>
   );
