@@ -58,37 +58,18 @@ const PRIORIDAD_ESTADO: EstadoMesa[] = [
 
 type Region = { xMin: number; xMax: number; zMin: number; zMax: number };
 
-// Sala principal: interior del local, hasta el pasillo que lleva a la barra y al salón (no invade esas zonas).
+// Sala principal: interior del local, hasta la estantería negra que la separa del pasillo hacia la barra y el salón.
 // Barra: esquina fondo-derecha (en L, ampliada). Terraza: exterior, más allá del ventanal.
-const REGION_SALA: Region = { xMin: -9.2, xMax: 3.0, zMin: -5.6, zMax: 5.6 };
+const REGION_SALA: Region = { xMin: -9.2, xMax: 2.35, zMin: -5.6, zMax: 5.6 };
 
 const REGIONES: Record<PrefijoZona, Region> = {
   "": REGION_SALA,
   S: REGION_SALA,
   B: { xMin: 4.3, xMax: 9.6, zMin: -5.6, zMax: -0.5 },
   T: { xMin: -10.2, xMax: 10.2, zMin: 6.4, zMax: 10.3 },
-  // Salón: hueco junto a la pared derecha, entre el final de la barra ampliada y la puerta de entrada.
-  L: { xMin: 3.0, xMax: 9.8, zMin: 1.6, zMax: 5.7 },
+  // Salón: hueco junto a la pared derecha, a partir de la estantería negra y hasta la puerta de entrada.
+  L: { xMin: 4.65, xMax: 9.8, zMin: 1.6, zMax: 5.7 },
 };
-
-// Estantería negra física (junto a la puerta, entre la Sala Principal y el Salón): zona vetada para mesas,
-// con un margen extra para que el tablero no quede pegado ni solapado con el mueble real.
-const ESTANTERIA_NEGRA: Region = { xMin: 2.35, xMax: 4.65, zMin: 0.65, zMax: 6.5 };
-
-// Si el punto cae dentro del hueco de la estantería, lo empuja al borde libre más cercano.
-function evitarEstanteria(x: number, z: number): [number, number] {
-  const o = ESTANTERIA_NEGRA;
-  if (x < o.xMin || x > o.xMax || z < o.zMin || z > o.zMax) return [x, z];
-  const distIzq = x - o.xMin;
-  const distDer = o.xMax - x;
-  const distSup = z - o.zMin;
-  const distInf = o.zMax - z;
-  const minDist = Math.min(distIzq, distDer, distSup, distInf);
-  if (minDist === distIzq) return [o.xMin, z];
-  if (minDist === distDer) return [o.xMax, z];
-  if (minDist === distSup) return [x, o.zMin];
-  return [x, o.zMax];
-}
 
 type CameraConfig = {
   position: [number, number, number];
@@ -158,6 +139,21 @@ function posToPct(x: number, z: number, region: Region): [number, number] {
   const xPct = THREE.MathUtils.clamp(((x - region.xMin) / (region.xMax - region.xMin)) * 100, 3, 97);
   const yPct = THREE.MathUtils.clamp(((z - region.zMin) / (region.zMax - region.zMin)) * 100, 3, 97);
   return [xPct, yPct];
+}
+
+// Limita el desplazamiento (dx, dy) de un grupo de mesas unidas para que ningún miembro salga de los
+// límites permitidos, moviendo siempre el grupo entero de forma rígida (nunca a cada mesa por separado,
+// para no deformar ni encoger la mesa unida al llegar al límite de la zona).
+function clampDeltaGrupo(
+  miembros: { x: number; y: number }[],
+  dxDeseado: number,
+  dyDeseado: number,
+): [number, number] {
+  const dxMin = Math.max(...miembros.map((m) => 3 - m.x));
+  const dxMax = Math.min(...miembros.map((m) => 97 - m.x));
+  const dyMin = Math.max(...miembros.map((m) => 6 - m.y));
+  const dyMax = Math.min(...miembros.map((m) => 94 - m.y));
+  return [THREE.MathUtils.clamp(dxDeseado, dxMin, dxMax), THREE.MathUtils.clamp(dyDeseado, dyMin, dyMax)];
 }
 
 function tamanoMesa(capacidad: number): number {
@@ -291,8 +287,7 @@ function Mesa({
   const moveFromEvent = (e: ThreeEvent<PointerEvent>) => {
     const hit = e.ray.intersectPlane(FLOOR, new THREE.Vector3());
     if (!hit) return;
-    const [hx, hz] = evitarEstanteria(hit.x, hit.z);
-    const [xPct, yPct] = posToPct(hx, hz, region);
+    const [xPct, yPct] = posToPct(hit.x, hit.z, region);
     onDragMove(mesa.id, xPct, yPct);
   };
 
@@ -330,8 +325,7 @@ function Mesa({
             onDragStateChange(false);
             const hit = e.ray.intersectPlane(FLOOR, new THREE.Vector3());
             if (hit) {
-              const [hx, hz] = evitarEstanteria(hit.x, hit.z);
-              const [xPct, yPct] = posToPct(hx, hz, region);
+              const [xPct, yPct] = posToPct(hit.x, hit.z, region);
               onDragEnd(mesa.id, xPct, yPct);
             }
           }
@@ -431,12 +425,10 @@ function MesaUnida({
     const hit = e.ray.intersectPlane(FLOOR, new THREE.Vector3());
     const snapshot = inicio.current;
     if (!hit || !snapshot) return;
-    const [hx, hz] = evitarEstanteria(hit.x, hit.z);
-    const [xPct, yPct] = posToPct(hx, hz, region);
-    const dx = xPct - snapshot.centro.x;
-    const dy = yPct - snapshot.centro.y;
+    const [xPct, yPct] = posToPct(hit.x, hit.z, region);
+    const [dx, dy] = clampDeltaGrupo(snapshot.miembros, xPct - snapshot.centro.x, yPct - snapshot.centro.y);
     snapshot.miembros.forEach((m) => {
-      onDragMove(m.id, THREE.MathUtils.clamp(m.x + dx, 3, 97), THREE.MathUtils.clamp(m.y + dy, 6, 94));
+      onDragMove(m.id, m.x + dx, m.y + dy);
     });
   };
 
@@ -493,12 +485,10 @@ function MesaUnida({
             const hit = e.ray.intersectPlane(FLOOR, new THREE.Vector3());
             const snapshot = inicio.current;
             if (hit && snapshot) {
-              const [hx, hz] = evitarEstanteria(hit.x, hit.z);
-              const [xPct, yPct] = posToPct(hx, hz, region);
-              const dx = xPct - snapshot.centro.x;
-              const dy = yPct - snapshot.centro.y;
+              const [xPct, yPct] = posToPct(hit.x, hit.z, region);
+              const [dx, dy] = clampDeltaGrupo(snapshot.miembros, xPct - snapshot.centro.x, yPct - snapshot.centro.y);
               snapshot.miembros.forEach((m) => {
-                onDragEnd(m.id, THREE.MathUtils.clamp(m.x + dx, 3, 97), THREE.MathUtils.clamp(m.y + dy, 6, 94));
+                onDragEnd(m.id, m.x + dx, m.y + dy);
               });
             }
             inicio.current = null;
