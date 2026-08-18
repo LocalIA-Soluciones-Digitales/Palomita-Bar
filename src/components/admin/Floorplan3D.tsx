@@ -206,7 +206,7 @@ export default function Floorplan3D({
           <gridHelper args={[12, 14, "#3a3238", "#2c262b"]} />
         </group>
 
-        <Architecture />
+        <Architecture focusZona={focusZona} />
 
         {sueltas.map((mesa) => (
           <Mesa
@@ -581,9 +581,14 @@ function NeonLogo({
   );
 }
 
-function Architecture() {
+function Architecture({ focusZona }: { focusZona: PrefijoZona | null }) {
   const numMontantes = 23;
   const montantes = Array.from({ length: numMontantes }).map((_, i) => -10 + i * 0.94);
+
+  const mostrarSala = focusZona === null || focusZona === "S";
+  const mostrarBarra = focusZona === null || focusZona === "B";
+  const mostrarSalon = focusZona === null || focusZona === "L";
+  const mostrarTerraza = focusZona === null || focusZona === "T";
 
   return (
     <group>
@@ -591,70 +596,93 @@ function Architecture() {
       <Wall p={[10.4, 1.5, -0.9]} s={[0.24, 3, 10.7]} />
       <Wall p={[0, 1.5, -6.1]} s={[21.3, 3, 0.24]} />
 
-      {/* Pared izquierda: pared de ladrillo con el logo de neón de Palomita, chesterfield y mesas de centro sobre puf, como el rincón de sofás real */}
-      <BrickWall position={[-10.25, 1.6, -1]} rotation={[0, Math.PI / 2, 0]} size={[9.6, 2.7, 0.16]} />
-      <NeonLogo position={[-10.06, 2.0, -1]} rotation={[0, Math.PI / 2, 0]} scale={1.4} />
-      <ChesterfieldSofa position={[-9.3, 0, -1]} rotation={[0, Math.PI / 2, 0]} />
-      <RoundPouffeTable position={[-8.25, 0, -0.25]} />
-      <RoundPouffeTable position={[-8.1, 0, -1.35]} />
+      {/* Sala principal: rincón de sofás junto a la pared de ladrillo con el logo de neón, chesterfield, mesas de centro sobre puf y columna. Se oculta al enfocar otra zona. */}
+      <group visible={mostrarSala}>
+        <BrickWall position={[-10.25, 1.6, -1]} rotation={[0, Math.PI / 2, 0]} size={[9.6, 2.7, 0.16]} />
+        <NeonLogo position={[-10.06, 2.0, -1]} rotation={[0, Math.PI / 2, 0]} scale={1.4} />
+        <ChesterfieldSofa position={[-9.3, 0, -1]} rotation={[0, Math.PI / 2, 0]} />
+        <RoundPouffeTable position={[-8.25, 0, -0.25]} />
+        <RoundPouffeTable position={[-8.1, 0, -1.35]} />
+        <PorticoColumn position={[-2.2, 0, 0.6]} />
+        <Text position={[-1, 0.02, 4.6]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.32} color="#d5c5c1">
+          SALA PRINCIPAL
+        </Text>
+      </group>
 
-      {/* Barra en L: tramo pegado a la pared derecha, ampliado hacia el frente hasta el hueco del salón */}
-      <group position={[9.55, 0.75, -2.0]} rotation={[0, Math.PI / 2, 0]}>
-        <mesh castShadow>
-          <boxGeometry args={[7.0, 1.4, 1.05]} />
-          <meshStandardMaterial color="#49332d" roughness={0.8} />
+      {/* Barra en L, botelleros, taburetes, TV y escalón. Se oculta al enfocar otra zona. */}
+      <group visible={mostrarBarra}>
+        {/* Barra en L: tramo pegado a la pared derecha, ampliado hacia el frente hasta el hueco del salón */}
+        <group position={[9.55, 0.75, -2.0]} rotation={[0, Math.PI / 2, 0]}>
+          <mesh castShadow>
+            <boxGeometry args={[7.0, 1.4, 1.05]} />
+            <meshStandardMaterial color="#49332d" roughness={0.8} />
+          </mesh>
+          <mesh position={[0, 0.78, 0]}>
+            <boxGeometry args={[7.16, 0.1, 1.18]} />
+            <meshStandardMaterial color="#d2b28c" roughness={0.55} />
+          </mesh>
+        </group>
+        {/* Barra en L: tramo pegado a la pared del fondo, ampliado hacia la izquierda; se une con el anterior en la esquina */}
+        <group position={[7.05, 0.75, -5.25]}>
+          <mesh castShadow>
+            <boxGeometry args={[6.1, 1.4, 1.05]} />
+            <meshStandardMaterial color="#49332d" roughness={0.8} />
+          </mesh>
+          <mesh position={[0, 0.78, 0]}>
+            <boxGeometry args={[6.26, 0.1, 1.18]} />
+            <meshStandardMaterial color="#d2b28c" roughness={0.55} />
+          </mesh>
+        </group>
+        {/* Botellero detrás de la barra (pared derecha), retroiluminado en violeta como el real */}
+        <mesh position={[10.3, 1.5, -2.2]}>
+          <boxGeometry args={[0.25, 2.6, 7.5]} />
+          <meshStandardMaterial color="#171519" />
         </mesh>
-        <mesh position={[0, 0.78, 0]}>
-          <boxGeometry args={[7.16, 0.1, 1.18]} />
-          <meshStandardMaterial color="#d2b28c" roughness={0.55} />
+        <mesh position={[10.17, 1.5, -2.2]}>
+          <boxGeometry args={[0.02, 2.5, 7.3]} />
+          <meshStandardMaterial color="#7a3dff" emissive="#8b4cff" emissiveIntensity={2.2} toneMapped={false} />
         </mesh>
+        {/* Botellero detrás de la barra (pared del fondo), retroiluminado en violeta */}
+        <mesh position={[7.05, 1.5, -6.0]}>
+          <boxGeometry args={[6.3, 2.6, 0.25]} />
+          <meshStandardMaterial color="#171519" />
+        </mesh>
+        <mesh position={[7.05, 1.5, -5.87]}>
+          <boxGeometry args={[6.1, 2.5, 0.02]} />
+          <meshStandardMaterial color="#7a3dff" emissive="#8b4cff" emissiveIntensity={2.2} toneMapped={false} />
+        </mesh>
+        {/* Taburetes altos junto a la barra, como en el local real */}
+        {[-4.0, -2.3, -0.6, 1.1].map((z, i) => (
+          <BarStool key={`v-${i}`} position={[8.0, 0, z]} />
+        ))}
+        {[5.2, 6.7].map((x, i) => (
+          <BarStool key={`h-${i}`} position={[x, 0, -4.2]} />
+        ))}
+        {/* Pantalla de TV sobre la esquina de la barra */}
+        <TvScreen position={[8.9, 2.55, -5.85]} rotation={[0, 0, 0]} />
+        <Text position={[8.7, 0.02, -2.0]} rotation={[-Math.PI / 2, 0, Math.PI / 2]} fontSize={0.3} color="#d5c5c1">
+          BARRA
+        </Text>
+        {/* Escalón pequeño de bajada de la barra al pasillo del salón, junto a la mesa B2 */}
+        <group position={[9.3, 0, -1.9]} rotation={[0, Math.PI / 2, 0]}>
+          <mesh position={[0, 0.09, -0.3]} receiveShadow castShadow>
+            <boxGeometry args={[2.2, 0.18, 0.55]} />
+            <meshStandardMaterial color="#4a4247" roughness={0.85} />
+          </mesh>
+          <mesh position={[0, -0.03, 0.25]} receiveShadow castShadow>
+            <boxGeometry args={[2.2, 0.15, 0.5]} />
+            <meshStandardMaterial color="#4a4247" roughness={0.85} />
+          </mesh>
+        </group>
       </group>
-      {/* Barra en L: tramo pegado a la pared del fondo, ampliado hacia la izquierda; se une con el anterior en la esquina */}
-      <group position={[7.05, 0.75, -5.25]}>
-        <mesh castShadow>
-          <boxGeometry args={[6.1, 1.4, 1.05]} />
-          <meshStandardMaterial color="#49332d" roughness={0.8} />
-        </mesh>
-        <mesh position={[0, 0.78, 0]}>
-          <boxGeometry args={[6.26, 0.1, 1.18]} />
-          <meshStandardMaterial color="#d2b28c" roughness={0.55} />
-        </mesh>
+
+      {/* Salón: estantería expositora con plantas y letrero luminoso, a la izquierda de la puerta. Se oculta al enfocar otra zona. */}
+      <group visible={mostrarSalon}>
+        <DisplayShelf position={[3.5, 0, 3.6]} depth={5.25} />
+        <Text position={[6.4, 0.02, 3.6]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.32} color="#d5c5c1">
+          SALÓN
+        </Text>
       </group>
-      {/* Botellero detrás de la barra (pared derecha), retroiluminado en violeta como el real */}
-      <mesh position={[10.3, 1.5, -2.2]}>
-        <boxGeometry args={[0.25, 2.6, 7.5]} />
-        <meshStandardMaterial color="#171519" />
-      </mesh>
-      <mesh position={[10.17, 1.5, -2.2]}>
-        <boxGeometry args={[0.02, 2.5, 7.3]} />
-        <meshStandardMaterial color="#7a3dff" emissive="#8b4cff" emissiveIntensity={2.2} toneMapped={false} />
-      </mesh>
-      {/* Botellero detrás de la barra (pared del fondo), retroiluminado en violeta */}
-      <mesh position={[7.05, 1.5, -6.0]}>
-        <boxGeometry args={[6.3, 2.6, 0.25]} />
-        <meshStandardMaterial color="#171519" />
-      </mesh>
-      <mesh position={[7.05, 1.5, -5.87]}>
-        <boxGeometry args={[6.1, 2.5, 0.02]} />
-        <meshStandardMaterial color="#7a3dff" emissive="#8b4cff" emissiveIntensity={2.2} toneMapped={false} />
-      </mesh>
-      {/* Taburetes altos junto a la barra, como en el local real */}
-      {[-4.0, -2.3, -0.6, 1.1].map((z, i) => (
-        <BarStool key={`v-${i}`} position={[8.0, 0, z]} />
-      ))}
-      {[5.2, 6.7].map((x, i) => (
-        <BarStool key={`h-${i}`} position={[x, 0, -4.2]} />
-      ))}
-      {/* Pantalla de TV sobre la esquina de la barra */}
-      <TvScreen position={[8.9, 2.55, -5.85]} rotation={[0, 0, 0]} />
-      <Text position={[8.7, 0.02, -2.0]} rotation={[-Math.PI / 2, 0, Math.PI / 2]} fontSize={0.3} color="#d5c5c1">
-        BARRA
-      </Text>
-      <Text position={[6.4, 0.02, 3.6]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.32} color="#d5c5c1">
-        SALÓN
-      </Text>
-      {/* Estantería con plantas y letrero luminoso "Aquí se viene a disfrutar" en el salón, a la izquierda de la puerta */}
-      <DisplayShelf position={[3.5, 0, 3.6]} depth={5.25} />
 
       {/* Ventanal con montantes: separa la sala de la terraza exterior, con hueco de puerta */}
       <group position={[0, 1.7, 6.1]}>
@@ -709,21 +737,6 @@ function Architecture() {
           ));
         })()}
       </group>
-
-      {/* Escalón pequeño de bajada de la barra al pasillo del salón, junto a la mesa B2 */}
-      <group position={[9.3, 0, -1.9]} rotation={[0, Math.PI / 2, 0]}>
-        <mesh position={[0, 0.09, -0.3]} receiveShadow castShadow>
-          <boxGeometry args={[2.2, 0.18, 0.55]} />
-          <meshStandardMaterial color="#4a4247" roughness={0.85} />
-        </mesh>
-        <mesh position={[0, -0.03, 0.25]} receiveShadow castShadow>
-          <boxGeometry args={[2.2, 0.15, 0.5]} />
-          <meshStandardMaterial color="#4a4247" roughness={0.85} />
-        </mesh>
-      </group>
-
-      {/* Columna en la sala principal, en el lugar donde antes estaba la viga */}
-      <PorticoColumn position={[-2.2, 0, 0.6]} />
 
       {/* Puerta de entrada: hojas acristaladas blancas con marco, umbral y toldo con el neón */}
       <group position={[PUERTA_X, 0, 6.08]}>
@@ -790,46 +803,44 @@ function Architecture() {
         <NeonLogo position={[0, 3.1, 0.09]} scale={0.85} />
       </group>
 
-      {/* Terraza exterior: pórtico de piedra con soportales, suelo de baldosa cálida y toldo granate */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.18, 8.35]} receiveShadow>
-        <planeGeometry args={[21, 4.7]} />
-        <meshStandardMaterial color="#a9855f" roughness={0.9} />
-      </mesh>
-      <group position={[0, -0.169, 8.35]} scale={[21 / 4.7, 1, 1]}>
-        <gridHelper args={[4.7, 6, "#b8946e", "#ae8a64"]} />
-      </group>
-      {montantes.map((x, i) => (
-        <mesh key={i} position={[x, 0.35, 10.55]}>
-          <boxGeometry args={[0.05, 0.7, 0.05]} />
-          <meshStandardMaterial color="#171519" />
+      {/* Terraza exterior: pórtico de piedra con soportales, suelo de baldosa cálida y toldo granate. Se oculta al enfocar otra zona. */}
+      <group visible={mostrarTerraza}>
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.18, 8.35]} receiveShadow>
+          <planeGeometry args={[21, 4.7]} />
+          <meshStandardMaterial color="#a9855f" roughness={0.9} />
         </mesh>
-      ))}
+        <group position={[0, -0.169, 8.35]} scale={[21 / 4.7, 1, 1]}>
+          <gridHelper args={[4.7, 6, "#b8946e", "#ae8a64"]} />
+        </group>
+        {montantes.map((x, i) => (
+          <mesh key={i} position={[x, 0.35, 10.55]}>
+            <boxGeometry args={[0.05, 0.7, 0.05]} />
+            <meshStandardMaterial color="#171519" />
+          </mesh>
+        ))}
 
-      {/* Pilares de piedra del pórtico, como el soportal real de la entrada */}
-      <PorticoColumn position={[-6.6, 0, 6.7]} />
-      <PorticoColumn position={[-1.4, 0, 6.7]} />
-      <PorticoColumn position={[8.2, 0, 6.7]} />
+        {/* Pilares de piedra del pórtico, como el soportal real de la entrada */}
+        <PorticoColumn position={[-6.6, 0, 6.7]} />
+        <PorticoColumn position={[-1.4, 0, 6.7]} />
+        <PorticoColumn position={[8.2, 0, 6.7]} />
 
-      {/* Toldo granate de la terraza con el nombre del bar, sobre las mesas exteriores */}
-      <AwningTerraza position={[1.6, 0, 8.1]} width={16.4} />
+        {/* Toldo granate de la terraza con el nombre del bar, sobre las mesas exteriores */}
+        <AwningTerraza position={[1.6, 0, 8.1]} width={16.4} />
 
-      {/* Arbolado detrás de la terraza, como en la plaza real */}
-      <StreetTree position={[-9.2, 0, 9.9]} />
-      <StreetTree position={[-3.4, 0, 10.1]} />
-      <StreetTree position={[2.6, 0, 10.1]} />
-      <StreetTree position={[8.6, 0, 9.8]} />
+        {/* Arbolado detrás de la terraza, como en la plaza real */}
+        <StreetTree position={[-9.2, 0, 9.9]} />
+        <StreetTree position={[-3.4, 0, 10.1]} />
+        <StreetTree position={[2.6, 0, 10.1]} />
+        <StreetTree position={[8.6, 0, 9.8]} />
 
-      <Maceta position={[-9.7, 0, 7]} />
-      <Maceta position={[9.7, 0, 7]} />
-      <Maceta position={[-9.7, 0, 10.1]} />
-      <Maceta position={[9.7, 0, 10.1]} />
-      <Text position={[0, 0.02, 9.5]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.32} color="#3a2e22">
-        TERRAZA
-      </Text>
-
-      <Text position={[-1, 0.02, 4.6]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.32} color="#d5c5c1">
-        SALA PRINCIPAL
-      </Text>
+        <Maceta position={[-9.7, 0, 7]} />
+        <Maceta position={[9.7, 0, 7]} />
+        <Maceta position={[-9.7, 0, 10.1]} />
+        <Maceta position={[9.7, 0, 10.1]} />
+        <Text position={[0, 0.02, 9.5]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.32} color="#3a2e22">
+          TERRAZA
+        </Text>
+      </group>
     </group>
   );
 }
