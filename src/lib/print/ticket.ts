@@ -191,10 +191,30 @@ export function renderTicketCuentaHTML(opts: TicketCuentaOptions): string {
 }
 
 export function imprimirTicketHTML(html: string): void {
-  const ventana = window.open("", "_blank", "width=380,height=600");
-  if (!ventana) return;
-  ventana.document.write(html);
-  ventana.document.close();
-  ventana.focus();
-  ventana.print();
+  const iframe = document.createElement("iframe");
+  iframe.style.position = "fixed";
+  iframe.style.top = "-1000px";
+  iframe.style.left = "-1000px";
+  iframe.style.width = "0";
+  iframe.style.height = "0";
+  iframe.style.border = "0";
+  document.body.appendChild(iframe);
+
+  const marco = iframe.contentWindow;
+  if (!marco) {
+    document.body.removeChild(iframe);
+    return;
+  }
+
+  marco.document.open();
+  marco.document.write(html);
+  marco.document.close();
+
+  const limpiar = () => document.body.removeChild(iframe);
+  marco.onafterprint = limpiar;
+  // Fallback por si el navegador no dispara onafterprint (imprime "en bruto" con --kiosk-printing).
+  setTimeout(limpiar, 3000);
+
+  marco.focus();
+  marco.print();
 }
