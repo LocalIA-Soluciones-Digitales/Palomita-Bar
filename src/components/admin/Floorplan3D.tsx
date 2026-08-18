@@ -70,6 +70,25 @@ const REGIONES: Record<PrefijoZona, Region> = {
   L: { xMin: 3.0, xMax: 9.8, zMin: 1.6, zMax: 5.7 },
 };
 
+// Estantería negra física (junto a la puerta, entre la Sala Principal y el Salón): zona vetada para mesas,
+// con un margen extra para que el tablero no quede pegado ni solapado con el mueble real.
+const ESTANTERIA_NEGRA: Region = { xMin: 2.35, xMax: 4.65, zMin: 0.65, zMax: 6.5 };
+
+// Si el punto cae dentro del hueco de la estantería, lo empuja al borde libre más cercano.
+function evitarEstanteria(x: number, z: number): [number, number] {
+  const o = ESTANTERIA_NEGRA;
+  if (x < o.xMin || x > o.xMax || z < o.zMin || z > o.zMax) return [x, z];
+  const distIzq = x - o.xMin;
+  const distDer = o.xMax - x;
+  const distSup = z - o.zMin;
+  const distInf = o.zMax - z;
+  const minDist = Math.min(distIzq, distDer, distSup, distInf);
+  if (minDist === distIzq) return [o.xMin, z];
+  if (minDist === distDer) return [o.xMax, z];
+  if (minDist === distSup) return [x, o.zMin];
+  return [x, o.zMax];
+}
+
 type CameraConfig = {
   position: [number, number, number];
   target: [number, number, number];
@@ -271,7 +290,8 @@ function Mesa({
   const moveFromEvent = (e: ThreeEvent<PointerEvent>) => {
     const hit = e.ray.intersectPlane(FLOOR, new THREE.Vector3());
     if (!hit) return;
-    const [xPct, yPct] = posToPct(hit.x, hit.z, region);
+    const [hx, hz] = evitarEstanteria(hit.x, hit.z);
+    const [xPct, yPct] = posToPct(hx, hz, region);
     onDragMove(mesa.id, xPct, yPct);
   };
 
@@ -309,7 +329,8 @@ function Mesa({
             onDragStateChange(false);
             const hit = e.ray.intersectPlane(FLOOR, new THREE.Vector3());
             if (hit) {
-              const [xPct, yPct] = posToPct(hit.x, hit.z, region);
+              const [hx, hz] = evitarEstanteria(hit.x, hit.z);
+              const [xPct, yPct] = posToPct(hx, hz, region);
               onDragEnd(mesa.id, xPct, yPct);
             }
           }
@@ -409,7 +430,8 @@ function MesaUnida({
     const hit = e.ray.intersectPlane(FLOOR, new THREE.Vector3());
     const snapshot = inicio.current;
     if (!hit || !snapshot) return;
-    const [xPct, yPct] = posToPct(hit.x, hit.z, region);
+    const [hx, hz] = evitarEstanteria(hit.x, hit.z);
+    const [xPct, yPct] = posToPct(hx, hz, region);
     const dx = xPct - snapshot.centro.x;
     const dy = yPct - snapshot.centro.y;
     snapshot.miembros.forEach((m) => {
@@ -470,7 +492,8 @@ function MesaUnida({
             const hit = e.ray.intersectPlane(FLOOR, new THREE.Vector3());
             const snapshot = inicio.current;
             if (hit && snapshot) {
-              const [xPct, yPct] = posToPct(hit.x, hit.z, region);
+              const [hx, hz] = evitarEstanteria(hit.x, hit.z);
+              const [xPct, yPct] = posToPct(hx, hz, region);
               const dx = xPct - snapshot.centro.x;
               const dy = yPct - snapshot.centro.y;
               snapshot.miembros.forEach((m) => {
