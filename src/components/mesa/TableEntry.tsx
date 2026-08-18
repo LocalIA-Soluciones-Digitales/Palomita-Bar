@@ -4,13 +4,28 @@ import { useState, type ReactNode } from "react";
 import { useTableSession } from "@/components/mesa/table-session-context";
 import { CheckIcon, ShareIcon } from "@/components/icons";
 import { SITE } from "@/lib/constants";
+import { validarMesaPorEtiqueta } from "@/lib/restaurant/queries";
 
 export function TableEntry({ children }: { children: ReactNode }) {
-  const { sesion, sesionPublica, loading, error, canOrder, elegirModo, identificarse } =
-    useTableSession();
+  const {
+    mesaIdentificador,
+    sesion,
+    sesionPublica,
+    loading,
+    error,
+    canOrder,
+    elegirModo,
+    identificarse,
+    mesaManual,
+    resolverMesaManual,
+  } = useTableSession();
   const [nombre, setNombre] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [nombreEligiendo, setNombreEligiendo] = useState<string | null>(null);
+  const [saltarMesa, setSaltarMesa] = useState(false);
+  const [mesaInput, setMesaInput] = useState("");
+  const [mesaError, setMesaError] = useState<string | null>(null);
+  const [resolviendoMesa, setResolviendoMesa] = useState(false);
 
   const elegirExistente = async (nombreExistente: string) => {
     setNombreEligiendo(nombreExistente);
@@ -23,6 +38,69 @@ export function TableEntry({ children }: { children: ReactNode }) {
       <div className="mx-auto flex min-h-[50vh] max-w-md flex-col items-center justify-center px-6 py-16 text-center">
         <p className="font-display text-2xl text-noche-ink">{SITE.name}</p>
         <p className="mt-3 text-sm text-noche-ink-muted">Cargando mesa…</p>
+      </div>
+    );
+  }
+
+  // Sin mesa detectada por QR (ni ya resuelta a mano): pedimos el número
+  // antes de mostrar la carta, no al confirmar el pedido, para no hacer
+  // esperar esa pregunta hasta el último paso.
+  if (!mesaIdentificador && !mesaManual && !saltarMesa) {
+    return (
+      <div className="mx-auto flex min-h-[60vh] max-w-md flex-col justify-center px-6 py-16 text-center">
+        <div className="rounded-lg border border-noche-border bg-noche-surface p-6 md:p-8">
+          <p className="text-xs uppercase tracking-widest2 text-noche-primary">Bienvenido</p>
+          <h1 className="mt-3 font-display text-3xl text-noche-ink">¿En qué mesa estás?</h1>
+          <p className="mt-3 text-sm text-noche-ink-muted">
+            Así cocina sabrá dónde entregarte el pedido. Si estás en la terraza usa T y el
+            número (p. ej. T1); en la barra usa B (p. ej. B2).
+          </p>
+
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const etiqueta = mesaInput.trim();
+              if (!etiqueta) return;
+              setResolviendoMesa(true);
+              setMesaError(null);
+              const mesa = await validarMesaPorEtiqueta(etiqueta);
+              setResolviendoMesa(false);
+              if (!mesa) {
+                setMesaError("No encontramos esa mesa. Comprueba el número e inténtalo de nuevo.");
+                return;
+              }
+              resolverMesaManual(mesa.identificador);
+            }}
+            className="mt-8 flex flex-col gap-3"
+          >
+            <input
+              type="text"
+              inputMode="text"
+              autoCapitalize="characters"
+              autoFocus
+              value={mesaInput}
+              onChange={(e) => setMesaInput(e.target.value)}
+              placeholder="Nº de mesa (ej. T1, B2, 5)"
+              className="rounded-lg border border-noche-border bg-noche-surface px-4 py-3 text-center text-noche-ink placeholder:text-noche-ink-muted"
+            />
+            {mesaError ? <p className="text-sm text-noche-danger">{mesaError}</p> : null}
+            <button
+              type="submit"
+              disabled={resolviendoMesa || mesaInput.trim() === ""}
+              className="rounded-lg bg-noche-primary py-3 text-sm uppercase tracking-widest2 text-white transition-colors hover:bg-noche-primary-dark disabled:opacity-50"
+            >
+              {resolviendoMesa ? "Comprobando…" : "Continuar"}
+            </button>
+          </form>
+
+          <button
+            type="button"
+            onClick={() => setSaltarMesa(true)}
+            className="mt-4 text-xs text-noche-ink-faint underline underline-offset-2 hover:text-noche-ink-muted"
+          >
+            No tengo el número ahora, continuar sin indicarlo
+          </button>
+        </div>
       </div>
     );
   }

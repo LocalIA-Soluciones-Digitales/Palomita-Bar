@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   eliminarProductoAdmin,
   getCategoriasAdmin,
@@ -12,6 +12,7 @@ import type { CategoriaAdmin, ProductoAdmin } from "@/lib/restaurant/admin-types
 import { errorMessage, formatCentimos } from "@/lib/format";
 import { BoxIcon, CheckIcon, PencilIcon, PlusIcon, TrashIcon } from "@/components/icons";
 import { Stat } from "@/components/admin/Stat";
+import { SkeletonCard } from "@/components/admin/Skeleton";
 
 const FORM_VACIO = {
   nombre: "",
@@ -29,6 +30,10 @@ export default function ProductosAdminPage() {
   const [categorias, setCategorias] = useState<CategoriaAdmin[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState(FORM_VACIO);
+  const [nombreError, setNombreError] = useState<string | null>(null);
+  const [precioError, setPrecioError] = useState<string | null>(null);
+  const nombreRef = useRef<HTMLInputElement>(null);
+  const precioRef = useRef<HTMLInputElement>(null);
   const [editandoId, setEditandoId] = useState<string | null>(null);
   const [formAbierto, setFormAbierto] = useState(false);
   const [guardando, setGuardando] = useState(false);
@@ -108,8 +113,18 @@ export default function ProductosAdminPage() {
 
   const handleGuardar = async () => {
     const precioCentimos = Math.round(parseFloat(form.precio.replace(",", ".")) * 100);
-    if (!form.nombre.trim() || Number.isNaN(precioCentimos) || precioCentimos < 0) {
-      setError("Revisa el nombre y el precio.");
+    const nombreInvalido = !form.nombre.trim();
+    const precioInvalido = Number.isNaN(precioCentimos) || precioCentimos < 0;
+
+    setNombreError(nombreInvalido ? "El nombre no puede estar vacío." : null);
+    setPrecioError(precioInvalido ? "Escribe un precio válido, p. ej. 6,50." : null);
+
+    if (nombreInvalido) {
+      nombreRef.current?.focus();
+      return;
+    }
+    if (precioInvalido) {
+      precioRef.current?.focus();
       return;
     }
 
@@ -156,6 +171,8 @@ export default function ProductosAdminPage() {
   const handleCancelar = () => {
     setEditandoId(null);
     setForm(FORM_VACIO);
+    setNombreError(null);
+    setPrecioError(null);
     setFormAbierto(false);
   };
 
@@ -238,25 +255,56 @@ export default function ProductosAdminPage() {
 
           <div className="grid grid-cols-2 gap-3 px-3 py-3 sm:grid-cols-4">
             <div className="col-span-2">
-              <label className="text-[11px] uppercase tracking-widest2 text-noche-ink-muted">
+              <label htmlFor="producto-nombre" className="text-[11px] uppercase tracking-widest2 text-noche-ink-muted">
                 Nombre
               </label>
               <input
+                id="producto-nombre"
+                ref={nombreRef}
+                required
+                aria-invalid={nombreError ? true : undefined}
+                aria-describedby={nombreError ? "producto-nombre-error" : undefined}
                 value={form.nombre}
-                onChange={(e) => setForm((f) => ({ ...f, nombre: e.target.value }))}
-                className="mt-1 w-full rounded-lg border border-noche-border bg-noche-surface-2 px-2.5 py-1.5 text-sm text-noche-ink outline-none transition focus:border-noche-primary"
+                onChange={(e) => {
+                  setForm((f) => ({ ...f, nombre: e.target.value }));
+                  if (nombreError) setNombreError(null);
+                }}
+                className={`mt-1 w-full rounded-lg border bg-noche-surface-2 px-2.5 py-1.5 text-sm text-noche-ink outline-none transition ${
+                  nombreError ? "border-noche-danger" : "border-noche-border focus:border-noche-primary"
+                }`}
               />
+              {nombreError ? (
+                <p id="producto-nombre-error" className="mt-1 text-[11px] text-noche-danger">
+                  {nombreError}
+                </p>
+              ) : null}
             </div>
             <div>
-              <label className="text-[11px] uppercase tracking-widest2 text-noche-ink-muted">
+              <label htmlFor="producto-precio" className="text-[11px] uppercase tracking-widest2 text-noche-ink-muted">
                 Precio (€)
               </label>
               <input
+                id="producto-precio"
+                ref={precioRef}
+                required
+                inputMode="decimal"
+                aria-invalid={precioError ? true : undefined}
+                aria-describedby={precioError ? "producto-precio-error" : undefined}
                 value={form.precio}
-                onChange={(e) => setForm((f) => ({ ...f, precio: e.target.value }))}
+                onChange={(e) => {
+                  setForm((f) => ({ ...f, precio: e.target.value }));
+                  if (precioError) setPrecioError(null);
+                }}
                 placeholder="6,50"
-                className="mt-1 w-full rounded-lg border border-noche-border bg-noche-surface-2 px-2.5 py-1.5 text-sm text-noche-ink outline-none transition focus:border-noche-primary"
+                className={`mt-1 w-full rounded-lg border bg-noche-surface-2 px-2.5 py-1.5 text-sm text-noche-ink outline-none transition ${
+                  precioError ? "border-noche-danger" : "border-noche-border focus:border-noche-primary"
+                }`}
               />
+              {precioError ? (
+                <p id="producto-precio-error" className="mt-1 text-[11px] text-noche-danger">
+                  {precioError}
+                </p>
+              ) : null}
             </div>
             <div>
               <label className="text-[11px] uppercase tracking-widest2 text-noche-ink-muted">
@@ -381,7 +429,11 @@ export default function ProductosAdminPage() {
 
       <div className="mt-6 space-y-8">
         {productos === null ? (
-          <p className="text-sm text-noche-ink-muted">Cargando…</p>
+          <div className="grid gap-5 lg:grid-cols-2 xl:grid-cols-3">
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+          </div>
         ) : secciones.length === 0 ? (
           <p className="text-sm text-noche-ink-muted">Todavía no hay productos.</p>
         ) : (

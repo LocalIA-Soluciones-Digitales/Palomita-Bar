@@ -4,6 +4,7 @@ import { useState } from "react";
 import { crearReservaAdmin } from "@/lib/restaurant/admin-queries";
 import type { MesaEstadoAdmin, ZonaAdmin } from "@/lib/restaurant/admin-types";
 import { CloseIcon } from "@/components/icons";
+import { useDialogA11y } from "@/hooks/useDialogA11y";
 
 export function ReservaModal({
   fechaInicial,
@@ -34,6 +35,7 @@ export function ReservaModal({
   const [notas, setNotas] = useState("");
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const containerRef = useDialogA11y(onClose);
 
   const mesasFiltradas = zonaId ? mesas.filter((m) => m.zona_id === zonaId) : mesas;
 
@@ -70,7 +72,12 @@ export function ReservaModal({
       onClick={onClose}
     >
       <div
-        className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-lg border border-noche-border bg-noche-surface p-6"
+        ref={containerRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Nueva reserva"
+        tabIndex={-1}
+        className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-lg border border-noche-border bg-noche-surface p-6 outline-none"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between">

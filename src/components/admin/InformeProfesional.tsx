@@ -9,8 +9,9 @@ import {
 } from "@/lib/restaurant/admin-analytics-queries";
 import type { InformeVentas, InformeVentasProducto } from "@/lib/restaurant/admin-types";
 import { errorMessage, formatCentimos } from "@/lib/format";
-import { PrinterIcon, StarIcon } from "@/components/icons";
+import { DownloadIcon, PrinterIcon, StarIcon } from "@/components/icons";
 import { DonutCategorias, GraficoVentasDia } from "@/components/admin/VentasCharts";
+import { descargarCSV } from "@/lib/export-csv";
 
 type RangoId = "7d" | "30d" | "mes" | "mes_anterior";
 
@@ -252,6 +253,32 @@ export function InformeProfesional() {
     return lista;
   }, [ventas, productoEstrella, sinMovimiento, origenPrincipal, recurrenciaPct, sesionesUnicas, nuevosSuscriptores]);
 
+  const handleExportarCSV = () => {
+    if (!ventas) return;
+    const filas: (string | number)[][] = [
+      [`Informe de ventas — ${etiqueta}`],
+      [],
+      ["Resumen"],
+      ["Ventas (€)", formatCentimos(ventas.resumen.ventas_centimos)],
+      ["Pedidos", ventas.resumen.pedidos],
+      ["Ticket medio (€)", formatCentimos(ventas.resumen.ticket_medio_centimos)],
+      ["Unidades vendidas", ventas.resumen.unidades_vendidas],
+      [],
+      ["Ventas por día"],
+      ["Fecha", "Pedidos", "Ventas (€)"],
+      ...ventas.por_dia.map((d) => [d.fecha, d.pedidos, formatCentimos(d.ventas_centimos)]),
+      [],
+      ["Ventas por categoría"],
+      ["Categoría", "Unidades", "Ventas (€)"],
+      ...ventas.por_categoria.map((c) => [c.categoria, c.unidades, formatCentimos(c.ventas_centimos)]),
+      [],
+      ["Productos"],
+      ["Producto", "Categoría", "Unidades", "Ventas (€)"],
+      ...ventas.productos.map((p) => [p.nombre, p.categoria, p.unidades, formatCentimos(p.ventas_centimos)]),
+    ];
+    descargarCSV(`ventas-palomita-bar-${etiqueta.replace(/\s+/g, "-")}.csv`, filas);
+  };
+
   return (
     <div className="mx-auto max-w-6xl">
       <div className="flex flex-wrap items-center justify-between gap-3 print:hidden">
@@ -273,6 +300,15 @@ export function InformeProfesional() {
               </button>
             ))}
           </div>
+          <button
+            type="button"
+            onClick={handleExportarCSV}
+            disabled={!ventas}
+            className="flex items-center gap-1.5 rounded-lg border border-noche-border px-4 py-2 text-xs uppercase tracking-widest2 text-noche-ink hover:bg-noche-surface-2 disabled:opacity-50"
+          >
+            <DownloadIcon className="h-3.5 w-3.5" />
+            Exportar CSV
+          </button>
           <button
             type="button"
             onClick={() => window.print()}

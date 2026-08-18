@@ -1,11 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { getPedidoPublico } from "@/lib/restaurant/queries";
 import { formatCentimos } from "@/lib/format";
-import { CheckIcon } from "@/components/icons";
+import { CheckIcon, RefreshIcon } from "@/components/icons";
 import { StatusBadge } from "@/components/mesa/StatusBadge";
 import { guardarPedidoActivo, olvidarPedido } from "@/lib/pedido/active-orders";
+import { playNewOrderChime } from "@/lib/notify-sound";
+import { vibrarSuave } from "@/lib/haptics";
 import type { EstadoPedido, PedidoPublico } from "@/lib/restaurant/types";
 
 const PASOS: { estado: EstadoPedido; label: string }[] = [
@@ -21,6 +24,7 @@ const INTERVALO_MS = 5000;
 
 export function PedidoStatus({ pedidoInicial }: { pedidoInicial: PedidoPublico }) {
   const [pedido, setPedido] = useState(pedidoInicial);
+  const estadoAnterior = useRef(pedidoInicial.estado);
 
   useEffect(() => {
     if (ESTADOS_FINALES.includes(pedido.estado)) {
@@ -29,6 +33,16 @@ export function PedidoStatus({ pedidoInicial }: { pedidoInicial: PedidoPublico }
       guardarPedidoActivo(pedido.id);
     }
   }, [pedido.estado, pedido.id]);
+
+  // Avisa (sonido + vibración) en cuanto el pedido pasa a "Listo", para que
+  // el cliente no tenga que estar mirando la pantalla mientras espera.
+  useEffect(() => {
+    if (pedido.estado === "READY" && estadoAnterior.current !== "READY") {
+      playNewOrderChime();
+      vibrarSuave();
+    }
+    estadoAnterior.current = pedido.estado;
+  }, [pedido.estado]);
 
   useEffect(() => {
     if (ESTADOS_FINALES.includes(pedido.estado)) return;
@@ -124,6 +138,14 @@ export function PedidoStatus({ pedidoInicial }: { pedidoInicial: PedidoPublico }
           <span>{formatCentimos(pedido.total_centimos)} €</span>
         </div>
       </div>
+
+      <Link
+        href={`/pedir?repetir=${pedido.id}`}
+        className="mt-6 flex items-center justify-center gap-1.5 rounded-lg border border-noche-border py-3 text-sm uppercase tracking-widest2 text-noche-ink-muted transition-colors hover:border-noche-primary hover:text-noche-primary"
+      >
+        <RefreshIcon className="h-3.5 w-3.5" />
+        Pedir lo mismo otra vez
+      </Link>
     </div>
   );
 }

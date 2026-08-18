@@ -4,11 +4,12 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/components/cart/cart-context";
 import { useTableSession } from "@/components/mesa/table-session-context";
-import { formatCentimos } from "@/lib/format";
+import { errorMessage, formatCentimos } from "@/lib/format";
 import { splitEqually } from "@/lib/restaurant/split";
 import { crearPedido, getCarta, validarMesaPorEtiqueta } from "@/lib/restaurant/queries";
 import { CloseIcon, MinusIcon, PlusIcon, ShareIcon, TrashIcon } from "@/components/icons";
 import { vibrarSuave } from "@/lib/haptics";
+import { useDialogA11y } from "@/hooks/useDialogA11y";
 import type { PaymentMethod, RepartoInput } from "@/lib/restaurant/types";
 
 interface CambioPrecio {
@@ -27,7 +28,7 @@ export function CartDrawer({
 }) {
   const { lines, increment, decrement, removeItem, toggleShare, applyCatalog, totalCentimos, clear } =
     useCart();
-  const { sesion, participante, sesionPublica } = useTableSession();
+  const { sesion, participante, sesionPublica, mesaManual } = useTableSession();
   const otrosParticipantes = (sesionPublica?.participantes ?? []).filter(
     (p) => p.id !== participante?.id,
   );
@@ -47,8 +48,10 @@ export function CartDrawer({
   const [preciosAceptados, setPreciosAceptados] = useState(false);
   const [propinaPct, setPropinaPct] = useState(0);
   const router = useRouter();
+  const containerRef = useDialogA11y(onClose);
 
-  const effectiveMesaIdentificador = mesaIdentificador ?? resolvedMesaIdentificador;
+  const effectiveMesaIdentificador =
+    mesaIdentificador ?? mesaManual ?? resolvedMesaIdentificador;
 
   const miParteCentimos = separado
     ? lines.reduce((sum, l) => {
@@ -125,10 +128,16 @@ export function CartDrawer({
       const { url } = (await response.json()) as { url: string };
       clear();
       window.location.href = url;
-    } catch {
-      setError(
-        "No hemos podido completar tu pedido. Comprueba tu conexión e inténtalo de nuevo.",
-      );
+    } catch (err) {
+      if (err instanceof Error && err.message === "checkout_failed") {
+        setError(
+          "No hemos podido iniciar el pago online. Puedes intentarlo de nuevo o elegir pagar en local.",
+        );
+      } else if (typeof navigator !== "undefined" && !navigator.onLine) {
+        setError("Parece que no tienes conexión. Comprueba tu wifi o datos y vuelve a intentarlo.");
+      } else {
+        setError(errorMessage(err) || "No hemos podido completar tu pedido. Inténtalo de nuevo.");
+      }
       setSubmitting(false);
     }
   };
@@ -183,6 +192,8 @@ export function CartDrawer({
       setCambiosPrecio(null);
       setPreciosAceptados(false);
       await handleCheckout();
+    } catch {
+      setError("No hemos podido comprobar la carta. Comprueba tu conexión e inténtalo de nuevo.");
     } finally {
       setComprobandoPrecios(false);
     }
@@ -221,7 +232,12 @@ export function CartDrawer({
       onClick={onClose}
     >
       <div
-        className="max-h-[85vh] overflow-y-auto rounded-t-2xl bg-noche-bg p-6"
+        ref={containerRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Tu pedido"
+        tabIndex={-1}
+        className="max-h-[85vh] overflow-y-auto rounded-t-2xl bg-noche-bg p-6 outline-none"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex items-center justify-between">

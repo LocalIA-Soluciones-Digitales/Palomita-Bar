@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getCarta, getCategorias, validarMesa } from "@/lib/restaurant/queries";
+import { getCarta, getCategorias, getPedidoPublico, validarMesa } from "@/lib/restaurant/queries";
 import { CartProvider } from "@/components/cart/cart-context";
 import { TableSessionProvider } from "@/components/mesa/table-session-context";
 import { TableEntry } from "@/components/mesa/TableEntry";
@@ -15,9 +15,9 @@ export const metadata: Metadata = {
 export default async function PedirPage({
   searchParams,
 }: {
-  searchParams: Promise<{ mesa?: string }>;
+  searchParams: Promise<{ mesa?: string; repetir?: string }>;
 }) {
-  const { mesa: mesaIdentificador } = await searchParams;
+  const { mesa: mesaIdentificador, repetir: repetirPedidoId } = await searchParams;
 
   const mesa = mesaIdentificador ? await validarMesa(mesaIdentificador) : null;
 
@@ -30,7 +30,11 @@ export default async function PedirPage({
     );
   }
 
-  const [categorias, productos] = await Promise.all([getCategorias(), getCarta()]);
+  const [categorias, productos, pedidoARepetir] = await Promise.all([
+    getCategorias(),
+    getCarta(),
+    repetirPedidoId ? getPedidoPublico(repetirPedidoId) : Promise.resolve(null),
+  ]);
   const mesaLabel = mesa
     ? mesa.nombre
       ? `${mesa.nombre} (Mesa ${mesa.numero})`
@@ -39,13 +43,19 @@ export default async function PedirPage({
 
   return (
     <TableSessionProvider mesaIdentificador={mesa?.identificador} mesaCapacidad={mesa?.capacidad}>
-      <CartProvider>
+      <CartProvider mesaIdentificador={mesa?.identificador}>
         <TableEntry>
           <PedirExperience
             categorias={categorias}
             productos={productos}
             mesaLabel={mesaLabel}
             mesaIdentificador={mesaIdentificador}
+            repetirItems={
+              pedidoARepetir?.items.map((item) => ({
+                nombre: item.producto_nombre,
+                cantidad: item.cantidad,
+              })) ?? null
+            }
           />
         </TableEntry>
       </CartProvider>

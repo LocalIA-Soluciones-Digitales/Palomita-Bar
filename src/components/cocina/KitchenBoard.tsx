@@ -5,6 +5,7 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { formatCentimos } from "@/lib/format";
 import { playNewOrderChime } from "@/lib/notify-sound";
 import { renderTicketComandaHTML, imprimirTicketHTML } from "@/lib/print/ticket";
+import { PrinterIcon } from "@/components/icons";
 import type { EstadoPedido } from "@/lib/restaurant/types";
 import type { PedidoCocina, PedidoCocinaItem } from "@/lib/restaurant/cocina-types";
 
@@ -190,6 +191,28 @@ export function KitchenBoard({ pedidosIniciales }: { pedidosIniciales: PedidoCoc
       await refetch();
     }
     setActualizando(null);
+  };
+
+  /** Reimprime la comanda de un pedido (p. ej. si se atascó el papel), con
+   * las líneas del tipo que se esté viendo — comida por defecto en "Todos". */
+  const reimprimirComanda = (pedido: PedidoCocina, filtroActual: FiltroTipo) => {
+    const destino = filtroActual === "bebida" ? "BARRA" : "COCINA";
+    const items = pedido.items
+      .filter((item) =>
+        filtroActual === "bebida" ? item.producto_tipo !== "comida" : item.producto_tipo !== "bebida",
+      )
+      .map((item) => ({ cantidad: item.cantidad, nombre: item.producto_nombre, notas: item.notas }));
+
+    const html = renderTicketComandaHTML({
+      destino,
+      mesaEtiqueta: pedido.mesa_numero ? String(pedido.mesa_numero) : "-",
+      mesaNombre: pedido.mesa_nombre,
+      salonNombre: null,
+      pax: null,
+      notasGenerales: pedido.notas,
+      items,
+    });
+    imprimirTicketHTML(html);
   };
 
   return (
@@ -382,9 +405,21 @@ export function KitchenBoard({ pedidosIniciales }: { pedidosIniciales: PedidoCoc
                       </p>
                     ) : avisoMixto ? (
                       <p className="mt-3 text-center text-xs text-noche-ink-muted">
-                        Pedido mixto: gestiona comida y bebida desde las pestañas Cocina / Barra
+                        Este pedido tiene comida y bebida: cada estación avanza por su cuenta.
+                        Ve a la pestaña <span className="font-semibold text-noche-ink">Cocina</span> o{" "}
+                        <span className="font-semibold text-noche-ink">Barra</span> para aceptarlo y
+                        prepararlo — aquí solo se marca "Entregado" cuando las dos estén listas.
                       </p>
                     ) : null}
+
+                    <button
+                      type="button"
+                      onClick={() => reimprimirComanda(pedido, filtro)}
+                      className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg py-1.5 text-[11px] uppercase tracking-widest2 text-noche-ink-faint transition-colors hover:text-noche-ink"
+                    >
+                      <PrinterIcon className="h-3 w-3" />
+                      Reimprimir comanda
+                    </button>
                   </div>
                 );
               })}

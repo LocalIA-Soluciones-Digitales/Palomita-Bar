@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   eliminarCategoriaAdmin,
   getCategoriasAdmin,
@@ -10,6 +10,7 @@ import type { CategoriaAdmin } from "@/lib/restaurant/admin-types";
 import { errorMessage } from "@/lib/format";
 import { PencilIcon, PlusIcon, TagIcon, TrashIcon } from "@/components/icons";
 import { Stat } from "@/components/admin/Stat";
+import { SkeletonCard } from "@/components/admin/Skeleton";
 
 const COMBINING_MARKS = new RegExp("[\\u0300-\\u036f]", "g");
 
@@ -39,6 +40,8 @@ export default function CategoriasAdminPage() {
   const [categorias, setCategorias] = useState<CategoriaAdmin[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState<CategoriaForm>(FORM_VACIO);
+  const [nombreError, setNombreError] = useState<string | null>(null);
+  const nombreRef = useRef<HTMLInputElement>(null);
   const [editandoId, setEditandoId] = useState<string | null>(null);
   const [formAbierto, setFormAbierto] = useState(false);
   const [guardando, setGuardando] = useState(false);
@@ -73,7 +76,12 @@ export default function CategoriasAdminPage() {
   }, [categorias]);
 
   const handleGuardar = async () => {
-    if (!form.nombre.trim()) return;
+    if (!form.nombre.trim()) {
+      setNombreError("El nombre no puede estar vacío.");
+      nombreRef.current?.focus();
+      return;
+    }
+    setNombreError(null);
     setGuardando(true);
     setError(null);
     try {
@@ -104,6 +112,7 @@ export default function CategoriasAdminPage() {
   const handleCancelar = () => {
     setEditandoId(null);
     setForm(FORM_VACIO);
+    setNombreError(null);
     setFormAbierto(false);
   };
 
@@ -168,14 +177,29 @@ export default function CategoriasAdminPage() {
 
           <div className="flex flex-wrap items-end gap-3 px-3 py-3">
             <div className="min-w-[10rem] flex-1">
-              <label className="text-[11px] uppercase tracking-widest2 text-noche-ink-muted">
+              <label htmlFor="categoria-nombre" className="text-[11px] uppercase tracking-widest2 text-noche-ink-muted">
                 Nombre
               </label>
               <input
+                id="categoria-nombre"
+                ref={nombreRef}
+                required
+                aria-invalid={nombreError ? true : undefined}
+                aria-describedby={nombreError ? "categoria-nombre-error" : undefined}
                 value={form.nombre}
-                onChange={(e) => setForm((f) => ({ ...f, nombre: e.target.value }))}
-                className="mt-1 w-full rounded-lg border border-noche-border bg-noche-surface-2 px-2.5 py-1.5 text-sm text-noche-ink outline-none transition focus:border-noche-primary"
+                onChange={(e) => {
+                  setForm((f) => ({ ...f, nombre: e.target.value }));
+                  if (nombreError) setNombreError(null);
+                }}
+                className={`mt-1 w-full rounded-lg border bg-noche-surface-2 px-2.5 py-1.5 text-sm text-noche-ink outline-none transition ${
+                  nombreError ? "border-noche-danger" : "border-noche-border focus:border-noche-primary"
+                }`}
               />
+              {nombreError ? (
+                <p id="categoria-nombre-error" className="mt-1 text-[11px] text-noche-danger">
+                  {nombreError}
+                </p>
+              ) : null}
             </div>
             <div>
               <label className="text-[11px] uppercase tracking-widest2 text-noche-ink-muted">
@@ -229,7 +253,10 @@ export default function CategoriasAdminPage() {
 
       <div className="mt-6 grid gap-5 lg:grid-cols-2">
         {categorias === null ? (
-          <p className="text-sm text-noche-ink-muted">Cargando…</p>
+          <>
+            <SkeletonCard filas={4} />
+            <SkeletonCard filas={4} />
+          </>
         ) : grupos.length === 0 ? (
           <p className="text-sm text-noche-ink-muted">Todavía no hay categorías.</p>
         ) : (

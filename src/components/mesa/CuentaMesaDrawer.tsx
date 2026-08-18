@@ -6,6 +6,7 @@ import { asumirReparto } from "@/lib/restaurant/queries";
 import { formatCentimos } from "@/lib/format";
 import { CloseIcon } from "@/components/icons";
 import { PaymentStatusBadge } from "@/components/mesa/StatusBadge";
+import { useDialogA11y } from "@/hooks/useDialogA11y";
 
 interface LineaReparto {
   id: string;
@@ -19,6 +20,7 @@ export function CuentaMesaDrawer({ onClose }: { onClose: () => void }) {
   const { participante, sesionPublica, refrescarSesionPublica } = useTableSession();
   const [asumiendoId, setAsumiendoId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const containerRef = useDialogA11y(onClose);
 
   const lineas = useMemo<LineaReparto[]>(() => {
     if (!sesionPublica) return [];
@@ -99,7 +101,12 @@ export function CuentaMesaDrawer({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 flex flex-col justify-end bg-black/50" onClick={onClose}>
       <div
-        className="max-h-[85vh] overflow-y-auto rounded-t-2xl bg-noche-bg p-6"
+        ref={containerRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Cuenta de la mesa"
+        tabIndex={-1}
+        className="max-h-[85vh] overflow-y-auto rounded-t-2xl bg-noche-bg p-6 outline-none"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between">

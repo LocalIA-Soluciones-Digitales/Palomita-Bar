@@ -62,6 +62,9 @@ interface TableSessionValue {
   identificarse: (nombre: string) => Promise<void>;
   cambiarComensal: () => void;
   refrescarSesionPublica: () => Promise<void>;
+  /** Mesa resuelta a mano por quien entró sin QR (sin sesión de reparto asociada). */
+  mesaManual: string | null;
+  resolverMesaManual: (identificador: string) => void;
 }
 
 const TableSessionContext = createContext<TableSessionValue | null>(null);
@@ -90,6 +93,10 @@ export function TableSessionProvider({
   const [sesionPublica, setSesionPublica] = useState<SesionPublica | null>(null);
   const [loading, setLoading] = useState(Boolean(mesaIdentificador));
   const [error, setError] = useState<string | null>(null);
+  const [mesaManual, setMesaManual] = useState<string | null>(null);
+  const resolverMesaManual = useCallback((identificador: string) => {
+    setMesaManual(identificador);
+  }, []);
 
   useEffect(() => {
     if (!mesaIdentificador) {
@@ -219,6 +226,8 @@ export function TableSessionProvider({
       identificarse,
       cambiarComensal,
       refrescarSesionPublica,
+      mesaManual,
+      resolverMesaManual,
     }),
     [
       mesaIdentificador,
@@ -232,6 +241,8 @@ export function TableSessionProvider({
       identificarse,
       cambiarComensal,
       refrescarSesionPublica,
+      mesaManual,
+      resolverMesaManual,
     ],
   );
 

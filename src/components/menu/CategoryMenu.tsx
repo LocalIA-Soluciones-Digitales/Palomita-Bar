@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { formatCentimos } from "@/lib/format";
-import { AllergenIcon, EyeIcon, MinusIcon, PlusIcon } from "@/components/icons";
+import { AllergenIcon, CloseIcon, EyeIcon, MinusIcon, PlusIcon, SearchIcon } from "@/components/icons";
 import { ProductDetailModal } from "@/components/menu/ProductDetailModal";
 import { vibrarSuave } from "@/lib/haptics";
 import type { Categoria, Producto } from "@/lib/restaurant/types";
@@ -42,11 +42,43 @@ export function CategoryMenu({
   const [activeId, setActiveId] = useState<string | null>(categorias[0]?.id ?? null);
   const [detalle, setDetalle] = useState<DetalleActivo | null>(null);
   const [highlighted, setHighlighted] = useState<string | null>(highlightProductId ?? null);
+  const [busqueda, setBusqueda] = useState("");
+  const [alergenosExcluidos, setAlergenosExcluidos] = useState<Set<string>>(new Set());
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
+  const alergenosDisponibles = useMemo(() => {
+    const set = new Set<string>();
+    for (const p of productos) for (const a of p.alergenos) set.add(a);
+    return [...set].sort((a, b) => a.localeCompare(b, "es"));
+  }, [productos]);
+
+  const toggleAlergeno = (alergeno: string) => {
+    setAlergenosExcluidos((prev) => {
+      const next = new Set(prev);
+      if (next.has(alergeno)) next.delete(alergeno);
+      else next.add(alergeno);
+      return next;
+    });
+  };
+
+  const productosFiltrados = useMemo(() => {
+    const texto = busqueda.trim().toLocaleLowerCase("es");
+    return productos.filter((p) => {
+      if (alergenosExcluidos.size > 0 && p.alergenos.some((a) => alergenosExcluidos.has(a))) {
+        return false;
+      }
+      if (!texto) return true;
+      const nombre = p.nombre.toLocaleLowerCase("es");
+      const descripcion = (p.descripcion ?? "").toLocaleLowerCase("es");
+      return nombre.includes(texto) || descripcion.includes(texto);
+    });
+  }, [productos, busqueda, alergenosExcluidos]);
+
+  const hayFiltrosActivos = busqueda.trim() !== "" || alergenosExcluidos.size > 0;
+
   const categoriasConProductos = useMemo(
-    () => categorias.filter((c) => productos.some((p) => p.categoria_id === c.id)),
-    [categorias, productos],
+    () => categorias.filter((c) => productosFiltrados.some((p) => p.categoria_id === c.id)),
+    [categorias, productosFiltrados],
   );
 
   useEffect(() => {
@@ -92,15 +124,64 @@ export function CategoryMenu({
     ? categoriasConProductos.find((c) => c.id === detalle.categoriaId) ?? null
     : null;
   const detalleItems = detalle
-    ? productos.filter((p) => p.categoria_id === detalle.categoriaId)
+    ? productosFiltrados.filter((p) => p.categoria_id === detalle.categoriaId)
     : [];
 
   return (
     <div>
       <div className="sticky top-16 z-20 -mx-6 border-b border-noche-border bg-noche-bg/95 px-6 py-3 backdrop-blur-md">
-        <div role="tablist" aria-label="Categorías" className="scrollbar-hide flex gap-2 overflow-x-auto">
+        <div className="relative">
+          <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-noche-ink-faint" />
+          <input
+            type="search"
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+            placeholder="Buscar en la carta…"
+            aria-label="Buscar en la carta"
+            className="w-full rounded-full border border-noche-border bg-noche-surface/60 py-2 pl-9 pr-9 text-sm text-noche-ink placeholder:text-noche-ink-faint outline-none transition-colors focus:border-noche-primary"
+          />
+          {busqueda ? (
+            <button
+              type="button"
+              onClick={() => setBusqueda("")}
+              aria-label="Borrar búsqueda"
+              className="absolute right-2.5 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full text-noche-ink-faint hover:text-noche-ink"
+            >
+              <CloseIcon className="h-3.5 w-3.5" />
+            </button>
+          ) : null}
+        </div>
+
+        {alergenosDisponibles.length > 0 ? (
+          <div className="scrollbar-hide mt-2 flex gap-1.5 overflow-x-auto">
+            {alergenosDisponibles.map((alergeno) => {
+              const excluido = alergenosExcluidos.has(alergeno);
+              return (
+                <button
+                  key={alergeno}
+                  type="button"
+                  aria-pressed={excluido}
+                  onClick={() => toggleAlergeno(alergeno)}
+                  className={`shrink-0 whitespace-nowrap rounded-full border px-3 py-1 text-[11px] uppercase tracking-widest2 transition-colors ${
+                    excluido
+                      ? "border-noche-primary bg-noche-primary/15 text-noche-primary"
+                      : "border-noche-border text-noche-ink-faint hover:text-noche-ink"
+                  }`}
+                >
+                  Sin {alergeno}
+                </button>
+              );
+            })}
+          </div>
+        ) : null}
+
+        <div
+          role="tablist"
+          aria-label="Categorías"
+          className="scrollbar-hide mt-3 flex gap-2 overflow-x-auto"
+        >
           {categoriasConProductos.map((categoria) => {
-            const count = productos.filter((p) => p.categoria_id === categoria.id).length;
+            const count = productosFiltrados.filter((p) => p.categoria_id === categoria.id).length;
             const selected = activeId === categoria.id;
             return (
               <button
@@ -122,9 +203,15 @@ export function CategoryMenu({
         </div>
       </div>
 
+      {hayFiltrosActivos && categoriasConProductos.length === 0 ? (
+        <p className="mt-12 text-center text-sm text-noche-ink-muted">
+          No hay productos que coincidan con la búsqueda o los filtros.
+        </p>
+      ) : null}
+
       <div className="mt-12 space-y-16">
         {categoriasConProductos.map((categoria) => {
-          const items = productos.filter((p) => p.categoria_id === categoria.id);
+          const items = productosFiltrados.filter((p) => p.categoria_id === categoria.id);
 
           return (
             <div

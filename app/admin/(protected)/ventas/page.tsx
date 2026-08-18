@@ -6,6 +6,25 @@ import type { InformeVentas, VentasHoy } from "@/lib/restaurant/admin-types";
 import { errorMessage, formatCentimos } from "@/lib/format";
 import { Stat } from "@/components/admin/Stat";
 import { DonutCategorias, GraficoVentasDia } from "@/components/admin/VentasCharts";
+import { Skeleton } from "@/components/admin/Skeleton";
+
+function VentasSkeleton() {
+  return (
+    <div className="mx-auto max-w-7xl">
+      <Skeleton className="h-7 w-32" />
+      <Skeleton className="mt-2 h-4 w-64" />
+      <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Skeleton key={i} className="h-20" />
+        ))}
+      </div>
+      <div className="mt-8 grid gap-6 lg:grid-cols-3">
+        <Skeleton className="h-64 lg:col-span-2" />
+        <Skeleton className="h-64" />
+      </div>
+    </div>
+  );
+}
 
 export default function VentasAdminPage() {
   const [ventas, setVentas] = useState<VentasHoy | null>(null);
@@ -24,7 +43,7 @@ export default function VentasAdminPage() {
   }, []);
 
   if (error) return <p className="text-sm text-noche-danger">{error}</p>;
-  if (!ventas || !informe) return <p className="text-sm text-noche-ink-muted">Cargando…</p>;
+  if (!ventas || !informe) return <VentasSkeleton />;
 
   return (
     <div className="mx-auto max-w-7xl">

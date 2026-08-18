@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { Producto } from "@/lib/restaurant/types";
 
 export interface CartLine {
@@ -22,12 +22,83 @@ interface CartContextValue {
   clear: () => void;
   totalCentimos: number;
   totalItems: number;
+  /** true en cuanto se ha intentado leer el carrito guardado en localStorage
+   * (aunque no hubiera nada que leer). Útil para no pisar un carrito
+   * recién restaurado con una adición automática (p. ej. "pedir otra vez"). */
+  hydrated: boolean;
 }
 
 const CartContext = createContext<CartContextValue | null>(null);
 
-export function CartProvider({ children }: { children: ReactNode }) {
+const STORAGE_PREFIX = "palomita:carrito:";
+// El carrito guardado se descarta pasado este tiempo: evita reabrir, horas o
+// días después, un pedido con precios/disponibilidad ya caducados.
+const MAX_EDAD_MS = 6 * 60 * 60 * 1000;
+
+interface StoredCart {
+  savedAt: number;
+  lines: CartLine[];
+}
+
+function storageKey(mesaIdentificador?: string) {
+  return `${STORAGE_PREFIX}${mesaIdentificador ?? "prueba"}`;
+}
+
+function leerCarritoGuardado(mesaIdentificador?: string): CartLine[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(storageKey(mesaIdentificador));
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as StoredCart;
+    if (!parsed || !Array.isArray(parsed.lines)) return [];
+    if (Date.now() - parsed.savedAt > MAX_EDAD_MS) return [];
+    return parsed.lines;
+  } catch {
+    return [];
+  }
+}
+
+function escribirCarritoGuardado(mesaIdentificador: string | undefined, lines: CartLine[]) {
+  if (typeof window === "undefined") return;
+  try {
+    const key = storageKey(mesaIdentificador);
+    if (lines.length === 0) {
+      window.localStorage.removeItem(key);
+      return;
+    }
+    const data: StoredCart = { savedAt: Date.now(), lines };
+    window.localStorage.setItem(key, JSON.stringify(data));
+  } catch {
+    // Almacenamiento no disponible (modo privado, cuota llena, etc.)
+  }
+}
+
+export function CartProvider({
+  mesaIdentificador,
+  children,
+}: {
+  /** Identificador de mesa usado solo para aislar el carrito guardado de otras mesas en el mismo dispositivo. */
+  mesaIdentificador?: string;
+  children: ReactNode;
+}) {
   const [lines, setLines] = useState<CartLine[]>([]);
+  const [hydrated, setHydrated] = useState(false);
+  const hidratado = useRef(false);
+
+  // Hidrata desde localStorage tras el primer render (evita desajustes de
+  // SSR/hidratación: el servidor siempre renderiza el carrito vacío).
+  useEffect(() => {
+    const guardado = leerCarritoGuardado(mesaIdentificador);
+    if (guardado.length > 0) setLines(guardado);
+    hidratado.current = true;
+    setHydrated(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (!hidratado.current) return;
+    escribirCarritoGuardado(mesaIdentificador, lines);
+  }, [lines, mesaIdentificador]);
 
   const addItem = (producto: Producto) => {
     setLines((prev) => {
@@ -106,6 +177,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         clear,
         totalCentimos,
         totalItems,
+        hydrated,
       }}
     >
       {children}

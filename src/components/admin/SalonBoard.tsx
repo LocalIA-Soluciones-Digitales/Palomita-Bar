@@ -45,18 +45,13 @@ import {
   CheckIcon,
   ClockIcon,
   CloseIcon,
-  LinkIcon,
   LogoutIcon,
   MinusIcon,
   MoreIcon,
   PlusIcon,
   PrinterIcon,
-  QrCodeIcon,
   RefreshIcon,
-  SwapIcon,
   TagIcon,
-  TrashIcon,
-  UnlinkIcon,
   UsersIcon,
 } from "@/components/icons";
 import type {
@@ -323,7 +318,10 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
   const [clientesForm, setClientesForm] = useState("2");
   const [camareroForm, setCamareroForm] = useState("");
   const [cambiarMesaAbierto, setCambiarMesaAbierto] = useState(false);
-  const [vistaSuperior, setVistaSuperior] = useState(false);
+  // Planta (2D) por defecto: resuelve la misma necesidad operativa que el
+  // plano 3D con menos interacción (sin rotar/hacer zoom) para el uso real
+  // de servicio; el 3D sigue disponible para quien lo prefiera.
+  const [vistaSuperior, setVistaSuperior] = useState(true);
   const [notaForm, setNotaForm] = useState("");
   const [notaGuardando, setNotaGuardando] = useState(false);
   const [qrAbierto, setQrAbierto] = useState(false);
@@ -944,27 +942,91 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
                         onClick={() => setMenuAbierto((v) => !v)}
                         className="flex h-7 w-7 items-center justify-center rounded-full text-noche-ink-faint hover:bg-noche-surface-2 hover:text-noche-ink"
                         title="Más opciones"
+                        aria-label="Más opciones"
+                        aria-haspopup="true"
+                        aria-expanded={menuAbierto}
                       >
                         <MoreIcon className="h-4 w-4" />
                       </button>
-                      {menuAbierto ? (
-                        <div className="absolute right-0 z-10 mt-1 w-48 rounded-lg border border-noche-border bg-noche-surface p-2 shadow-lg">
+                      {menuAbierto && esHoy ? (
+                        <div className="absolute right-0 z-10 mt-1 w-52 rounded-lg border border-noche-border bg-noche-surface p-2 shadow-lg">
                           <button
                             type="button"
-                            onClick={() => handleTogglePagando(mesaSeleccionada)}
+                            onClick={() => {
+                              setMostrarReserva(true);
+                              setMenuAbierto(false);
+                            }}
                             className="block w-full rounded-lg px-2 py-1.5 text-left text-xs uppercase tracking-widest2 text-noche-ink hover:bg-noche-surface-2"
                           >
-                            {mesaSeleccionada.pagando ? "Quitar cobro" : "Marcar pagando"}
+                            Reservar
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setCambiarMesaAbierto((v) => !v);
+                              setMenuAbierto(false);
+                            }}
+                            className="block w-full rounded-lg px-2 py-1.5 text-left text-xs uppercase tracking-widest2 text-noche-ink hover:bg-noche-surface-2"
+                          >
+                            Cambiar mesa
+                          </button>
+                          {mesaSeleccionada.union_grupo_id ? (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                handleSepararGrupo(mesaSeleccionada);
+                                setMenuAbierto(false);
+                              }}
+                              className="block w-full rounded-lg px-2 py-1.5 text-left text-xs uppercase tracking-widest2 text-noche-ink hover:bg-noche-surface-2"
+                            >
+                              Separar mesas
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setModoUnion(true);
+                                setSeleccionUnion([mesaSeleccionada.id]);
+                                setMenuAbierto(false);
+                              }}
+                              className="block w-full rounded-lg px-2 py-1.5 text-left text-xs uppercase tracking-widest2 text-noche-ink hover:bg-noche-surface-2"
+                            >
+                              Unir mesas
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              abrirQr(mesaSeleccionada);
+                              setMenuAbierto(false);
+                            }}
+                            className="block w-full rounded-lg px-2 py-1.5 text-left text-xs uppercase tracking-widest2 text-noche-ink hover:bg-noche-surface-2"
+                          >
+                            Ver QR / enlace
                           </button>
                           {mesaSeleccionada.por_limpiar ? (
                             <button
                               type="button"
-                              onClick={() => handleMarcarLimpia(mesaSeleccionada)}
+                              onClick={() => {
+                                handleMarcarLimpia(mesaSeleccionada);
+                                setMenuAbierto(false);
+                              }}
                               className="block w-full rounded-lg px-2 py-1.5 text-left text-xs uppercase tracking-widest2 text-noche-ink hover:bg-noche-surface-2"
                             >
                               Marcar como limpia
                             </button>
                           ) : null}
+                          <div className="my-1 border-t border-noche-border" />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              handleEliminarMesa(mesaSeleccionada);
+                              setMenuAbierto(false);
+                            }}
+                            className="block w-full rounded-lg px-2 py-1.5 text-left text-xs uppercase tracking-widest2 text-noche-danger hover:bg-noche-danger/10"
+                          >
+                            Eliminar mesa
+                          </button>
                         </div>
                       ) : null}
                     </div>
@@ -973,6 +1035,7 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
                       onClick={() => setMesaSeleccionadaId(null)}
                       className="flex h-7 w-7 items-center justify-center rounded-full text-noche-ink-faint hover:bg-noche-surface-2 hover:text-noche-ink"
                       title="Cerrar"
+                      aria-label="Cerrar panel de mesa"
                     >
                       <CloseIcon className="h-4 w-4" />
                     </button>
@@ -1162,29 +1225,10 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
                       </button>
                     )}
 
+                    {/* Solo las acciones de uso constante durante el servicio; el
+                    resto (reservar, cambiar/unir mesas, QR, eliminar) vive en
+                    "Más opciones" arriba — evita competir por atención con estas. */}
                     <div className="grid grid-cols-3 gap-2">
-                      <AccionMesa icon={ClockIcon} label="Reservar" onClick={() => setMostrarReserva(true)} />
-                      <AccionMesa
-                        icon={SwapIcon}
-                        label="Cambiar mesa"
-                        onClick={() => setCambiarMesaAbierto((v) => !v)}
-                      />
-                      {mesaSeleccionada.union_grupo_id ? (
-                        <AccionMesa
-                          icon={UnlinkIcon}
-                          label="Separar mesas"
-                          onClick={() => handleSepararGrupo(mesaSeleccionada)}
-                        />
-                      ) : (
-                        <AccionMesa
-                          icon={LinkIcon}
-                          label="Unir mesas"
-                          onClick={() => {
-                            setModoUnion(true);
-                            setSeleccionUnion([mesaSeleccionada.id]);
-                          }}
-                        />
-                      )}
                       <AccionMesa
                         icon={PrinterIcon}
                         label="Imprimir comanda"
@@ -1205,17 +1249,6 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
                         icon={TagIcon}
                         label={mesaSeleccionada.pagando ? "Quitar cobro" : "Marcar pagando"}
                         onClick={() => handleTogglePagando(mesaSeleccionada)}
-                      />
-                      <AccionMesa
-                        icon={QrCodeIcon}
-                        label="Ver QR / enlace"
-                        onClick={() => abrirQr(mesaSeleccionada)}
-                      />
-                      <AccionMesa
-                        icon={TrashIcon}
-                        label="Eliminar mesa"
-                        danger
-                        onClick={() => handleEliminarMesa(mesaSeleccionada)}
                       />
                     </div>
 

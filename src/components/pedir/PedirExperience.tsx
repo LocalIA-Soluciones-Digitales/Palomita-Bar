@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useCart } from "@/components/cart/cart-context";
 import { useTableSession } from "@/components/mesa/table-session-context";
 import { CuentaMesaDrawer } from "@/components/mesa/CuentaMesaDrawer";
@@ -18,17 +18,50 @@ export function PedirExperience({
   productos,
   mesaLabel,
   mesaIdentificador,
+  repetirItems,
 }: {
   categorias: Categoria[];
   productos: Producto[];
   mesaLabel: string;
   mesaIdentificador?: string;
+  /** Productos (por nombre + cantidad) de un pedido anterior a repetir
+   * (?repetir=id); se emparejan por nombre contra la carta viva porque el
+   * pedido público no expone el id de producto. Lo que no se encuentre o ya
+   * no esté disponible se avisa. */
+  repetirItems?: { nombre: string; cantidad: number }[] | null;
 }) {
-  const { lines, addItem, increment, decrement } = useCart();
+  const { lines, addItem, increment, decrement, hydrated } = useCart();
   const { sesion, participante } = useTableSession();
   const [cuentaAbierta, setCuentaAbierta] = useState(false);
   const [avisoEstado, setAvisoEstado] = useState<"idle" | "enviando" | "enviado">("idle");
+  const [avisoRepetir, setAvisoRepetir] = useState<string | null>(null);
+  const repetidoRef = useRef(false);
   const separado = sesion?.modo === "SEPARADO" && Boolean(participante);
+
+  // Espera a que el carrito termine de hidratarse desde localStorage antes de
+  // añadir los productos a repetir, para no arriesgarse a que un carrito
+  // guardado (leído después) pise lo que se acaba de añadir aquí.
+  useEffect(() => {
+    if (!hydrated || !repetirItems || repetirItems.length === 0 || repetidoRef.current) return;
+    repetidoRef.current = true;
+
+    const noEncontrados: string[] = [];
+    for (const item of repetirItems) {
+      const producto = productos.find((p) => p.nombre === item.nombre && p.disponible);
+      if (producto) {
+        for (let i = 0; i < item.cantidad; i += 1) addItem(producto);
+      } else {
+        noEncontrados.push(item.nombre);
+      }
+    }
+
+    if (noEncontrados.length > 0) {
+      setAvisoRepetir(
+        `Hemos añadido lo que seguía disponible. No hemos podido añadir: ${noEncontrados.join(", ")}.`,
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hydrated, repetirItems, productos]);
 
   const handleLlamarCamarero = async () => {
     if (!mesaIdentificador || avisoEstado !== "idle") return;
@@ -49,6 +82,21 @@ export function PedirExperience({
           <div>
             <p className="text-xs uppercase tracking-widest2 text-noche-primary">{mesaLabel}</p>
             <h1 className="mt-4 font-display text-4xl text-noche-ink">¿Qué te apetece?</h1>
+            {avisoRepetir ? (
+              <p
+                role="status"
+                className="mt-3 max-w-sm rounded-lg border border-noche-primary/40 bg-noche-primary/10 px-3 py-2 text-xs text-noche-ink"
+              >
+                {avisoRepetir}{" "}
+                <button
+                  type="button"
+                  onClick={() => setAvisoRepetir(null)}
+                  className="ml-1 underline underline-offset-2"
+                >
+                  Entendido
+                </button>
+              </p>
+            ) : null}
           </div>
           <div className="mt-1 flex shrink-0 flex-col items-end gap-2">
             {mesaIdentificador ? (
