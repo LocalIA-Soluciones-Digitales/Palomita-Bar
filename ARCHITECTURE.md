@@ -234,7 +234,7 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=<de Stripe>
 - **Fase 4** ✅: `/carta`, `/cocteleria` y `/pedir` conectados a las funciones RPC; carrito, checkout (solo pago en local) y `/pedido/[id]` funcionando end-to-end contra Supabase real.
 - **Fase 5** ✅: `/admin/cocina` (Supabase Auth + Realtime) y `/pedido/[id]` con actualización automática (polling, ver §4.5).
 - **Fase 6** ✅ código completo (ver §10) — falta solo la cuenta/claves reales de Stripe.
-- **Fase 7** ✅: `/admin/productos`, `/admin/categorias`, `/admin/mesas` (con QR descargable), `/admin/ventas`, `/admin/configuracion` (ver §11).
+- **Fase 7** ✅: `/admin/carta` (productos y categorías en pestañas), `/admin/mesas` (con QR descargable), `/admin/ventas`, `/admin/configuracion` (ver §11).
 - **Fase 8** ✅: auditoría de seguridad, con un hallazgo real corregido (ver §12).
 - **Fase 9** ✅: verificación funcional ejecutada contra la base real, 8/8 PASS (ver §13, script en `supabase/tests/fase9_verificacion.sql`).
 - **Fase 10**: SEO estructurado añadido (ver §14); dominio propio y monitorización quedan como decisión del usuario (ver §14).
@@ -317,11 +317,12 @@ medias hasta que se configure.
 Todo bajo `/admin`, protegido por el mismo `Supabase Auth` de la Fase 5 (`is_developer()` o
 un futuro `usuarios_negocio` específico de Palomita):
 
-- **`/admin/categorias`**: alta/edición/borrado. El `slug` se genera automáticamente del
-  nombre.
-- **`/admin/productos`**: alta/edición/borrado, categoría, precio, disponible/destacado.
-  Marcar "no disponible" lo retira al instante de `/carta`, `/cocteleria` y `/pedir` (esas
-  páginas ya filtran por `disponible = true`).
+- **`/admin/carta`**: productos y categorías, agrupados en una sola pantalla con dos pestañas.
+  - Pestaña **Categorías**: alta/edición/borrado. El `slug` se genera automáticamente del
+    nombre.
+  - Pestaña **Productos**: alta/edición/borrado, categoría, precio, disponible/destacado.
+    Marcar "no disponible" lo retira al instante de `/carta`, `/cocteleria` y `/pedir` (esas
+    páginas ya filtran por `disponible = true`).
 - **`/admin/mesas`**: crear mesas por número, activar/desactivar, **generar y descargar el QR**
   (paquete `qrcode`, renderizado como PNG en el propio navegador — apunta a
   `NEXT_PUBLIC_SITE_URL/pedir?mesa=<identificador>`) y regenerarlo (invalida el QR impreso

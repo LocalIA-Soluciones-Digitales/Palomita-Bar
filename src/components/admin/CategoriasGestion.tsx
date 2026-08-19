@@ -36,7 +36,7 @@ const TIPO_LABEL: Record<CategoriaForm["tipo"], string> = {
   bebida: "Bebida",
 };
 
-export default function CategoriasAdminPage() {
+export function CategoriasGestion() {
   const [categorias, setCategorias] = useState<CategoriaAdmin[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState<CategoriaForm>(FORM_VACIO);
@@ -130,8 +130,7 @@ export default function CategoriasAdminPage() {
 
   return (
     <div className="mx-auto max-w-6xl">
-      <div className="flex items-center justify-between gap-4">
-        <h1 className="font-display text-2xl text-noche-ink">Categorías</h1>
+      <div className="flex items-center justify-end gap-4">
         {!formAbierto ? (
           <button
             type="button"

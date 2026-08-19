@@ -25,7 +25,7 @@ const FORM_VACIO = {
   imagenUrl: null as string | null,
 };
 
-export default function ProductosAdminPage() {
+export function ProductosGestion() {
   const [productos, setProductos] = useState<ProductoAdmin[] | null>(null);
   const [categorias, setCategorias] = useState<CategoriaAdmin[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -207,8 +207,7 @@ export default function ProductosAdminPage() {
 
   return (
     <div className="mx-auto max-w-7xl">
-      <div className="flex items-center justify-between gap-4">
-        <h1 className="font-display text-2xl text-noche-ink">Productos</h1>
+      <div className="flex items-center justify-end gap-4">
         {!formAbierto ? (
           <button
             type="button"

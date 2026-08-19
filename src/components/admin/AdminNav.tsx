@@ -19,17 +19,15 @@ import {
   ReportIcon,
   SettingsIcon,
   TableIcon,
-  TagIcon,
   UsersIcon,
 } from "@/components/icons";
 
 const GESTION_LINKS = [
   { href: "/admin/cocina", label: "Comandas", icon: FireIcon },
-  { href: "/admin/mesas", label: "Salón", icon: TableIcon },
+  { href: "/admin/mesas", label: "Mesas", icon: TableIcon },
   { href: "/admin/reservas", label: "Reservas", icon: CalendarIcon },
   { href: "/admin/barra", label: "Venta Rápida", icon: GlassIcon },
-  { href: "/admin/productos", label: "Productos", icon: BoxIcon },
-  { href: "/admin/categorias", label: "Categorías", icon: TagIcon },
+  { href: "/admin/carta", label: "Carta", icon: BoxIcon },
   { href: "/admin/ventas", label: "Ventas", icon: ChartBarIcon },
   { href: "/admin/configuracion", label: "Configuración", icon: SettingsIcon },
 ];
