@@ -754,9 +754,9 @@ function Architecture({ focusZona }: { focusZona: PrefijoZona | null }) {
         </Text>
       </group>
 
-      {/* Barra en L, botelleros, taburetes, TV y escalón. Se oculta al enfocar otra zona. */}
+      {/* Barra en L, botelleros, taburetes y TV. Se oculta al enfocar otra zona. */}
       <group visible={mostrarBarra}>
-        {/* Barra en L: tramo pegado a la pared derecha, recortado hasta el escalón (ya no invade el pasillo del salón) */}
+        {/* Barra en L: tramo pegado a la pared derecha (ya no invade el pasillo del salón) */}
         <group position={[9.55, 0.75, -2.9]} rotation={[0, Math.PI / 2, 0]}>
           <mesh castShadow>
             <boxGeometry args={[5.2, 1.4, 1.05]} />
@@ -808,19 +808,6 @@ function Architecture({ focusZona }: { focusZona: PrefijoZona | null }) {
         <Text position={[8.7, 0.02, -2.9]} rotation={[-Math.PI / 2, 0, Math.PI / 2]} fontSize={0.3} color="#d5c5c1">
           BARRA
         </Text>
-        {/* Escalón pequeño de bajada de la barra al pasillo del salón, junto a la mesa B2 */}
-        <group position={[9.3, 0, -1.9]} rotation={[0, Math.PI / 2, 0]}>
-          <mesh position={[0, 0.09, -0.3]} receiveShadow castShadow>
-            <boxGeometry args={[2.2, 0.18, 0.55]} />
-            <meshStandardMaterial color="#4a4247" roughness={0.85} />
-          </mesh>
-          <mesh position={[0, -0.03, 0.25]} receiveShadow castShadow>
-            <boxGeometry args={[2.2, 0.15, 0.5]} />
-            <meshStandardMaterial color="#4a4247" roughness={0.85} />
-          </mesh>
-        </group>
-        {/* Columna, junto a la estantería negra (botellero) del pasillo hacia el salón */}
-        <PorticoColumn position={[8.6, 0, -1.9]} />
       </group>
 
       {/* Salón: estantería expositora con plantas y letrero luminoso, a la izquierda de la puerta. Se oculta al enfocar otra zona. */}
