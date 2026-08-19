@@ -54,6 +54,52 @@ export function serializarHorario(semana: SemanaHorario): string {
   return `${MARCA_JSON}${JSON.stringify(semana)}`;
 }
 
+function aMinutos(hhmm: string): number {
+  const [h, m] = hhmm.split(":").map(Number);
+  return (h ?? 0) * 60 + (m ?? 0);
+}
+
+function diaSemanaIndice(fechaISO: string): number {
+  const [anio, mes, dia] = fechaISO.split("-").map(Number);
+  const jsDay = new Date(anio!, (mes ?? 1) - 1, dia).getDay();
+  return (jsDay + 6) % 7;
+}
+
+/** Comprueba si fechaISO/horaHHMM cae dentro del horario de apertura, teniendo en
+ * cuenta que un día puede cerrar de madrugada (p. ej. Viernes 09:00–03:00). */
+export function estaDentroDeHorario(
+  semana: SemanaHorario,
+  fechaISO: string,
+  horaHHMM: string,
+): boolean {
+  const idxHoy = diaSemanaIndice(fechaISO);
+  const idxAyer = (idxHoy + 6) % 7;
+  const diaHoy = semana[idxHoy]!;
+  const diaAyer = semana[idxAyer]!;
+  const minutos = aMinutos(horaHHMM);
+
+  if (diaHoy.abierto) {
+    const desde = aMinutos(diaHoy.desde);
+    const hasta = aMinutos(diaHoy.hasta);
+    const esNocturno = hasta <= desde;
+    if (esNocturno ? minutos >= desde : minutos >= desde && minutos < hasta) return true;
+  }
+
+  if (diaAyer.abierto) {
+    const desdeAyer = aMinutos(diaAyer.desde);
+    const hastaAyer = aMinutos(diaAyer.hasta);
+    if (hastaAyer <= desdeAyer && minutos < hastaAyer) return true;
+  }
+
+  return false;
+}
+
+/** Horario aplicable a un día concreto, describiendo también la prolongación
+ * nocturna del día anterior si corresponde (útil para mensajes de error). */
+export function horarioDelDia(semana: SemanaHorario, fechaISO: string): DiaHorario {
+  return semana[diaSemanaIndice(fechaISO)]!;
+}
+
 export function formatearHorarioVisual(semana: SemanaHorario): string {
   const firmas = semana.map((dia) => (dia.abierto ? `${dia.desde}-${dia.hasta}` : "cerrado"));
 

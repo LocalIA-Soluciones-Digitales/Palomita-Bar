@@ -1,9 +1,16 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
-import { crearReservaPublica } from "@/lib/restaurant/queries";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { crearReservaPublica, getHorarioPublico } from "@/lib/restaurant/queries";
 import { errorMessage } from "@/lib/format";
 import { CheckIcon } from "@/components/icons";
+import {
+  estaDentroDeHorario,
+  horarioDelDia,
+  parseHorario,
+  semanaPorDefecto,
+  type SemanaHorario,
+} from "@/lib/horario";
 
 function hoyISO(): string {
   const hoy = new Date();
@@ -20,11 +27,37 @@ export function ReservaForm() {
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [enviado, setEnviado] = useState(false);
+  const [semana, setSemana] = useState<SemanaHorario>(semanaPorDefecto());
+
+  useEffect(() => {
+    getHorarioPublico()
+      .then((valor) => {
+        const parsed = parseHorario(valor);
+        if (parsed) setSemana(parsed);
+      })
+      .catch(() => {
+        // Si falla la carga, se mantiene el horario por defecto.
+      });
+  }, []);
+
+  const horaValida = useMemo(
+    () => estaDentroDeHorario(semana, fecha, hora),
+    [semana, fecha, hora],
+  );
+  const diaSeleccionado = useMemo(() => horarioDelDia(semana, fecha), [semana, fecha]);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    setEnviando(true);
     setError(null);
+    if (!horaValida) {
+      setError(
+        diaSeleccionado.abierto
+          ? `Esa hora está fuera de nuestro horario. Ese día abrimos de ${diaSeleccionado.desde} a ${diaSeleccionado.hasta}.`
+          : "Ese día el local está cerrado. Elige otra fecha u hora.",
+      );
+      return;
+    }
+    setEnviando(true);
     try {
       await crearReservaPublica({
         nombreCliente: nombre,
@@ -116,8 +149,15 @@ export function ReservaForm() {
             required
             value={hora}
             onChange={(e) => setHora(e.target.value)}
-            className="mt-1 block w-full max-w-full appearance-none rounded-lg border border-noche-border bg-noche-surface px-4 py-3 text-noche-ink"
+            className={`mt-1 block w-full max-w-full appearance-none rounded-lg border bg-noche-surface px-4 py-3 text-noche-ink ${
+              horaValida ? "border-noche-border" : "border-noche-danger"
+            }`}
           />
+          <span className="mt-1 block text-xs text-noche-ink-faint">
+            {diaSeleccionado.abierto
+              ? `Ese día abrimos de ${diaSeleccionado.desde} a ${diaSeleccionado.hasta}.`
+              : "Ese día el local está cerrado."}
+          </span>
         </label>
       </div>
 
