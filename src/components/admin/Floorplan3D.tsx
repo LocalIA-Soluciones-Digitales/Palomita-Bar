@@ -65,7 +65,9 @@ const REGION_SALA: Region = { xMin: -9.2, xMax: 2.35, zMin: -5.6, zMax: 5.6 };
 const REGIONES: Record<PrefijoZona, Region> = {
   "": REGION_SALA,
   S: REGION_SALA,
-  B: { xMin: 4.3, xMax: 9.6, zMin: -5.6, zMax: -0.5 },
+  // Limitado al hueco libre frente a la barra en L, sin invadir el mueble de la barra
+  // (tramo pared derecha desde x=9.03, tramo pared fondo hasta z=-4.73).
+  B: { xMin: 4.3, xMax: 8.6, zMin: -4.5, zMax: -0.5 },
   T: { xMin: -10.2, xMax: 10.2, zMin: 6.4, zMax: 10.3 },
   // Salón: hueco junto a la pared derecha, a partir de la estantería negra y hasta la puerta de entrada.
   L: { xMin: 4.65, xMax: 9.8, zMin: 1.6, zMax: 5.7 },
