@@ -2,11 +2,14 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import type {
   CamareroAdmin,
   CategoriaAdmin,
+  ComensalAdmin,
   EstadoReserva,
   InformeVentas,
   MesaAdmin,
   MesaEstadoAdmin,
+  PremioAdmin,
   ProductoAdmin,
+  ReglaPromocionAdmin,
   ReservaAdmin,
   VentasHoy,
   ZonaAdmin,
@@ -413,6 +416,7 @@ export async function crearReservaAdmin(input: {
   fecha: string;
   hora: string;
   telefono?: string;
+  email?: string;
   mesaId?: string | null;
   mesaIds?: string[];
   zonaId?: string | null;
@@ -426,6 +430,7 @@ export async function crearReservaAdmin(input: {
     p_fecha: input.fecha,
     p_hora: input.hora,
     p_telefono: input.telefono ?? null,
+    p_email: input.email ?? null,
     p_mesa_id: input.mesaId ?? null,
     p_zona_id: input.zonaId ?? null,
     p_notas: input.notas ?? null,
@@ -454,6 +459,77 @@ export async function asignarMesasReservaAdmin(id: string, mesaIds: string[]): P
     p_id: id,
     p_cliente_id: clienteId(),
     p_mesa_ids: mesaIds,
+  });
+  if (error) throw error;
+}
+
+export async function getComensalesAdmin(): Promise<ComensalAdmin[]> {
+  const supabase = createSupabaseBrowserClient();
+  const { data, error } = await supabase.rpc("get_comensales_admin", {
+    p_cliente_id: clienteId(),
+  });
+  if (error) throw error;
+  return (data ?? []) as unknown as ComensalAdmin[];
+}
+
+export async function getReglasPromocionAdmin(): Promise<ReglaPromocionAdmin[]> {
+  const supabase = createSupabaseBrowserClient();
+  const { data, error } = await supabase.rpc("get_reglas_promocion_admin", {
+    p_cliente_id: clienteId(),
+  });
+  if (error) throw error;
+  return (data ?? []) as unknown as ReglaPromocionAdmin[];
+}
+
+export async function upsertReglaPromocionAdmin(input: {
+  id?: string;
+  nombre: string;
+  horaDesde?: string | null;
+  horaHasta?: string | null;
+  visitasRequeridas: number;
+  ventanaDias?: number | null;
+  premioDescripcion: string;
+  activa: boolean;
+}): Promise<ReglaPromocionAdmin> {
+  const supabase = createSupabaseBrowserClient();
+  const { data, error } = await supabase.rpc("upsert_regla_promocion_admin", {
+    p_cliente_id: clienteId(),
+    p_id: input.id ?? null,
+    p_nombre: input.nombre,
+    p_hora_desde: input.horaDesde ?? null,
+    p_hora_hasta: input.horaHasta ?? null,
+    p_visitas_requeridas: input.visitasRequeridas,
+    p_ventana_dias: input.ventanaDias ?? null,
+    p_premio_descripcion: input.premioDescripcion,
+    p_activa: input.activa,
+  });
+  if (error) throw error;
+  return data as unknown as ReglaPromocionAdmin;
+}
+
+export async function eliminarReglaPromocionAdmin(id: string): Promise<void> {
+  const supabase = createSupabaseBrowserClient();
+  const { error } = await supabase.rpc("eliminar_regla_promocion_admin", {
+    p_cliente_id: clienteId(),
+    p_id: id,
+  });
+  if (error) throw error;
+}
+
+export async function getPremiosAdmin(): Promise<PremioAdmin[]> {
+  const supabase = createSupabaseBrowserClient();
+  const { data, error } = await supabase.rpc("get_premios_admin", {
+    p_cliente_id: clienteId(),
+  });
+  if (error) throw error;
+  return (data ?? []) as unknown as PremioAdmin[];
+}
+
+export async function marcarPremioCanjeadoAdmin(id: string): Promise<void> {
+  const supabase = createSupabaseBrowserClient();
+  const { error } = await supabase.rpc("marcar_premio_canjeado_admin", {
+    p_cliente_id: clienteId(),
+    p_id: id,
   });
   if (error) throw error;
 }

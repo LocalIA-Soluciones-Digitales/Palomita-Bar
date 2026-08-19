@@ -31,6 +31,7 @@ export function ReservaModal({
 }) {
   const [nombreCliente, setNombreCliente] = useState("");
   const [telefono, setTelefono] = useState("");
+  const [email, setEmail] = useState("");
   const [numPersonas, setNumPersonas] = useState("2");
   const [fecha, setFecha] = useState(fechaInicial);
   const [hora, setHora] = useState(horaInicial);
@@ -52,8 +53,8 @@ export function ReservaModal({
   }, [mesasOcupadas]);
 
   const handleGuardar = async () => {
-    if (!nombreCliente.trim() || !fecha || !hora) {
-      setError("Indica al menos el nombre, la fecha y la hora.");
+    if (!nombreCliente.trim() || !telefono.trim() || !fecha || !hora) {
+      setError("Indica al menos el nombre, el teléfono, la fecha y la hora.");
       return;
     }
     if (mesaIds.some((id) => mesasOcupadas.has(id))) {
@@ -65,7 +66,8 @@ export function ReservaModal({
     try {
       await crearReservaAdmin({
         nombreCliente: nombreCliente.trim(),
-        telefono: telefono.trim() || undefined,
+        telefono: telefono.trim(),
+        email: email.trim() || undefined,
         numPersonas: Number(numPersonas) || 2,
         fecha,
         hora,
@@ -121,11 +123,23 @@ export function ReservaModal({
 
           <div>
             <label className="text-xs uppercase tracking-widest2 text-noche-ink-muted">
-              Teléfono (opcional)
+              Teléfono
             </label>
             <input
               value={telefono}
               onChange={(e) => setTelefono(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2 text-sm text-noche-ink"
+            />
+          </div>
+
+          <div>
+            <label className="text-xs uppercase tracking-widest2 text-noche-ink-muted">
+              Correo (opcional)
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="mt-1 w-full rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2 text-sm text-noche-ink"
             />
           </div>

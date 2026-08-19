@@ -177,7 +177,8 @@ export async function crearReservaPublica(input: {
   numPersonas: number;
   fecha: string;
   hora: string;
-  telefono?: string;
+  telefono: string;
+  email?: string;
   notas?: string;
 }): Promise<void> {
   const { error } = await supabase.rpc("crear_reserva_publica", {
@@ -186,8 +187,9 @@ export async function crearReservaPublica(input: {
     p_num_personas: input.numPersonas,
     p_fecha: input.fecha,
     p_hora: input.hora,
-    p_telefono: input.telefono ?? null,
+    p_telefono: input.telefono,
     p_notas: input.notas ?? null,
+    p_email: input.email ?? null,
   });
   if (error) throw error;
 }

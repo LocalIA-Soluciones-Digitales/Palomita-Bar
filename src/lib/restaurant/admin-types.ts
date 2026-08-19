@@ -78,6 +78,47 @@ export interface ReservaAdmin {
   created_at: string;
 }
 
+export interface ComensalAdmin {
+  id: string;
+  nombre: string | null;
+  telefono: string;
+  email: string | null;
+  total_visitas: number;
+  created_at: string;
+}
+
+export interface ReglaPromocionAdmin {
+  id: string;
+  cliente_id: string;
+  nombre: string;
+  hora_desde: string | null;
+  hora_hasta: string | null;
+  visitas_requeridas: number;
+  ventana_dias: number | null;
+  premio_descripcion: string;
+  activa: boolean;
+  created_at: string;
+}
+
+export type EstadoPremio = "PENDIENTE" | "CANJEADO";
+
+export interface PremioAdmin {
+  id: string;
+  comensal_id: string;
+  comensal_nombre: string | null;
+  comensal_telefono: string;
+  regla_id: string;
+  regla_nombre: string;
+  premio_descripcion: string;
+  visitas_alcanzadas: number;
+  estado: EstadoPremio;
+  fecha_otorgado: string;
+  fecha_canjeado: string | null;
+  canal_notificacion: "WHATSAPP" | "EMAIL" | null;
+  notificado_en: string | null;
+  error_notificacion: string | null;
+}
+
 export interface PedidoMesaItemAdmin {
   producto_nombre: string;
   cantidad: number;

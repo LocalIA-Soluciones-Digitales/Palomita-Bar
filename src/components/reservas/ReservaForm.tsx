@@ -20,6 +20,7 @@ function hoyISO(): string {
 export function ReservaForm() {
   const [nombre, setNombre] = useState("");
   const [telefono, setTelefono] = useState("");
+  const [email, setEmail] = useState("");
   const [numPersonas, setNumPersonas] = useState(2);
   const [fecha, setFecha] = useState(hoyISO());
   const [hora, setHora] = useState("21:00");
@@ -61,7 +62,8 @@ export function ReservaForm() {
     try {
       await crearReservaPublica({
         nombreCliente: nombre,
-        telefono: telefono || undefined,
+        telefono,
+        email: email || undefined,
         numPersonas,
         fecha,
         hora,
@@ -105,14 +107,25 @@ export function ReservaForm() {
           />
         </label>
         <label className="block">
-          <span className="text-xs uppercase tracking-widest2 text-noche-ink-muted">
-            Teléfono (opcional)
-          </span>
+          <span className="text-xs uppercase tracking-widest2 text-noche-ink-muted">Teléfono</span>
           <input
             type="tel"
+            required
             value={telefono}
             onChange={(e) => setTelefono(e.target.value)}
             maxLength={20}
+            className="mt-1 w-full rounded-lg border border-noche-border bg-noche-surface px-4 py-3 text-noche-ink"
+          />
+        </label>
+        <label className="block">
+          <span className="text-xs uppercase tracking-widest2 text-noche-ink-muted">
+            Correo (opcional)
+          </span>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            maxLength={120}
             className="mt-1 w-full rounded-lg border border-noche-border bg-noche-surface px-4 py-3 text-noche-ink"
           />
         </label>
@@ -130,7 +143,6 @@ export function ReservaForm() {
             className="mt-1 w-full rounded-lg border border-noche-border bg-noche-surface px-4 py-3 text-noche-ink"
           />
         </label>
-        <div />
         <label className="block min-w-0">
           <span className="text-xs uppercase tracking-widest2 text-noche-ink-muted">Fecha</span>
           <input

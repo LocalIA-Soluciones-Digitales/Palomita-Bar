@@ -18,6 +18,7 @@ import {
   LogoutIcon,
   ReportIcon,
   SettingsIcon,
+  StarIcon,
   TableIcon,
   UsersIcon,
 } from "@/components/icons";
@@ -28,6 +29,7 @@ const GESTION_LINKS = [
   { href: "/admin/mesas", label: "Mesas", icon: TableIcon },
   { href: "/admin/reservas", label: "Reservas", icon: CalendarIcon },
   { href: "/admin/carta", label: "Carta", icon: BoxIcon },
+  { href: "/admin/fidelizacion", label: "Fidelización", icon: StarIcon },
   { href: "/admin/ventas", label: "Ventas", icon: ChartBarIcon },
   { href: "/admin/configuracion", label: "Configuración", icon: SettingsIcon },
 ];
