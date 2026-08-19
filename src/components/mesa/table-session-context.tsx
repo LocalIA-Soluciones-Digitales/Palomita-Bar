@@ -139,7 +139,6 @@ export function TableSessionProvider({
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mesaIdentificador, mesaCapacidad]);
 
   const refrescarSesionPublica = useCallback(async () => {

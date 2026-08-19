@@ -408,7 +408,7 @@ export function KitchenBoard({ pedidosIniciales }: { pedidosIniciales: PedidoCoc
                         Este pedido tiene comida y bebida: cada estación avanza por su cuenta.
                         Ve a la pestaña <span className="font-semibold text-noche-ink">Cocina</span> o{" "}
                         <span className="font-semibold text-noche-ink">Barra</span> para aceptarlo y
-                        prepararlo — aquí solo se marca "Entregado" cuando las dos estén listas.
+                        prepararlo — aquí solo se marca &quot;Entregado&quot; cuando las dos estén listas.
                       </p>
                     ) : null}
 
