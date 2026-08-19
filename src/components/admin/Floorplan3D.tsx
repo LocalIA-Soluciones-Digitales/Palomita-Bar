@@ -689,7 +689,6 @@ function Architecture({ focusZona }: { focusZona: PrefijoZona | null }) {
         <ChesterfieldSofa position={[-9.3, 0, -1]} rotation={[0, Math.PI / 2, 0]} />
         <RoundPouffeTable position={[-8.25, 0, -0.25]} />
         <RoundPouffeTable position={[-8.1, 0, -1.35]} />
-        <PorticoColumn position={[-2.2, 0, 0.6]} />
         <Text position={[-1, 0.02, 4.6]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.32} color="#d5c5c1">
           SALA PRINCIPAL
         </Text>
@@ -760,6 +759,8 @@ function Architecture({ focusZona }: { focusZona: PrefijoZona | null }) {
             <meshStandardMaterial color="#4a4247" roughness={0.85} />
           </mesh>
         </group>
+        {/* Columna, junto a la estantería negra (botellero) del pasillo hacia el salón */}
+        <PorticoColumn position={[8.6, 0, -1.9]} />
       </group>
 
       {/* Salón: estantería expositora con plantas y letrero luminoso, a la izquierda de la puerta. Se oculta al enfocar otra zona. */}
