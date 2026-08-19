@@ -24,9 +24,9 @@ import {
 
 const GESTION_LINKS = [
   { href: "/admin/cocina", label: "Comandas", icon: FireIcon },
+  { href: "/admin/barra", label: "Venta Rápida", icon: GlassIcon },
   { href: "/admin/mesas", label: "Mesas", icon: TableIcon },
   { href: "/admin/reservas", label: "Reservas", icon: CalendarIcon },
-  { href: "/admin/barra", label: "Venta Rápida", icon: GlassIcon },
   { href: "/admin/carta", label: "Carta", icon: BoxIcon },
   { href: "/admin/ventas", label: "Ventas", icon: ChartBarIcon },
   { href: "/admin/configuracion", label: "Configuración", icon: SettingsIcon },
