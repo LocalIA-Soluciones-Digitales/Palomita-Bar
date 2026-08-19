@@ -421,6 +421,12 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
           refetch();
         },
       )
+      .on("postgres_changes", { event: "INSERT", schema: "restaurant", table: "mesas" }, () =>
+        refetch(),
+      )
+      .on("postgres_changes", { event: "DELETE", schema: "restaurant", table: "mesas" }, () =>
+        refetch(),
+      )
       .subscribe();
 
     return () => {
