@@ -3,7 +3,16 @@
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { formatCentimos } from "@/lib/format";
-import { AllergenIcon, CloseIcon, EyeIcon, MinusIcon, PlusIcon, SearchIcon } from "@/components/icons";
+import {
+  AllergenIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  CloseIcon,
+  EyeIcon,
+  MinusIcon,
+  PlusIcon,
+  SearchIcon,
+} from "@/components/icons";
 import { ProductDetailModal } from "@/components/menu/ProductDetailModal";
 import { vibrarSuave } from "@/lib/haptics";
 import type { Categoria, Producto } from "@/lib/restaurant/types";
@@ -46,6 +55,9 @@ export function CategoryMenu({
   const [alergenosExcluidos, setAlergenosExcluidos] = useState<Set<string>>(new Set());
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const stickyRef = useRef<HTMLDivElement | null>(null);
+  const categoryScrollRef = useRef<HTMLDivElement | null>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
 
   const alergenosDisponibles = useMemo(() => {
     const set = new Set<string>();
@@ -114,6 +126,28 @@ export function CategoryMenu({
     };
   }, [highlightProductId]);
 
+  const updateCategoryScrollState = () => {
+    const node = categoryScrollRef.current;
+    if (!node) return;
+    setCanScrollLeft(node.scrollLeft > 4);
+    setCanScrollRight(node.scrollLeft + node.clientWidth < node.scrollWidth - 4);
+  };
+
+  useEffect(() => {
+    const frame = requestAnimationFrame(updateCategoryScrollState);
+    window.addEventListener("resize", updateCategoryScrollState);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("resize", updateCategoryScrollState);
+    };
+  }, [categoriasConProductos]);
+
+  const scrollCategoryBar = (direction: "left" | "right") => {
+    const node = categoryScrollRef.current;
+    if (!node) return;
+    node.scrollBy({ left: direction === "left" ? -180 : 180, behavior: "smooth" });
+  };
+
   const scrollToCategory = (id: string) => {
     const node = sectionRefs.current[id];
     if (!node) return;
@@ -181,31 +215,61 @@ export function CategoryMenu({
           </div>
         ) : null}
 
-        <div
-          role="tablist"
-          aria-label="Categorías"
-          className="scrollbar-hide mt-3 flex gap-2 overflow-x-auto"
-        >
-          {categoriasConProductos.map((categoria) => {
-            const count = productosFiltrados.filter((p) => p.categoria_id === categoria.id).length;
-            const selected = activeId === categoria.id;
-            return (
+        <div className="relative mt-3">
+          <div
+            ref={categoryScrollRef}
+            role="tablist"
+            aria-label="Categorías"
+            onScroll={updateCategoryScrollState}
+            className="scrollbar-hide flex gap-2 overflow-x-auto scroll-smooth"
+          >
+            {categoriasConProductos.map((categoria) => {
+              const count = productosFiltrados.filter((p) => p.categoria_id === categoria.id).length;
+              const selected = activeId === categoria.id;
+              return (
+                <button
+                  key={categoria.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={selected}
+                  onClick={() => scrollToCategory(categoria.id)}
+                  className={`shrink-0 whitespace-nowrap rounded-full px-4 py-2 text-xs uppercase tracking-widest2 transition-colors ${
+                    selected
+                      ? "bg-noche-primary text-white"
+                      : "text-noche-ink-muted hover:text-noche-ink"
+                  }`}
+                >
+                  {categoria.nombre} · {count}
+                </button>
+              );
+            })}
+          </div>
+
+          {canScrollLeft ? (
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex w-10 items-center bg-gradient-to-r from-noche-bg to-transparent">
               <button
-                key={categoria.id}
                 type="button"
-                role="tab"
-                aria-selected={selected}
-                onClick={() => scrollToCategory(categoria.id)}
-                className={`shrink-0 whitespace-nowrap rounded-full px-4 py-2 text-xs uppercase tracking-widest2 transition-colors ${
-                  selected
-                    ? "bg-noche-primary text-white"
-                    : "text-noche-ink-muted hover:text-noche-ink"
-                }`}
+                onClick={() => scrollCategoryBar("left")}
+                aria-label="Ver categorías anteriores"
+                className="pointer-events-auto flex h-7 w-7 items-center justify-center rounded-full border border-noche-border bg-noche-surface text-noche-ink shadow-sm transition-colors hover:border-noche-primary hover:text-noche-primary"
               >
-                {categoria.nombre} · {count}
+                <ChevronLeftIcon className="h-4 w-4" />
               </button>
-            );
-          })}
+            </div>
+          ) : null}
+
+          {canScrollRight ? (
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex w-10 items-center justify-end bg-gradient-to-l from-noche-bg to-transparent">
+              <button
+                type="button"
+                onClick={() => scrollCategoryBar("right")}
+                aria-label="Ver más categorías"
+                className="pointer-events-auto flex h-7 w-7 items-center justify-center rounded-full border border-noche-border bg-noche-surface text-noche-ink shadow-sm transition-colors hover:border-noche-primary hover:text-noche-primary"
+              >
+                <ChevronRightIcon className="h-4 w-4" />
+              </button>
+            </div>
+          ) : null}
         </div>
       </div>
 
