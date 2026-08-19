@@ -497,7 +497,17 @@ export function ReservasBoard() {
                           {bloqueo ? "Desbloquear" : "Cancelar"}
                         </button>
                       </>
-                    ) : null}
+                    ) : (
+                      <button
+                        type="button"
+                        disabled={actualizando}
+                        onClick={() => cambiarEstado(reserva, "CONFIRMADA")}
+                        className="flex items-center gap-1 rounded-lg border border-noche-border px-3 py-1.5 text-[11px] uppercase tracking-widest2 text-noche-ink-muted hover:bg-noche-surface-2 hover:text-noche-ink disabled:opacity-50"
+                      >
+                        <RefreshIcon className="h-3.5 w-3.5" />
+                        Reactivar
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
