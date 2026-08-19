@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import {
   actualizarReservaEstadoAdmin,
-  asignarMesaReservaAdmin,
+  asignarMesasReservaAdmin,
   getMesasEstadoAdmin,
   getReservasAdmin,
   getZonasAdmin,
@@ -14,6 +14,7 @@ import { mesasOcupadasEn } from "@/lib/restaurant/reserva-disponibilidad";
 import { errorMessage } from "@/lib/format";
 import { ReservaModal } from "@/components/admin/ReservaModal";
 import { BloqueoMesaModal } from "@/components/admin/BloqueoMesaModal";
+import { MesaMultiSelect } from "@/components/admin/MesaMultiSelect";
 import {
   CalendarIcon,
   CheckIcon,
@@ -201,11 +202,11 @@ export function ReservasBoard() {
     }
   };
 
-  const reasignarMesa = async (reserva: ReservaAdmin, mesaId: string) => {
+  const reasignarMesas = async (reserva: ReservaAdmin, mesaIds: string[]) => {
     setActualizandoId(reserva.id);
     setAccionError(null);
     try {
-      await asignarMesaReservaAdmin(reserva.id, mesaId || null);
+      await asignarMesasReservaAdmin(reserva.id, mesaIds);
       await refetch();
     } catch (err) {
       setAccionError(errorMessage(err));
@@ -451,24 +452,36 @@ export function ReservasBoard() {
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-2">
-                    <select
-                      value={reserva.mesa_id ?? ""}
-                      disabled={actualizando || finalizada}
-                      onChange={(e) => reasignarMesa(reserva, e.target.value)}
-                      className="rounded-lg border border-noche-border bg-noche-surface-2 px-2 py-1.5 text-xs text-noche-ink disabled:opacity-50"
-                    >
-                      <option value="">Sin mesa asignada</option>
-                      {mesas.map((m) => {
-                        const ocupada = mesasOcupadas.has(m.id);
-                        return (
-                          <option key={m.id} value={m.id} disabled={ocupada}>
-                            Mesa {m.numero}
-                            {ocupada ? " (reservada a esa hora)" : ""}
-                          </option>
-                        );
-                      })}
-                    </select>
+                  <div className="flex flex-wrap items-start gap-2">
+                    {!bloqueo ? (
+                      <MesaMultiSelect
+                        mesas={mesas}
+                        zonas={zonas}
+                        selectedIds={reserva.mesa_ids}
+                        ocupadas={mesasOcupadas}
+                        numPersonas={reserva.num_personas}
+                        disabled={actualizando || finalizada}
+                        onChange={(ids) => reasignarMesas(reserva, ids)}
+                      />
+                    ) : (
+                      <select
+                        value={reserva.mesa_id ?? ""}
+                        disabled={actualizando || finalizada}
+                        onChange={(e) => reasignarMesas(reserva, e.target.value ? [e.target.value] : [])}
+                        className="rounded-lg border border-noche-border bg-noche-surface-2 px-2 py-1.5 text-xs text-noche-ink disabled:opacity-50"
+                      >
+                        <option value="">Sin mesa asignada</option>
+                        {mesas.map((m) => {
+                          const ocupada = mesasOcupadas.has(m.id);
+                          return (
+                            <option key={m.id} value={m.id} disabled={ocupada}>
+                              Mesa {m.numero}
+                              {ocupada ? " (reservada a esa hora)" : ""}
+                            </option>
+                          );
+                        })}
+                      </select>
+                    )}
 
                     {!finalizada ? (
                       <>

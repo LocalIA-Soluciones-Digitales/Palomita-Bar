@@ -66,6 +66,7 @@ export interface ReservaAdmin {
   id: string;
   cliente_id: string;
   mesa_id: string | null;
+  mesa_ids: string[];
   zona_id: string | null;
   nombre_cliente: string;
   telefono: string | null;

@@ -27,6 +27,7 @@ type Props = {
   seleccionUnion: string[];
   top: boolean;
   focusZona: PrefijoZona | null;
+  bloqueado: boolean;
   onSelect: (id: string) => void;
   onDragMove: (id: string, xPct: number, yPct: number) => void;
   onDragEnd: (id: string, xPct: number, yPct: number) => void;
@@ -249,6 +250,7 @@ export default function Floorplan3D({
   seleccionUnion,
   top,
   focusZona,
+  bloqueado,
   onSelect,
   onDragMove,
   onDragEnd,
@@ -295,6 +297,7 @@ export default function Floorplan3D({
             key={mesa.id}
             mesa={mesa}
             selected={seleccionadaId === mesa.id || seleccionUnion.includes(mesa.id)}
+            bloqueado={bloqueado}
             onSelect={onSelect}
             onDragStateChange={setArrastrando}
             onDragMove={onDragMove}
@@ -307,6 +310,7 @@ export default function Floorplan3D({
             key={grupoId}
             miembros={miembros}
             selected={miembros.some((m) => m.id === seleccionadaId || seleccionUnion.includes(m.id))}
+            bloqueado={bloqueado}
             onSelect={onSelect}
             onDragStateChange={setArrastrando}
             onDragMove={onDragMove}
@@ -350,6 +354,7 @@ function EtiquetaMesa({ texto, size = 0.42 }: { texto: string; size?: number }) 
 function Mesa({
   mesa,
   selected,
+  bloqueado,
   onSelect,
   onDragStateChange,
   onDragMove,
@@ -357,6 +362,7 @@ function Mesa({
 }: {
   mesa: Mesa3D;
   selected: boolean;
+  bloqueado: boolean;
   onSelect: (id: string) => void;
   onDragStateChange: (dragging: boolean) => void;
   onDragMove: (id: string, xPct: number, yPct: number) => void;
@@ -392,10 +398,11 @@ function Mesa({
         castShadow
         onPointerDown={(e) => {
           e.stopPropagation();
+          onSelect(mesa.id);
+          if (bloqueado) return;
           (e.target as Element).setPointerCapture(e.pointerId);
           dragging.current = true;
           onDragStateChange(true);
-          onSelect(mesa.id);
         }}
         onPointerMove={(e) => {
           if (!dragging.current) return;
@@ -404,8 +411,8 @@ function Mesa({
         }}
         onPointerUp={(e) => {
           e.stopPropagation();
-          (e.target as Element).releasePointerCapture(e.pointerId);
           if (dragging.current) {
+            (e.target as Element).releasePointerCapture(e.pointerId);
             dragging.current = false;
             onDragStateChange(false);
             const hit = e.ray.intersectPlane(FLOOR, new THREE.Vector3());
@@ -453,6 +460,7 @@ function Mesa({
 function MesaUnida({
   miembros,
   selected,
+  bloqueado,
   onSelect,
   onDragStateChange,
   onDragMove,
@@ -460,6 +468,7 @@ function MesaUnida({
 }: {
   miembros: Mesa3D[];
   selected: boolean;
+  bloqueado: boolean;
   onSelect: (id: string) => void;
   onDragStateChange: (dragging: boolean) => void;
   onDragMove: (id: string, xPct: number, yPct: number) => void;
@@ -547,6 +556,8 @@ function MesaUnida({
         castShadow
         onPointerDown={(e) => {
           e.stopPropagation();
+          onSelect(primero.id);
+          if (bloqueado) return;
           (e.target as Element).setPointerCapture(e.pointerId);
           dragging.current = true;
           inicio.current = {
@@ -554,7 +565,6 @@ function MesaUnida({
             miembros: miembros.map((m) => ({ id: m.id, x: m.x, y: m.y })),
           };
           onDragStateChange(true);
-          onSelect(primero.id);
         }}
         onPointerMove={(e) => {
           if (!dragging.current) return;
@@ -563,8 +573,8 @@ function MesaUnida({
         }}
         onPointerUp={(e) => {
           e.stopPropagation();
-          (e.target as Element).releasePointerCapture(e.pointerId);
           if (dragging.current) {
+            (e.target as Element).releasePointerCapture(e.pointerId);
             dragging.current = false;
             onDragStateChange(false);
             const hit = e.ray.intersectPlane(FLOOR, new THREE.Vector3());

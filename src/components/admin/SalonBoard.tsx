@@ -46,9 +46,11 @@ import {
   CheckIcon,
   ClockIcon,
   CloseIcon,
+  LockIcon,
   LogoutIcon,
   MinusIcon,
   MoreIcon,
+  PencilIcon,
   PlusIcon,
   PrinterIcon,
   RefreshIcon,
@@ -329,6 +331,9 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
   // plano 3D con menos interacción (sin rotar/hacer zoom) para el uso real
   // de servicio; el 3D sigue disponible para quien lo prefiera.
   const [vistaSuperior, setVistaSuperior] = useState(true);
+  // Modo fijo por defecto: permite navegar el plano (orbitar/zoom) sin
+  // arrastrar mesas por error; el modo diseño habilita mover/crear/eliminar.
+  const [modoDiseno, setModoDiseno] = useState(false);
   const [notaForm, setNotaForm] = useState("");
   const [notaGuardando, setNotaGuardando] = useState(false);
   const [qrAbierto, setQrAbierto] = useState(false);
@@ -459,7 +464,7 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
   }, [mesaSeleccionada, ahora]);
 
   const reservaDeMesa = useCallback(
-    (mesaId: string) => reservas.find((r) => r.mesa_id === mesaId && r.estado === "CONFIRMADA"),
+    (mesaId: string) => reservas.find((r) => r.mesa_ids.includes(mesaId) && r.estado === "CONFIRMADA"),
     [reservas],
   );
 
@@ -839,14 +844,36 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
                   Planta
                 </button>
               </div>
-              <button
-                type="button"
-                onClick={handleCrearMesaRapida}
-                className="flex items-center gap-1.5 rounded-lg bg-noche-primary px-4 py-2 text-xs uppercase tracking-widest2 text-noche-ink hover:bg-noche-primary-dark"
-              >
-                <PlusIcon className="h-3.5 w-3.5" />
-                Añadir mesa
-              </button>
+              <div className="flex overflow-hidden rounded-lg border border-noche-border text-xs uppercase tracking-widest2">
+                <button
+                  type="button"
+                  onClick={() => setModoDiseno(false)}
+                  title="Solo navegar: las mesas no se pueden mover ni crear por error"
+                  className={`flex items-center gap-1.5 px-3 py-2 ${!modoDiseno ? "bg-noche-primary/15 text-noche-primary" : "text-noche-ink-muted"}`}
+                >
+                  <LockIcon className="h-3.5 w-3.5" />
+                  Fijo
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setModoDiseno(true)}
+                  title="Mover, crear y eliminar mesas en el plano"
+                  className={`flex items-center gap-1.5 px-3 py-2 ${modoDiseno ? "bg-noche-primary/15 text-noche-primary" : "text-noche-ink-muted"}`}
+                >
+                  <PencilIcon className="h-3.5 w-3.5" />
+                  Diseño
+                </button>
+              </div>
+              {modoDiseno ? (
+                <button
+                  type="button"
+                  onClick={handleCrearMesaRapida}
+                  className="flex items-center gap-1.5 rounded-lg bg-noche-primary px-4 py-2 text-xs uppercase tracking-widest2 text-noche-ink hover:bg-noche-primary-dark"
+                >
+                  <PlusIcon className="h-3.5 w-3.5" />
+                  Añadir mesa
+                </button>
+              ) : null}
             </div>
           </div>
 
@@ -857,6 +884,7 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
               seleccionUnion={seleccionUnion}
               top={vistaSuperior}
               focusZona={zonaActivaId ? prefijoZona(zonaActivaId, zonas) : null}
+              bloqueado={!modoDiseno}
               onSelect={handleMesaSelect}
               onDragMove={handleMesaDragMove}
               onDragEnd={handleMesaDragEnd}
@@ -1026,17 +1054,21 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
                               Marcar como limpia
                             </button>
                           ) : null}
-                          <div className="my-1 border-t border-noche-border" />
-                          <button
-                            type="button"
-                            onClick={() => {
-                              handleEliminarMesa(mesaSeleccionada);
-                              setMenuAbierto(false);
-                            }}
-                            className="block w-full rounded-lg px-2 py-1.5 text-left text-xs uppercase tracking-widest2 text-noche-danger hover:bg-noche-danger/10"
-                          >
-                            Eliminar mesa
-                          </button>
+                          {modoDiseno ? (
+                            <>
+                              <div className="my-1 border-t border-noche-border" />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  handleEliminarMesa(mesaSeleccionada);
+                                  setMenuAbierto(false);
+                                }}
+                                className="block w-full rounded-lg px-2 py-1.5 text-left text-xs uppercase tracking-widest2 text-noche-danger hover:bg-noche-danger/10"
+                              >
+                                Eliminar mesa
+                              </button>
+                            </>
+                          ) : null}
                         </div>
                       ) : null}
                     </div>

@@ -6,6 +6,7 @@ import type { MesaEstadoAdmin, ReservaAdmin, ZonaAdmin } from "@/lib/restaurant/
 import { mesasOcupadasEn } from "@/lib/restaurant/reserva-disponibilidad";
 import { CloseIcon } from "@/components/icons";
 import { useDialogA11y } from "@/hooks/useDialogA11y";
+import { MesaMultiSelect } from "@/components/admin/MesaMultiSelect";
 
 export function ReservaModal({
   fechaInicial,
@@ -34,7 +35,7 @@ export function ReservaModal({
   const [fecha, setFecha] = useState(fechaInicial);
   const [hora, setHora] = useState(horaInicial);
   const [zonaId, setZonaId] = useState(zonaIdInicial ?? "");
-  const [mesaId, setMesaId] = useState(mesaIdInicial ?? "");
+  const [mesaIds, setMesaIds] = useState<string[]>(mesaIdInicial ? [mesaIdInicial] : []);
   const [notas, setNotas] = useState("");
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -47,18 +48,16 @@ export function ReservaModal({
   );
 
   useEffect(() => {
-    if (mesaId && mesasOcupadas.has(mesaId)) {
-      setMesaId("");
-    }
-  }, [mesasOcupadas, mesaId]);
+    setMesaIds((ids) => ids.filter((id) => !mesasOcupadas.has(id)));
+  }, [mesasOcupadas]);
 
   const handleGuardar = async () => {
     if (!nombreCliente.trim() || !fecha || !hora) {
       setError("Indica al menos el nombre, la fecha y la hora.");
       return;
     }
-    if (mesaId && mesasOcupadas.has(mesaId)) {
-      setError("Esa mesa ya está reservada cerca de esa hora. Elige otra mesa u otra hora.");
+    if (mesaIds.some((id) => mesasOcupadas.has(id))) {
+      setError("Alguna mesa elegida ya está reservada cerca de esa hora. Elige otra mesa u otra hora.");
       return;
     }
     setGuardando(true);
@@ -71,7 +70,7 @@ export function ReservaModal({
         fecha,
         hora,
         zonaId: zonaId || null,
-        mesaId: mesaId || null,
+        mesaIds,
         notas: notas.trim() || undefined,
       });
       await onCreated();
@@ -177,7 +176,7 @@ export function ReservaModal({
                 value={zonaId}
                 onChange={(e) => {
                   setZonaId(e.target.value);
-                  setMesaId("");
+                  setMesaIds([]);
                 }}
                 className="mt-1 w-full rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2 text-sm text-noche-ink"
               >
@@ -193,22 +192,16 @@ export function ReservaModal({
               <label className="text-xs uppercase tracking-widest2 text-noche-ink-muted">
                 Mesa (opcional)
               </label>
-              <select
-                value={mesaId}
-                onChange={(e) => setMesaId(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2 text-sm text-noche-ink"
-              >
-                <option value="">Sin asignar</option>
-                {mesasFiltradas.map((mesa) => {
-                  const ocupada = mesasOcupadas.has(mesa.id);
-                  return (
-                    <option key={mesa.id} value={mesa.id} disabled={ocupada}>
-                      Mesa {mesa.numero}
-                      {ocupada ? " (reservada a esa hora)" : ""}
-                    </option>
-                  );
-                })}
-              </select>
+              <div className="mt-1">
+                <MesaMultiSelect
+                  mesas={mesasFiltradas}
+                  zonas={zonas}
+                  selectedIds={mesaIds}
+                  ocupadas={mesasOcupadas}
+                  numPersonas={Number(numPersonas) || 0}
+                  onChange={setMesaIds}
+                />
+              </div>
             </div>
           </div>
 

@@ -20,7 +20,7 @@ export function hayConflictoHorario(
 
 /** IDs de mesa que ya tienen una reserva activa dentro del margen de bloqueo de `hora`. */
 export function mesasOcupadasEn(
-  reservas: Pick<ReservaAdmin, "id" | "mesa_id" | "fecha" | "hora" | "estado">[],
+  reservas: Pick<ReservaAdmin, "id" | "mesa_ids" | "fecha" | "hora" | "estado">[],
   fecha: string,
   hora: string,
   excluirReservaId?: string,
@@ -31,9 +31,9 @@ export function mesasOcupadasEn(
     if (r.id === excluirReservaId) continue;
     if (r.fecha !== fecha) continue;
     if (r.estado === "CANCELADA" || r.estado === "NO_SHOW") continue;
-    if (!r.mesa_id) continue;
+    if (!r.mesa_ids?.length) continue;
     if (hayConflictoHorario(r.hora, hora)) {
-      ocupadas.add(r.mesa_id);
+      for (const mesaId of r.mesa_ids) ocupadas.add(mesaId);
     }
   }
   return ocupadas;

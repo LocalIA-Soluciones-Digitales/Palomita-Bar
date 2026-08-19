@@ -414,6 +414,7 @@ export async function crearReservaAdmin(input: {
   hora: string;
   telefono?: string;
   mesaId?: string | null;
+  mesaIds?: string[];
   zonaId?: string | null;
   notas?: string;
 }): Promise<ReservaAdmin> {
@@ -428,6 +429,7 @@ export async function crearReservaAdmin(input: {
     p_mesa_id: input.mesaId ?? null,
     p_zona_id: input.zonaId ?? null,
     p_notas: input.notas ?? null,
+    p_mesa_ids: input.mesaIds && input.mesaIds.length ? input.mesaIds : null,
   });
   if (error) throw error;
   return data as unknown as ReservaAdmin;
@@ -446,12 +448,12 @@ export async function actualizarReservaEstadoAdmin(
   if (error) throw error;
 }
 
-export async function asignarMesaReservaAdmin(id: string, mesaId: string | null): Promise<void> {
+export async function asignarMesasReservaAdmin(id: string, mesaIds: string[]): Promise<void> {
   const supabase = createSupabaseBrowserClient();
-  const { error } = await supabase.rpc("asignar_mesa_reserva_admin", {
+  const { error } = await supabase.rpc("asignar_mesas_reserva_admin", {
     p_id: id,
     p_cliente_id: clienteId(),
-    p_mesa_id: mesaId,
+    p_mesa_ids: mesaIds,
   });
   if (error) throw error;
 }
