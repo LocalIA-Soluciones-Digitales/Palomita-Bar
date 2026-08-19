@@ -17,6 +17,13 @@ function hoyISO(): string {
   return hoy.toISOString().slice(0, 10);
 }
 
+function esFechaHoraPasada(fechaISO: string, horaHHMM: string): boolean {
+  const [anio, mes, dia] = fechaISO.split("-").map(Number);
+  const [h, m] = horaHHMM.split(":").map(Number);
+  const fechaHora = new Date(anio ?? 0, (mes ?? 1) - 1, dia ?? 1, h ?? 0, m ?? 0);
+  return fechaHora.getTime() < Date.now();
+}
+
 export function ReservaForm() {
   const [nombre, setNombre] = useState("");
   const [telefono, setTelefono] = useState("");
@@ -46,10 +53,15 @@ export function ReservaForm() {
     [semana, fecha, hora],
   );
   const diaSeleccionado = useMemo(() => horarioDelDia(semana, fecha), [semana, fecha]);
+  const esPasado = useMemo(() => esFechaHoraPasada(fecha, hora), [fecha, hora]);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
     setError(null);
+    if (esPasado) {
+      setError("No puedes reservar en una fecha u hora que ya ha pasado. Elige un momento futuro.");
+      return;
+    }
     if (!horaValida) {
       setError(
         diaSeleccionado.abierto
@@ -162,13 +174,15 @@ export function ReservaForm() {
             value={hora}
             onChange={(e) => setHora(e.target.value)}
             className={`mt-1 block w-full max-w-full appearance-none rounded-lg border bg-noche-surface px-4 py-3 text-noche-ink ${
-              horaValida ? "border-noche-border" : "border-noche-danger"
+              horaValida && !esPasado ? "border-noche-border" : "border-noche-danger"
             }`}
           />
           <span className="mt-1 block text-xs text-noche-ink-faint">
-            {diaSeleccionado.abierto
-              ? `Ese día abrimos de ${diaSeleccionado.desde} a ${diaSeleccionado.hasta}.`
-              : "Ese día el local está cerrado."}
+            {esPasado
+              ? "Esa hora ya ha pasado."
+              : diaSeleccionado.abierto
+                ? `Ese día abrimos de ${diaSeleccionado.desde} a ${diaSeleccionado.hasta}.`
+                : "Ese día el local está cerrado."}
           </span>
         </label>
       </div>
@@ -191,7 +205,7 @@ export function ReservaForm() {
 
       <button
         type="submit"
-        disabled={enviando}
+        disabled={enviando || esPasado}
         className="w-full rounded-lg bg-noche-primary py-4 text-sm uppercase tracking-widest2 text-white transition-colors hover:bg-noche-primary-dark disabled:opacity-50"
       >
         {enviando ? "Enviando…" : "Confirmar reserva"}
