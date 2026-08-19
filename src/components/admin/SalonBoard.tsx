@@ -1418,6 +1418,7 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
           zonaIdInicial={mesaSeleccionada?.zona_id}
           zonas={zonas}
           mesas={mesas}
+          reservas={reservas}
           onClose={() => setMostrarReserva(false)}
           onCreated={async () => {
             const data = await getReservasAdmin(fecha);
