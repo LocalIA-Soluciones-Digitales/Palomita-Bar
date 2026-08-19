@@ -28,6 +28,7 @@ const GESTION_LINKS = [
   { href: "/admin/barra", label: "Venta Rápida", icon: GlassIcon },
   { href: "/admin/mesas", label: "Mesas", icon: TableIcon },
   { href: "/admin/reservas", label: "Reservas", icon: CalendarIcon },
+  { href: "/admin/resenas", label: "Reseñas", icon: StarIcon },
   { href: "/admin/carta", label: "Carta", icon: BoxIcon },
   { href: "/admin/fidelizacion", label: "Fidelización", icon: StarIcon },
   { href: "/admin/ventas", label: "Ventas", icon: ChartBarIcon },

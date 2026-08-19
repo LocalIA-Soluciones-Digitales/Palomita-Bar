@@ -26,5 +26,6 @@ export const NAV_LINKS = [
   { href: "/cocteleria", label: "Coctelería" },
   { href: "/galeria", label: "Galería" },
   { href: "/reservar", label: "Reservar" },
+  { href: "/opiniones", label: "Opiniones" },
   { href: "/#contacto", label: "Contacto" },
 ] as const;

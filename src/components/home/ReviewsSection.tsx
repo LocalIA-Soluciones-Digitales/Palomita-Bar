@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { SITE } from "@/lib/constants";
-import { StarIcon, StarHalfIcon } from "@/components/icons";
+import { Stars } from "@/components/resenas/Stars";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
 
 const RATING = 4.4;
@@ -29,24 +30,6 @@ const TESTIMONIALS = [
     author: "Google Local Guide",
   },
 ] as const;
-
-function Stars({ rating, className }: { rating: number; className?: string }) {
-  const fullStars = Math.floor(rating);
-  const hasHalf = rating - fullStars >= 0.25 && rating - fullStars < 0.75;
-  const roundedFull = rating - fullStars >= 0.75 ? fullStars + 1 : fullStars;
-
-  return (
-    <div className={`flex text-noche-primary ${className ?? ""}`}>
-      {Array.from({ length: roundedFull }).map((_, i) => (
-        <StarIcon key={`full-${i}`} className="h-4 w-4" />
-      ))}
-      {hasHalf ? <StarHalfIcon className="h-4 w-4" /> : null}
-      {Array.from({ length: Math.max(0, 5 - roundedFull - (hasHalf ? 1 : 0)) }).map((_, i) => (
-        <StarIcon key={`empty-${i}`} className="h-4 w-4 text-noche-ink-faint" />
-      ))}
-    </div>
-  );
-}
 
 export function ReviewsSection() {
   const { ref, visible } = useScrollReveal<HTMLDivElement>();
@@ -96,14 +79,22 @@ export function ReviewsSection() {
               ))}
             </div>
 
-            <a
-              href={SITE.googleReviewsUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-8 inline-flex items-center rounded-full border border-noche-ink/30 px-6 py-3 text-sm font-medium text-noche-ink transition-colors hover:border-noche-primary hover:text-noche-primary"
-            >
-              Ver reseñas
-            </a>
+            <div className="mt-8 flex flex-wrap items-center gap-3">
+              <a
+                href={SITE.googleReviewsUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center rounded-full border border-noche-ink/30 px-6 py-3 text-sm font-medium text-noche-ink transition-colors hover:border-noche-primary hover:text-noche-primary"
+              >
+                Ver reseñas
+              </a>
+              <Link
+                href="/opiniones"
+                className="inline-flex items-center rounded-full bg-noche-primary px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-noche-primary-dark"
+              >
+                Danos tu opinión
+              </Link>
+            </div>
           </div>
 
           <div className="space-y-4">

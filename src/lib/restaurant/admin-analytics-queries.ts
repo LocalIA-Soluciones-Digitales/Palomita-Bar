@@ -1,6 +1,7 @@
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import type {
   ErrorLogAdmin,
+  EstadoResena,
   NewsletterSubscriberAdmin,
   ResenaAdmin,
   VisitaAdmin,
@@ -58,6 +59,22 @@ export async function getResenasAdmin(): Promise<ResenaAdmin[]> {
     .limit(500);
   if (error) throw error;
   return (data ?? []) as ResenaAdmin[];
+}
+
+export async function actualizarEstadoResenaAdmin(id: string, estado: EstadoResena): Promise<void> {
+  const supabase = createSupabaseBrowserClient();
+  const { error } = await supabase
+    .from("resenas")
+    .update({ estado })
+    .eq("id", id)
+    .eq("cliente_id", clienteId());
+  if (error) throw error;
+}
+
+export async function eliminarResenaAdmin(id: string): Promise<void> {
+  const supabase = createSupabaseBrowserClient();
+  const { error } = await supabase.from("resenas").delete().eq("id", id).eq("cliente_id", clienteId());
+  if (error) throw error;
 }
 
 export async function getErrorLogsAdmin(): Promise<ErrorLogAdmin[]> {

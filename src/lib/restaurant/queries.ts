@@ -9,6 +9,7 @@ import type {
   PedidoPublico,
   Producto,
   RepartoParaPago,
+  ResenaPublica,
   SesionParticipante,
   SesionPublica,
   SiteImages,
@@ -192,6 +193,28 @@ export async function crearReservaPublica(input: {
     p_email: input.email ?? null,
   });
   if (error) throw error;
+}
+
+export async function crearResenaPublica(input: {
+  nombre: string;
+  valoracion: number;
+  comentario: string;
+}): Promise<void> {
+  const { error } = await supabase.rpc("crear_resena", {
+    p_site_key: siteKey(),
+    p_nombre: input.nombre,
+    p_valoracion: input.valoracion,
+    p_comentario: input.comentario,
+  });
+  if (error) throw error;
+}
+
+export async function getResenasAprobadas(): Promise<ResenaPublica[]> {
+  const { data, error } = await supabase.rpc("get_resenas_aprobadas", {
+    p_site_key: siteKey(),
+  });
+  if (error) throw error;
+  return (data ?? []) as unknown as ResenaPublica[];
 }
 
 export async function crearErrorLog(input: {

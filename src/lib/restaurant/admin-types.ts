@@ -233,12 +233,14 @@ export interface NewsletterSubscriberAdmin {
   created_at: string;
 }
 
+export type EstadoResena = "pendiente" | "aprobada" | "rechazada";
+
 export interface ResenaAdmin {
   id: string;
   nombre: string;
   valoracion: number;
   comentario: string | null;
-  estado: string;
+  estado: EstadoResena;
   created_at: string;
 }
 

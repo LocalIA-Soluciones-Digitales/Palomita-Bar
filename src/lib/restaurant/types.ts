@@ -84,6 +84,14 @@ export interface SiteImages {
   ambiente: string[];
 }
 
+export interface ResenaPublica {
+  id: string;
+  nombre: string;
+  valoracion: number;
+  comentario: string;
+  created_at: string;
+}
+
 export type ModoSesion = "JUNTOS" | "SEPARADO";
 
 export interface MesaSesion {
