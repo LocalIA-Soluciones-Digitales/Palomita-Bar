@@ -35,6 +35,7 @@ type Props = {
 const COLOR_MESA: Record<EstadoMesa, string> = {
   LIBRE: "#10b981",
   RESERVADA: "#3b82f6",
+  BLOQUEADA: "#71717a",
   OCUPADA: "#f97316",
   ESPERANDO_PEDIDO: "#8b5cf6",
   EN_PREPARACION: "#06b6d4",
@@ -52,6 +53,7 @@ const PRIORIDAD_ESTADO: EstadoMesa[] = [
   "PAGANDO",
   "OCUPADA",
   "RESERVADA",
+  "BLOQUEADA",
   "POR_LIMPIAR",
   "LIBRE",
 ];
@@ -162,6 +164,85 @@ function tamanoMesa(capacidad: number): number {
   return Math.min(2.4, 0.85 + Math.max(0, capacidad - 1) * 0.13);
 }
 
+// Extensión total del suelo del local (sala/barra/salón + terraza), usada para calcular
+// qué queda "fuera" de la zona enfocada y poder sombrearlo.
+const ESCENA_BOUNDS: Region = { xMin: -10.6, xMax: 10.6, zMin: -6.3, zMax: 10.9 };
+
+// Atenúa visualmente todo lo que queda fuera de la zona enfocada (un velo oscuro sobre el
+// suelo) y remarca el límite de la zona activa con un marco luminoso, para que se distinga
+// claramente del resto del plano sin necesidad de ocultarlo por completo.
+function ZoneFocusOverlay({ region }: { region: Region }) {
+  const velos = useMemo(() => {
+    const b = ESCENA_BOUNDS;
+    const rects: { key: string; x: number; z: number; w: number; d: number }[] = [];
+    if (region.xMin > b.xMin) {
+      rects.push({
+        key: "izq",
+        x: (b.xMin + region.xMin) / 2,
+        z: (b.zMin + b.zMax) / 2,
+        w: region.xMin - b.xMin,
+        d: b.zMax - b.zMin,
+      });
+    }
+    if (region.xMax < b.xMax) {
+      rects.push({
+        key: "der",
+        x: (region.xMax + b.xMax) / 2,
+        z: (b.zMin + b.zMax) / 2,
+        w: b.xMax - region.xMax,
+        d: b.zMax - b.zMin,
+      });
+    }
+    if (region.zMin > b.zMin) {
+      rects.push({
+        key: "fondo",
+        x: (region.xMin + region.xMax) / 2,
+        z: (b.zMin + region.zMin) / 2,
+        w: region.xMax - region.xMin,
+        d: region.zMin - b.zMin,
+      });
+    }
+    if (region.zMax < b.zMax) {
+      rects.push({
+        key: "frente",
+        x: (region.xMin + region.xMax) / 2,
+        z: (region.zMax + b.zMax) / 2,
+        w: region.xMax - region.xMin,
+        d: b.zMax - region.zMax,
+      });
+    }
+    return rects;
+  }, [region]);
+
+  const anchoMarco = region.xMax - region.xMin;
+  const altoMarco = region.zMax - region.zMin;
+  const grosorMarco = 0.05;
+
+  return (
+    <group>
+      {velos.map((r) => (
+        <mesh key={r.key} position={[r.x, -0.155, r.z]} rotation={[-Math.PI / 2, 0, 0]}>
+          <planeGeometry args={[r.w, r.d]} />
+          <meshBasicMaterial color="#050308" transparent opacity={0.72} depthWrite={false} />
+        </mesh>
+      ))}
+      <group position={[(region.xMin + region.xMax) / 2, -0.1, (region.zMin + region.zMax) / 2]}>
+        {[
+          { p: [0, 0, -altoMarco / 2] as [number, number, number], s: [anchoMarco, 0.03, grosorMarco] as [number, number, number] },
+          { p: [0, 0, altoMarco / 2] as [number, number, number], s: [anchoMarco, 0.03, grosorMarco] as [number, number, number] },
+          { p: [-anchoMarco / 2, 0, 0] as [number, number, number], s: [grosorMarco, 0.03, altoMarco] as [number, number, number] },
+          { p: [anchoMarco / 2, 0, 0] as [number, number, number], s: [grosorMarco, 0.03, altoMarco] as [number, number, number] },
+        ].map((lado, i) => (
+          <mesh key={i} position={lado.p}>
+            <boxGeometry args={lado.s} />
+            <meshStandardMaterial color={SELECCION_COLOR} emissive={SELECCION_COLOR} emissiveIntensity={1.4} toneMapped={false} />
+          </mesh>
+        ))}
+      </group>
+    </group>
+  );
+}
+
 export default function Floorplan3D({
   mesas,
   seleccionadaId,
@@ -204,6 +285,8 @@ export default function Floorplan3D({
         <group position={[0, -0.17, 0]} scale={[21 / 12, 1, 1]}>
           <gridHelper args={[12, 14, "#3a3238", "#2c262b"]} />
         </group>
+
+        {focusZona !== null && <ZoneFocusOverlay region={REGIONES[focusZona]} />}
 
         <Architecture focusZona={focusZona} />
 
