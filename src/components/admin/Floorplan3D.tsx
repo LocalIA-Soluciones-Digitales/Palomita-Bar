@@ -99,8 +99,12 @@ const CAMERA_BOUNDS: Record<PrefijoZona, Bounds3D> = {
 // Límites visuales del local completo (todas las zonas), para la vista general "Todas".
 const CAMERA_BOUNDS_TODAS: Bounds3D = { xMin: -10.4, xMax: 10.5, yMin: -0.2, yMax: 3.95, zMin: -6.2, zMax: 10.4 };
 
-// Misma dirección de encuadre en 3D que la vista general original, reutilizada para cada zona.
+// Dirección de encuadre en 3D de la vista general original.
 const DIR_3D = new THREE.Vector3(0.564, 0.513, 0.649).normalize();
+// Ángulo más cenital para el 3D de cada zona: al enfocar una sola zona el volumen a encajar es
+// mucho más pequeño y, con el mismo ángulo bajo de la vista general, la cámara queda casi a ras
+// de suelo y apenas se distinguen las mesas. Con más elevación se ve claramente en planta-3D.
+const DIR_3D_ZONA = new THREE.Vector3(0.487, 0.669, 0.561).normalize();
 const DIR_TOP = new THREE.Vector3(0, 1, 0);
 
 const CAMERA_FOV = 45;
@@ -151,7 +155,7 @@ function cameraConfigFor(zona: PrefijoZona | null, top: boolean): CameraConfig {
   if (top) {
     // Vista en planta: mira siempre al nivel del suelo, la altura del mobiliario no importa aquí.
     const target: [number, number, number] = [centerX, 0, centerZ];
-    const distance = Math.max(distanciaParaEncajar(bounds, DIR_TOP, 1.15), 7);
+    const distance = Math.max(distanciaParaEncajar(bounds, DIR_TOP, 1.5), 8);
     return {
       position: [centerX, distance, centerZ],
       target,
@@ -160,14 +164,17 @@ function cameraConfigFor(zona: PrefijoZona | null, top: boolean): CameraConfig {
     };
   }
 
+  // Al enfocar una zona concreta se usa un ángulo más elevado (DIR_3D_ZONA) que en la vista
+  // general (DIR_3D), para no quedar casi a ras de suelo cuando el volumen a encajar es pequeño.
+  const dir3d = zona === null ? DIR_3D : DIR_3D_ZONA;
   const centerY = (bounds.yMin + bounds.yMax) / 2;
   const target: [number, number, number] = [centerX, centerY, centerZ];
-  const distance = Math.max(distanciaParaEncajar(bounds, DIR_3D, 1.22), 8);
+  const distance = Math.max(distanciaParaEncajar(bounds, dir3d, 1.5), 9);
   return {
     position: [
-      centerX + DIR_3D.x * distance,
-      centerY + DIR_3D.y * distance,
-      centerZ + DIR_3D.z * distance,
+      centerX + dir3d.x * distance,
+      centerY + dir3d.y * distance,
+      centerZ + dir3d.z * distance,
     ],
     target,
     minDistance: Math.max(distance * 0.5, 6),
@@ -1028,7 +1035,8 @@ function AwningTerraza({ position, width }: { position: [number, number, number]
   );
 }
 
-// Árbol estilizado de la plaza, para ambientar el fondo de la terraza.
+// Árbol estilizado de la plaza, para ambientar el fondo de la terraza. La copa es semitransparente
+// para que no tape del todo la vista de las mesas de la terraza que quedan delante o detrás.
 function StreetTree({ position }: { position: [number, number, number] }) {
   return (
     <group position={position}>
@@ -1038,11 +1046,11 @@ function StreetTree({ position }: { position: [number, number, number] }) {
       </mesh>
       <mesh position={[0, 2.6, 0]} castShadow>
         <sphereGeometry args={[1.1, 12, 12]} />
-        <meshStandardMaterial color="#3a5a34" roughness={0.85} />
+        <meshStandardMaterial color="#3a5a34" roughness={0.85} transparent opacity={0.55} depthWrite={false} />
       </mesh>
       <mesh position={[0.5, 2.9, 0.3]} castShadow>
         <sphereGeometry args={[0.7, 10, 10]} />
-        <meshStandardMaterial color="#456b3e" roughness={0.85} />
+        <meshStandardMaterial color="#456b3e" roughness={0.85} transparent opacity={0.55} depthWrite={false} />
       </mesh>
     </group>
   );
