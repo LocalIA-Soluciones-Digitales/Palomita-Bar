@@ -10,7 +10,7 @@ import {
   getZonasAdmin,
 } from "@/lib/restaurant/admin-queries";
 import { esBloqueo, motivoBloqueo, NOMBRE_BLOQUEO } from "@/lib/restaurant/reserva-bloqueo";
-import { prefijoZona } from "@/lib/restaurant/mesa-label";
+import { mesasOcupadasEn } from "@/lib/restaurant/reserva-disponibilidad";
 import { errorMessage } from "@/lib/format";
 import { ReservaModal } from "@/components/admin/ReservaModal";
 import { BloqueoMesaModal } from "@/components/admin/BloqueoMesaModal";
@@ -397,6 +397,7 @@ export function ReservasBoard() {
             const zonaMostrada = mesaAsignada?.zona_id ?? reserva.zona_id;
             const finalizada = reserva.estado === "CANCELADA" || reserva.estado === "NO_SHOW";
             const actualizando = actualizandoId === reserva.id;
+            const mesasOcupadas = mesasOcupadasEn(reservas, reserva.fecha, reserva.hora, reserva.id);
 
             return (
               <div
@@ -458,11 +459,15 @@ export function ReservasBoard() {
                       className="rounded-lg border border-noche-border bg-noche-surface-2 px-2 py-1.5 text-xs text-noche-ink disabled:opacity-50"
                     >
                       <option value="">Sin mesa asignada</option>
-                      {mesas.map((m) => (
-                        <option key={m.id} value={m.id}>
-                          {prefijoZona(m.zona_id, zonas)} Mesa {m.numero}
-                        </option>
-                      ))}
+                      {mesas.map((m) => {
+                        const ocupada = mesasOcupadas.has(m.id);
+                        return (
+                          <option key={m.id} value={m.id} disabled={ocupada}>
+                            Mesa {m.numero}
+                            {ocupada ? " (reservada a esa hora)" : ""}
+                          </option>
+                        );
+                      })}
                     </select>
 
                     {!finalizada ? (
@@ -526,6 +531,7 @@ export function ReservasBoard() {
           })}
           zonas={zonas}
           mesas={mesas}
+          reservas={reservas}
           onClose={() => setMostrarReserva(false)}
           onCreated={refetch}
         />
@@ -541,6 +547,7 @@ export function ReservasBoard() {
           })}
           zonas={zonas}
           mesas={mesas}
+          reservas={reservas}
           onClose={() => setMostrarBloqueo(false)}
           onCreated={refetch}
         />

@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { crearReservaAdmin } from "@/lib/restaurant/admin-queries";
-import type { MesaEstadoAdmin, ZonaAdmin } from "@/lib/restaurant/admin-types";
+import type { MesaEstadoAdmin, ReservaAdmin, ZonaAdmin } from "@/lib/restaurant/admin-types";
+import { mesasOcupadasEn } from "@/lib/restaurant/reserva-disponibilidad";
 import { CloseIcon } from "@/components/icons";
 import { useDialogA11y } from "@/hooks/useDialogA11y";
 
@@ -13,6 +14,7 @@ export function ReservaModal({
   zonaIdInicial,
   zonas,
   mesas,
+  reservas,
   onClose,
   onCreated,
 }: {
@@ -22,6 +24,7 @@ export function ReservaModal({
   zonaIdInicial?: string | null;
   zonas: ZonaAdmin[];
   mesas: MesaEstadoAdmin[];
+  reservas: ReservaAdmin[];
   onClose: () => void;
   onCreated: () => void | Promise<void>;
 }) {
@@ -38,10 +41,24 @@ export function ReservaModal({
   const containerRef = useDialogA11y(onClose);
 
   const mesasFiltradas = zonaId ? mesas.filter((m) => m.zona_id === zonaId) : mesas;
+  const mesasOcupadas = useMemo(
+    () => mesasOcupadasEn(reservas, fecha, hora),
+    [reservas, fecha, hora],
+  );
+
+  useEffect(() => {
+    if (mesaId && mesasOcupadas.has(mesaId)) {
+      setMesaId("");
+    }
+  }, [mesasOcupadas, mesaId]);
 
   const handleGuardar = async () => {
     if (!nombreCliente.trim() || !fecha || !hora) {
       setError("Indica al menos el nombre, la fecha y la hora.");
+      return;
+    }
+    if (mesaId && mesasOcupadas.has(mesaId)) {
+      setError("Esa mesa ya está reservada cerca de esa hora. Elige otra mesa u otra hora.");
       return;
     }
     setGuardando(true);
@@ -182,11 +199,15 @@ export function ReservaModal({
                 className="mt-1 w-full rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2 text-sm text-noche-ink"
               >
                 <option value="">Sin asignar</option>
-                {mesasFiltradas.map((mesa) => (
-                  <option key={mesa.id} value={mesa.id}>
-                    Mesa {mesa.numero}
-                  </option>
-                ))}
+                {mesasFiltradas.map((mesa) => {
+                  const ocupada = mesasOcupadas.has(mesa.id);
+                  return (
+                    <option key={mesa.id} value={mesa.id} disabled={ocupada}>
+                      Mesa {mesa.numero}
+                      {ocupada ? " (reservada a esa hora)" : ""}
+                    </option>
+                  );
+                })}
               </select>
             </div>
           </div>
