@@ -688,13 +688,13 @@ function Architecture({ focusZona }: { focusZona: PrefijoZona | null }) {
       {/* Barra en L, botelleros, taburetes, TV y escalón. Se oculta al enfocar otra zona. */}
       <group visible={mostrarBarra}>
         {/* Barra en L: tramo pegado a la pared derecha, recortado hasta el escalón (ya no invade el pasillo del salón) */}
-        <group position={[9.55, 0.75, -3.7]} rotation={[0, Math.PI / 2, 0]}>
+        <group position={[9.55, 0.75, -2.9]} rotation={[0, Math.PI / 2, 0]}>
           <mesh castShadow>
-            <boxGeometry args={[3.6, 1.4, 1.05]} />
+            <boxGeometry args={[5.2, 1.4, 1.05]} />
             <meshStandardMaterial color="#49332d" roughness={0.8} />
           </mesh>
           <mesh position={[0, 0.78, 0]}>
-            <boxGeometry args={[3.76, 0.1, 1.18]} />
+            <boxGeometry args={[5.36, 0.1, 1.18]} />
             <meshStandardMaterial color="#d2b28c" roughness={0.55} />
           </mesh>
         </group>
@@ -710,12 +710,12 @@ function Architecture({ focusZona }: { focusZona: PrefijoZona | null }) {
           </mesh>
         </group>
         {/* Botellero detrás de la barra (pared derecha), retroiluminado en violeta como el real */}
-        <mesh position={[10.3, 1.5, -3.9]}>
-          <boxGeometry args={[0.25, 2.6, 4.1]} />
+        <mesh position={[10.3, 1.5, -3.1]}>
+          <boxGeometry args={[0.25, 2.6, 5.7]} />
           <meshStandardMaterial color="#171519" />
         </mesh>
-        <mesh position={[10.17, 1.5, -3.9]}>
-          <boxGeometry args={[0.02, 2.5, 3.9]} />
+        <mesh position={[10.17, 1.5, -3.1]}>
+          <boxGeometry args={[0.02, 2.5, 5.5]} />
           <meshStandardMaterial color="#7a3dff" emissive="#8b4cff" emissiveIntensity={2.2} toneMapped={false} />
         </mesh>
         {/* Botellero detrás de la barra (pared del fondo), retroiluminado en violeta */}
@@ -728,7 +728,7 @@ function Architecture({ focusZona }: { focusZona: PrefijoZona | null }) {
           <meshStandardMaterial color="#7a3dff" emissive="#8b4cff" emissiveIntensity={2.2} toneMapped={false} />
         </mesh>
         {/* Taburetes altos junto a la barra, como en el local real */}
-        {[-4.0, -2.3].map((z, i) => (
+        {[-4.0, -2.3, -0.6].map((z, i) => (
           <BarStool key={`v-${i}`} position={[8.0, 0, z]} />
         ))}
         {[5.2, 6.7].map((x, i) => (
@@ -736,7 +736,7 @@ function Architecture({ focusZona }: { focusZona: PrefijoZona | null }) {
         ))}
         {/* Pantalla de TV sobre la esquina de la barra */}
         <TvScreen position={[8.9, 2.55, -5.85]} rotation={[0, 0, 0]} />
-        <Text position={[8.7, 0.02, -3.7]} rotation={[-Math.PI / 2, 0, Math.PI / 2]} fontSize={0.3} color="#d5c5c1">
+        <Text position={[8.7, 0.02, -2.9]} rotation={[-Math.PI / 2, 0, Math.PI / 2]} fontSize={0.3} color="#d5c5c1">
           BARRA
         </Text>
         {/* Escalón pequeño de bajada de la barra al pasillo del salón, junto a la mesa B2 */}
