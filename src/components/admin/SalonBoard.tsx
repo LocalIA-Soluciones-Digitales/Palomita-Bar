@@ -848,7 +848,7 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
                 <button
                   type="button"
                   onClick={() => setModoDiseno(false)}
-                  title="Solo navegar: las mesas no se pueden mover ni crear por error"
+                  title="Solo navegar: las mesas no se pueden mover por error"
                   className={`flex items-center gap-1.5 px-3 py-2 ${!modoDiseno ? "bg-noche-primary/15 text-noche-primary" : "text-noche-ink-muted"}`}
                 >
                   <LockIcon className="h-3.5 w-3.5" />
@@ -857,23 +857,22 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
                 <button
                   type="button"
                   onClick={() => setModoDiseno(true)}
-                  title="Mover, crear y eliminar mesas en el plano"
+                  title="Activa el arrastre para mover mesas en el plano"
                   className={`flex items-center gap-1.5 px-3 py-2 ${modoDiseno ? "bg-noche-primary/15 text-noche-primary" : "text-noche-ink-muted"}`}
                 >
                   <PencilIcon className="h-3.5 w-3.5" />
                   Diseño
                 </button>
               </div>
-              {modoDiseno ? (
-                <button
-                  type="button"
-                  onClick={handleCrearMesaRapida}
-                  className="flex items-center gap-1.5 rounded-lg bg-noche-primary px-4 py-2 text-xs uppercase tracking-widest2 text-noche-ink hover:bg-noche-primary-dark"
-                >
-                  <PlusIcon className="h-3.5 w-3.5" />
-                  Añadir mesa
-                </button>
-              ) : null}
+              <button
+                type="button"
+                onClick={handleCrearMesaRapida}
+                title="Añade una mesa nueva al plano"
+                className="flex items-center gap-1.5 rounded-lg bg-noche-primary px-4 py-2 text-xs uppercase tracking-widest2 text-noche-ink hover:bg-noche-primary-dark"
+              >
+                <PlusIcon className="h-3.5 w-3.5" />
+                Añadir mesa
+              </button>
             </div>
           </div>
 
@@ -1054,21 +1053,17 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
                               Marcar como limpia
                             </button>
                           ) : null}
-                          {modoDiseno ? (
-                            <>
-                              <div className="my-1 border-t border-noche-border" />
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  handleEliminarMesa(mesaSeleccionada);
-                                  setMenuAbierto(false);
-                                }}
-                                className="block w-full rounded-lg px-2 py-1.5 text-left text-xs uppercase tracking-widest2 text-noche-danger hover:bg-noche-danger/10"
-                              >
-                                Eliminar mesa
-                              </button>
-                            </>
-                          ) : null}
+                          <div className="my-1 border-t border-noche-border" />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              handleEliminarMesa(mesaSeleccionada);
+                              setMenuAbierto(false);
+                            }}
+                            className="block w-full rounded-lg px-2 py-1.5 text-left text-xs uppercase tracking-widest2 text-noche-danger hover:bg-noche-danger/10"
+                          >
+                            Eliminar mesa
+                          </button>
                         </div>
                       ) : null}
                     </div>
