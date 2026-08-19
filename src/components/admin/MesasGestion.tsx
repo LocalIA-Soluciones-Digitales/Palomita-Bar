@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import QRCode from "qrcode";
 import {
   actualizarMesaActivaAdmin,
@@ -151,6 +151,26 @@ export function MesasGestion() {
     }
   };
 
+  const gruposPorZona = useMemo(() => {
+    if (!mesas) return [];
+    const mesasPorZonaId = new Map<string, MesaAdmin[]>();
+    for (const mesa of mesas) {
+      const clave = mesa.zona_id ?? "";
+      const lista = mesasPorZonaId.get(clave);
+      if (lista) lista.push(mesa);
+      else mesasPorZonaId.set(clave, [mesa]);
+    }
+    const grupos = [...zonas]
+      .sort((a, b) => a.orden - b.orden)
+      .flatMap((zona) => {
+        const mesasZona = mesasPorZonaId.get(zona.id);
+        return mesasZona?.length ? [{ id: zona.id, nombre: zona.nombre, mesas: mesasZona }] : [];
+      });
+    const sinZona = mesasPorZonaId.get("");
+    if (sinZona?.length) grupos.push({ id: "sin-zona", nombre: "Sin zona", mesas: sinZona });
+    return grupos;
+  }, [mesas, zonas]);
+
   return (
     <div className="max-w-4xl">
       <div className="flex flex-wrap items-end gap-3 rounded-lg border border-noche-border bg-noche-surface p-4">
@@ -232,91 +252,99 @@ export function MesasGestion() {
         </div>
       ) : null}
 
-      <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
-        {mesas?.map((mesa) => (
-          <div key={mesa.id} className="rounded-lg border border-noche-border bg-noche-surface p-4 text-center">
-            <p className="font-display text-xl text-noche-ink">Mesa {mesa.numero}</p>
+      {gruposPorZona.map((grupo) => (
+        <div key={grupo.id} className="mt-8 first:mt-6">
+          <h3 className="flex items-center gap-2 border-b border-noche-border pb-2 text-sm uppercase tracking-widest2 text-noche-ink">
+            {grupo.nombre}
+            <span className="text-xs text-noche-ink-faint">({grupo.mesas.length})</span>
+          </h3>
+          <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+            {grupo.mesas.map((mesa) => (
+              <div key={mesa.id} className="rounded-lg border border-noche-border bg-noche-surface p-4 text-center">
+                <p className="font-display text-xl text-noche-ink">Mesa {mesa.numero}</p>
 
-            {qrs[mesa.id] ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={qrs[mesa.id]}
-                alt={`QR de la mesa ${mesa.numero}`}
-                className="mx-auto mt-3 h-32 w-32 rounded-lg bg-white p-1"
-              />
-            ) : (
-              <div className="mx-auto mt-3 h-32 w-32 rounded-lg bg-noche-surface-2" />
-            )}
+                {qrs[mesa.id] ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={qrs[mesa.id]}
+                    alt={`QR de la mesa ${mesa.numero}`}
+                    className="mx-auto mt-3 h-32 w-32 rounded-lg bg-white p-1"
+                  />
+                ) : (
+                  <div className="mx-auto mt-3 h-32 w-32 rounded-lg bg-noche-surface-2" />
+                )}
 
-            <p className="mt-2 text-xs uppercase tracking-widest2 text-noche-ink-muted">
-              Escanea · Pide · Disfruta
-            </p>
+                <p className="mt-2 text-xs uppercase tracking-widest2 text-noche-ink-muted">
+                  Escanea · Pide · Disfruta
+                </p>
 
-            <input
-              value={nombreEditado[mesa.id] ?? ""}
-              onChange={(e) =>
-                setNombreEditado((prev) => ({ ...prev, [mesa.id]: e.target.value }))
-              }
-              onBlur={() => handleGuardarNombre(mesa)}
-              placeholder="Nombre (opcional)"
-              className="mt-3 w-full rounded-lg border border-noche-border bg-noche-surface-2 px-2 py-1.5 text-center text-sm text-noche-ink"
-            />
+                <input
+                  value={nombreEditado[mesa.id] ?? ""}
+                  onChange={(e) =>
+                    setNombreEditado((prev) => ({ ...prev, [mesa.id]: e.target.value }))
+                  }
+                  onBlur={() => handleGuardarNombre(mesa)}
+                  placeholder="Nombre (opcional)"
+                  className="mt-3 w-full rounded-lg border border-noche-border bg-noche-surface-2 px-2 py-1.5 text-center text-sm text-noche-ink"
+                />
 
-            <div className="mt-2 flex gap-1.5">
-              <select
-                value={mesa.zona_id ?? ""}
-                onChange={(e) => handleCambiarZona(mesa, e.target.value)}
-                className="w-2/3 rounded-lg border border-noche-border bg-noche-surface-2 px-2 py-1.5 text-center text-xs text-noche-ink"
-              >
-                <option value="">Sin zona</option>
-                {zonas.map((zona) => (
-                  <option key={zona.id} value={zona.id}>
-                    {zona.nombre}
-                  </option>
-                ))}
-              </select>
-              <input
-                type="number"
-                min={1}
-                defaultValue={mesa.capacidad}
-                onBlur={(e) => handleCambiarCapacidad(mesa, e.target.value)}
-                title="Aforo"
-                className="w-1/3 rounded-lg border border-noche-border bg-noche-surface-2 px-2 py-1.5 text-center text-xs text-noche-ink"
-              />
-            </div>
+                <div className="mt-2 flex gap-1.5">
+                  <select
+                    value={mesa.zona_id ?? ""}
+                    onChange={(e) => handleCambiarZona(mesa, e.target.value)}
+                    className="w-2/3 rounded-lg border border-noche-border bg-noche-surface-2 px-2 py-1.5 text-center text-xs text-noche-ink"
+                  >
+                    <option value="">Sin zona</option>
+                    {zonas.map((zona) => (
+                      <option key={zona.id} value={zona.id}>
+                        {zona.nombre}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    type="number"
+                    min={1}
+                    defaultValue={mesa.capacidad}
+                    onBlur={(e) => handleCambiarCapacidad(mesa, e.target.value)}
+                    title="Aforo"
+                    className="w-1/3 rounded-lg border border-noche-border bg-noche-surface-2 px-2 py-1.5 text-center text-xs text-noche-ink"
+                  />
+                </div>
 
-            <div className="mt-3 flex flex-col gap-1.5">
-              {qrs[mesa.id] ? (
-                <a
-                  href={qrs[mesa.id]}
-                  download={`mesa-${mesa.numero}-qr.png`}
-                  className="flex items-center justify-center gap-1 text-xs uppercase tracking-widest2 text-noche-ink-muted hover:text-noche-primary"
-                >
-                  <DownloadIcon className="h-3 w-3" />
-                  Descargar
-                </a>
-              ) : null}
-              <button
-                type="button"
-                onClick={() => handleToggleActiva(mesa)}
-                className={`text-xs uppercase tracking-widest2 ${
-                  mesa.activa ? "text-noche-positive" : "text-noche-ink-faint"
-                }`}
-              >
-                {mesa.activa ? "Activa" : "Inactiva (activar)"}
-              </button>
-              <button
-                type="button"
-                onClick={() => handleRegenerar(mesa)}
-                className="flex items-center justify-center gap-1 text-xs uppercase tracking-widest2 text-noche-ink-faint hover:text-noche-danger"
-              >
-                <RefreshIcon className="h-3 w-3" />
-                Regenerar QR
-              </button>
-            </div>
+                <div className="mt-3 flex flex-col gap-1.5">
+                  {qrs[mesa.id] ? (
+                    <a
+                      href={qrs[mesa.id]}
+                      download={`mesa-${mesa.numero}-qr.png`}
+                      className="flex items-center justify-center gap-1 text-xs uppercase tracking-widest2 text-noche-ink-muted hover:text-noche-primary"
+                    >
+                      <DownloadIcon className="h-3 w-3" />
+                      Descargar
+                    </a>
+                  ) : null}
+                  <button
+                    type="button"
+                    onClick={() => handleToggleActiva(mesa)}
+                    className={`text-xs uppercase tracking-widest2 ${
+                      mesa.activa ? "text-noche-positive" : "text-noche-ink-faint"
+                    }`}
+                  >
+                    {mesa.activa ? "Activa" : "Inactiva (activar)"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleRegenerar(mesa)}
+                    className="flex items-center justify-center gap-1 text-xs uppercase tracking-widest2 text-noche-ink-faint hover:text-noche-danger"
+                  >
+                    <RefreshIcon className="h-3 w-3" />
+                    Regenerar QR
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </div>
+      ))}
     </div>
   );
 }
