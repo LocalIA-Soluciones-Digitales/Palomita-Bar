@@ -45,6 +45,7 @@ export function CategoryMenu({
   const [busqueda, setBusqueda] = useState("");
   const [alergenosExcluidos, setAlergenosExcluidos] = useState<Set<string>>(new Set());
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const stickyRef = useRef<HTMLDivElement | null>(null);
 
   const alergenosDisponibles = useMemo(() => {
     const set = new Set<string>();
@@ -116,7 +117,9 @@ export function CategoryMenu({
   const scrollToCategory = (id: string) => {
     const node = sectionRefs.current[id];
     if (!node) return;
-    const y = node.getBoundingClientRect().top + window.scrollY - 140;
+    const stickyBarHeight = stickyRef.current?.getBoundingClientRect().height ?? 76;
+    const headerHeight = 64 + stickyBarHeight;
+    const y = node.getBoundingClientRect().top + window.scrollY - headerHeight - 24;
     window.scrollTo({ top: y, behavior: "smooth" });
   };
 
@@ -129,7 +132,10 @@ export function CategoryMenu({
 
   return (
     <div>
-      <div className="sticky top-16 z-20 -mx-6 border-b border-noche-border bg-noche-bg/95 px-6 py-3 backdrop-blur-md">
+      <div
+        ref={stickyRef}
+        className="sticky top-16 z-20 -mx-6 border-b border-noche-border bg-noche-bg/95 px-6 py-3 backdrop-blur-md"
+      >
         <div className="relative">
           <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-noche-ink-faint" />
           <input
