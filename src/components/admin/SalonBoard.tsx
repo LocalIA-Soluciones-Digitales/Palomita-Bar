@@ -37,6 +37,7 @@ import {
   unirMesasAdmin,
 } from "@/lib/restaurant/admin-queries";
 import { prefijoZona } from "@/lib/restaurant/mesa-label";
+import { esBloqueo } from "@/lib/restaurant/reserva-bloqueo";
 import { renderTicketComandaHTML, renderTicketCuentaHTML, imprimirTicketHTML } from "@/lib/print/ticket";
 import { PedidoRapidoForm } from "@/components/admin/PedidoRapidoForm";
 import { ReservaModal } from "@/components/admin/ReservaModal";
@@ -66,6 +67,7 @@ import type { EstadoPedido } from "@/lib/restaurant/types";
 export type EstadoMesa =
   | "LIBRE"
   | "RESERVADA"
+  | "BLOQUEADA"
   | "OCUPADA"
   | "ESPERANDO_PEDIDO"
   | "EN_PREPARACION"
@@ -85,6 +87,11 @@ const ESTILO_MESA: Record<EstadoMesa, { ring: string; badge: string; label: stri
     ring: "ring-blue-500",
     badge: "bg-blue-500 text-white",
     label: "Reservada",
+  },
+  BLOQUEADA: {
+    ring: "ring-zinc-500",
+    badge: "bg-zinc-500 text-white",
+    label: "Bloqueada",
   },
   OCUPADA: {
     ring: "ring-orange-500",
@@ -134,7 +141,7 @@ const ESTADO_LABEL: Record<EstadoPedido, string> = {
   CANCELLED: "Cancelado",
 };
 
-function estadoMesa(mesa: MesaEstadoAdmin, reservada: boolean, enVivo: boolean): EstadoMesa {
+function estadoMesa(mesa: MesaEstadoAdmin, reserva: ReservaAdmin | undefined, enVivo: boolean): EstadoMesa {
   if (enVivo) {
     const activos = mesa.pedidos_hoy.filter((p) => ACTIVOS.includes(p.estado));
     if (activos.some((p) => p.estado === "RECEIVED")) return "ESPERANDO_PEDIDO";
@@ -146,7 +153,7 @@ function estadoMesa(mesa: MesaEstadoAdmin, reservada: boolean, enVivo: boolean):
     if (mesa.ocupada) return "OCUPADA";
     if (mesa.por_limpiar) return "POR_LIMPIAR";
   }
-  if (reservada) return "RESERVADA";
+  if (reserva) return esBloqueo(reserva) ? "BLOQUEADA" : "RESERVADA";
   return "LIBRE";
 }
 
@@ -476,7 +483,7 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
   const mesasEscena = useMemo<Mesa3D[]>(
     () =>
       mesasVisibles.reduce<Mesa3D[]>((acc, mesa, index) => {
-        const estado = estadoMesa(mesa, !!reservaDeMesa(mesa.id), esHoy);
+        const estado = estadoMesa(mesa, reservaDeMesa(mesa.id), esHoy);
         if (estadosOcultos.has(estado)) return acc;
         const pos = posicionMesa(mesa, index);
         acc.push({
@@ -500,17 +507,19 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
     let libres = 0;
     let ocupadas = 0;
     let reservadas = 0;
+    let bloqueadas = 0;
     let clientes = 0;
     mesasVisibles.forEach((m) => {
-      const estado = estadoMesa(m, !!reservaDeMesa(m.id), esHoy);
+      const estado = estadoMesa(m, reservaDeMesa(m.id), esHoy);
       if (estado === "LIBRE") libres += 1;
       else if (estado === "RESERVADA") reservadas += 1;
+      else if (estado === "BLOQUEADA") bloqueadas += 1;
       else ocupadas += 1;
       clientes += m.clientes_sentados;
     });
     const total = mesasVisibles.length;
     const ocupacionPct = total > 0 ? Math.round((ocupadas / total) * 100) : 0;
-    return { total, libres, ocupadas, reservadas, clientes, ocupacionPct };
+    return { total, libres, ocupadas, reservadas, bloqueadas, clientes, ocupacionPct };
   }, [mesasVisibles, reservaDeMesa, esHoy]);
 
   const avanzar = async (pedidoId: string, nuevoEstado: EstadoPedido) => {
@@ -854,11 +863,12 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
             />
           </div>
 
-          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-7">
             <StatTile label="Total mesas" value={stats.total} />
             <StatTile label="Libres" value={stats.libres} valueClassName="text-noche-positive" />
             <StatTile label="Ocupadas" value={stats.ocupadas} />
             <StatTile label="Reservadas" value={stats.reservadas} valueClassName="text-blue-400" />
+            <StatTile label="Bloqueadas" value={stats.bloqueadas} valueClassName="text-zinc-400" />
             <StatTile label="Clientes" value={stats.clientes} />
             <OcupacionTile pct={stats.ocupacionPct} />
           </div>
@@ -912,13 +922,13 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
                     <div className="mt-1 flex flex-wrap items-center gap-1.5">
                       <span
                         className={`inline-block rounded-full px-2 py-0.5 text-[10px] uppercase tracking-widest2 ${
-                          ESTILO_MESA[estadoMesa(mesaSeleccionada, !!reservaDeMesa(mesaSeleccionada.id), esHoy)]
+                          ESTILO_MESA[estadoMesa(mesaSeleccionada, reservaDeMesa(mesaSeleccionada.id), esHoy)]
                             .badge
                         }`}
                       >
                         {
                           ESTILO_MESA[
-                            estadoMesa(mesaSeleccionada, !!reservaDeMesa(mesaSeleccionada.id), esHoy)
+                            estadoMesa(mesaSeleccionada, reservaDeMesa(mesaSeleccionada.id), esHoy)
                           ].label
                         }
                       </span>

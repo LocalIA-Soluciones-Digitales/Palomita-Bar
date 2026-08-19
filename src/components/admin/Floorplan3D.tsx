@@ -35,6 +35,7 @@ type Props = {
 const COLOR_MESA: Record<EstadoMesa, string> = {
   LIBRE: "#10b981",
   RESERVADA: "#3b82f6",
+  BLOQUEADA: "#71717a",
   OCUPADA: "#f97316",
   ESPERANDO_PEDIDO: "#8b5cf6",
   EN_PREPARACION: "#06b6d4",
@@ -52,6 +53,7 @@ const PRIORIDAD_ESTADO: EstadoMesa[] = [
   "PAGANDO",
   "OCUPADA",
   "RESERVADA",
+  "BLOQUEADA",
   "POR_LIMPIAR",
   "LIBRE",
 ];

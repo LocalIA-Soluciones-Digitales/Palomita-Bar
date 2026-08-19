@@ -8,6 +8,7 @@ import type { AdminRole } from "@/lib/auth/role";
 import {
   AlertIcon,
   BoxIcon,
+  CalendarIcon,
   ChartBarIcon,
   ChevronDownIcon,
   EyeIcon,
@@ -23,8 +24,9 @@ import {
 } from "@/components/icons";
 
 const GESTION_LINKS = [
-  { href: "/admin/cocina", label: "Cocina", icon: FireIcon },
-  { href: "/admin/mesas", label: "Mesas", icon: TableIcon },
+  { href: "/admin/cocina", label: "Comandas", icon: FireIcon },
+  { href: "/admin/mesas", label: "Salón", icon: TableIcon },
+  { href: "/admin/reservas", label: "Reservas", icon: CalendarIcon },
   { href: "/admin/barra", label: "Venta Rápida", icon: GlassIcon },
   { href: "/admin/productos", label: "Productos", icon: BoxIcon },
   { href: "/admin/categorias", label: "Categorías", icon: TagIcon },

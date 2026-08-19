@@ -6,7 +6,7 @@ import type { MesaEstadoAdmin } from "@/lib/restaurant/admin-types";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Mesas",
+  title: "Salón",
   robots: { index: false },
 };
 
@@ -20,7 +20,7 @@ export default async function MesasAdminPage() {
 
   return (
     <div>
-      <h1 className="font-display text-2xl text-noche-ink">Mesas</h1>
+      <h1 className="font-display text-2xl text-noche-ink">Salón</h1>
       <MesasTabs mesasIniciales={mesasIniciales} />
     </div>
   );

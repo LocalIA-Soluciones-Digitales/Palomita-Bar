@@ -6,7 +6,7 @@ import type { PedidoCocina } from "@/lib/restaurant/cocina-types";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Cocina",
+  title: "Comandas",
   robots: { index: false },
 };
 
@@ -18,7 +18,7 @@ export default async function CocinaPage() {
 
   return (
     <div>
-      <h1 className="font-display text-2xl text-noche-ink">Cocina</h1>
+      <h1 className="font-display text-2xl text-noche-ink">Comandas</h1>
       <CocinaTabs pedidosIniciales={pedidosIniciales} />
     </div>
   );
