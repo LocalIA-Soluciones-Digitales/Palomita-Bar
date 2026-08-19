@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { NAV_LINKS, SITE } from "@/lib/constants";
 import { InstagramIcon, MapPinIcon } from "@/components/icons";
@@ -13,7 +14,16 @@ export function Footer() {
       <div className="mx-auto max-w-7xl px-6 py-16">
         <div className="grid gap-12 md:grid-cols-3">
           <div>
-            <p className="font-display text-2xl">Palomita Bar</p>
+            <div className="flex items-center gap-2.5">
+              <Image
+                src="/images/logo-palomita.png"
+                alt=""
+                width={94}
+                height={80}
+                className="h-9 w-auto"
+              />
+              <p className="font-display text-2xl">Palomita Bar</p>
+            </div>
             <p className="mt-3 text-sm text-noche-ink-muted">{SITE.tagline}</p>
             <a
               href={SITE.instagram.url}

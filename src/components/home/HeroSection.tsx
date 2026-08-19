@@ -46,11 +46,22 @@ export function HeroSection({ image }: { image: string | null }) {
       />
 
       <div className="relative mx-auto flex w-full max-w-2xl flex-col items-center text-center">
-        <h1
-          className={`font-display text-5xl leading-[0.95] text-noche-ink transition-all duration-1000 sm:text-7xl ${
+        <Image
+          src="/images/logo-palomita.png"
+          alt="Palomita Bar"
+          width={594}
+          height={507}
+          priority
+          className={`h-28 w-auto drop-shadow-[0_0_36px_rgba(210,67,173,0.55)] transition-all duration-1000 sm:h-36 ${
             loaded ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
           }`}
           style={{ transitionDelay: "0ms" }}
+        />
+        <h1
+          className={`mt-4 font-display text-5xl leading-[0.95] text-noche-ink transition-all duration-1000 sm:text-7xl ${
+            loaded ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
+          }`}
+          style={{ transitionDelay: "120ms" }}
         >
           Palomita Bar
         </h1>
@@ -58,7 +69,7 @@ export function HeroSection({ image }: { image: string | null }) {
           className={`mt-5 flex items-center gap-3 text-xs uppercase tracking-widest2 text-noche-primary transition-all duration-1000 ${
             loaded ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
           }`}
-          style={{ transitionDelay: "150ms" }}
+          style={{ transitionDelay: "250ms" }}
         >
           <span className="h-px w-8 bg-noche-primary/50" />
           Coctelería &amp; Picoteo

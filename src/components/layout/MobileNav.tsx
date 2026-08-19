@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
@@ -65,6 +66,13 @@ export function MobileNav({ open, onOpenChange }: MobileNavProps) {
       {mounted && open
         ? createPortal(
             <div className="fixed inset-0 top-16 z-30 flex flex-col items-center overflow-y-auto bg-noche-bg/90 px-6 py-10 text-center backdrop-blur-2xl md:hidden">
+              <Image
+                src="/images/logo-palomita.png"
+                alt="Palomita Bar"
+                width={94}
+                height={80}
+                className="mb-8 h-14 w-auto drop-shadow-[0_0_28px_rgba(210,67,173,0.5)]"
+              />
               <nav className="flex flex-col items-center gap-7">
                 {NAV_LINKS.map((link, index) => (
                   <Link

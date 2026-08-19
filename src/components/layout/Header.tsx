@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -29,12 +30,22 @@ export function Header() {
       }`}
     >
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 md:h-20">
-        <Link href="/" className="leading-tight">
-          <span className="block font-display text-xl tracking-wide text-noche-ink">
-            Palomita Bar
-          </span>
-          <span className="block text-[10px] uppercase tracking-widest2 text-noche-ink-muted">
-            Coctelería &amp; Picoteo
+        <Link href="/" className="flex items-center gap-2.5 leading-tight">
+          <Image
+            src="/images/logo-palomita.png"
+            alt=""
+            width={94}
+            height={80}
+            priority
+            className="h-9 w-auto md:h-10"
+          />
+          <span>
+            <span className="block font-display text-xl tracking-wide text-noche-ink">
+              Palomita Bar
+            </span>
+            <span className="block text-[10px] uppercase tracking-widest2 text-noche-ink-muted">
+              Coctelería &amp; Picoteo
+            </span>
           </span>
         </Link>
 
