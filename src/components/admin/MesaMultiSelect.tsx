@@ -37,6 +37,7 @@ export function MesaMultiSelect({
   ocupadas,
   numPersonas,
   disabled,
+  fullWidth,
 }: {
   mesas: MesaOpcion[];
   zonas: ZonaAdmin[];
@@ -45,6 +46,7 @@ export function MesaMultiSelect({
   ocupadas: Set<string>;
   numPersonas: number;
   disabled?: boolean;
+  fullWidth?: boolean;
 }) {
   const [abierto, setAbierto] = useState(false);
   const contenedorRef = useRef<HTMLDivElement>(null);
@@ -97,6 +99,8 @@ export function MesaMultiSelect({
         disabled={disabled}
         onClick={() => setAbierto((v) => !v)}
         className={`flex min-w-[9rem] items-center justify-between gap-2 rounded-lg border px-2 py-1.5 text-xs disabled:opacity-50 ${
+          fullWidth ? "w-full" : ""
+        } ${
           capacidadSuficiente
             ? "border-noche-border bg-noche-surface-2 text-noche-ink"
             : "border-amber-500/40 bg-amber-500/10 text-amber-300"

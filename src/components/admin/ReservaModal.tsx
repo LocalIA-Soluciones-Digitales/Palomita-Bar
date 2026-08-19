@@ -200,6 +200,7 @@ export function ReservaModal({
                   ocupadas={mesasOcupadas}
                   numPersonas={Number(numPersonas) || 0}
                   onChange={setMesaIds}
+                  fullWidth
                 />
               </div>
             </div>
