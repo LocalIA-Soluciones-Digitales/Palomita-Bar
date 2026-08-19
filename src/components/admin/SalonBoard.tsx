@@ -334,6 +334,7 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
   // Modo fijo por defecto: permite navegar el plano (orbitar/zoom) sin
   // arrastrar mesas por error; el modo diseño habilita mover/crear/eliminar.
   const [modoDiseno, setModoDiseno] = useState(false);
+  const [selectorZonaAbierto, setSelectorZonaAbierto] = useState(false);
   const [notaForm, setNotaForm] = useState("");
   const [notaGuardando, setNotaGuardando] = useState(false);
   const [qrAbierto, setQrAbierto] = useState(false);
@@ -648,18 +649,30 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
     }
   };
 
-  const handleCrearMesaRapida = async () => {
+  const handleCrearMesaEnZona = async (zonaId: string | null) => {
+    const prefijo = prefijoZona(zonaId, zonas);
     const siguienteNumero =
       mesas.reduce((max, m) => {
-        const valor = /^\d+$/.test(m.numero) ? parseInt(m.numero, 10) : 0;
+        if (m.zona_id !== zonaId) return max;
+        const sufijo = prefijo ? m.numero.slice(prefijo.length) : m.numero;
+        const valor = /^\d+$/.test(sufijo) ? parseInt(sufijo, 10) : 0;
         return Math.max(max, valor);
       }, 0) + 1;
     try {
-      const nueva = await crearMesaAdmin(String(siguienteNumero), undefined, zonaActivaId, 4);
+      const nueva = await crearMesaAdmin(`${prefijo}${siguienteNumero}`, undefined, zonaId, 4);
+      setSelectorZonaAbierto(false);
       await refetch();
       setMesaSeleccionadaId(nueva.id);
     } catch {
       setAccionError("No se ha podido crear la mesa.");
+    }
+  };
+
+  const handleCrearMesaRapida = () => {
+    if (zonaActivaId) {
+      handleCrearMesaEnZona(zonaActivaId);
+    } else {
+      setSelectorZonaAbierto((v) => !v);
     }
   };
 
@@ -870,15 +883,45 @@ export function SalonBoard({ mesasIniciales }: { mesasIniciales: MesaEstadoAdmin
                   Diseño
                 </button>
               </div>
-              <button
-                type="button"
-                onClick={handleCrearMesaRapida}
-                title="Añade una mesa nueva al plano"
-                className="flex items-center gap-1.5 rounded-lg bg-noche-primary px-4 py-2 text-xs uppercase tracking-widest2 text-noche-ink hover:bg-noche-primary-dark"
-              >
-                <PlusIcon className="h-3.5 w-3.5" />
-                Añadir mesa
-              </button>
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={handleCrearMesaRapida}
+                  title={
+                    zonaActivaId
+                      ? "Añade una mesa nueva a la zona seleccionada"
+                      : "Elige la zona para la mesa nueva"
+                  }
+                  className="flex items-center gap-1.5 rounded-lg bg-noche-primary px-4 py-2 text-xs uppercase tracking-widest2 text-noche-ink hover:bg-noche-primary-dark"
+                >
+                  <PlusIcon className="h-3.5 w-3.5" />
+                  Añadir mesa
+                </button>
+                {selectorZonaAbierto ? (
+                  <div className="absolute right-0 z-10 mt-1 w-56 rounded-lg border border-noche-border bg-noche-surface p-2 shadow-lg">
+                    <p className="px-2 py-1 text-[11px] uppercase tracking-widest2 text-noche-ink-faint">
+                      ¿En qué zona?
+                    </p>
+                    {zonas.map((zona) => (
+                      <button
+                        key={zona.id}
+                        type="button"
+                        onClick={() => handleCrearMesaEnZona(zona.id)}
+                        className="block w-full rounded-lg px-2 py-1.5 text-left text-xs uppercase tracking-widest2 text-noche-ink hover:bg-noche-surface-2"
+                      >
+                        {zona.nombre}
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => handleCrearMesaEnZona(null)}
+                      className="block w-full rounded-lg px-2 py-1.5 text-left text-xs uppercase tracking-widest2 text-noche-ink-muted hover:bg-noche-surface-2"
+                    >
+                      Sin zona
+                    </button>
+                  </div>
+                ) : null}
+              </div>
             </div>
           </div>
 
