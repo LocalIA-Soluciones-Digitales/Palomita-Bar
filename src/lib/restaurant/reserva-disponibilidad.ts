@@ -3,7 +3,7 @@ import type { ReservaAdmin } from "@/lib/restaurant/admin-types";
 // Al reservar una mesa se bloquea durante este margen (antes y después) para
 // dar tiempo a la cena, evitando que se pueda asignar la misma mesa a otra
 // reserva demasiado cercana en el tiempo.
-const VENTANA_BLOQUEO_MINUTOS = 60;
+export const VENTANA_BLOQUEO_MINUTOS = 60;
 
 function horaAMinutos(hora: string): number {
   const [h, m] = hora.split(":").map(Number);

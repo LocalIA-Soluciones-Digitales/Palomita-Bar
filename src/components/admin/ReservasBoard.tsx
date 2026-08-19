@@ -11,10 +11,12 @@ import {
 } from "@/lib/restaurant/admin-queries";
 import { esBloqueo, motivoBloqueo, NOMBRE_BLOQUEO } from "@/lib/restaurant/reserva-bloqueo";
 import { mesasOcupadasEn } from "@/lib/restaurant/reserva-disponibilidad";
+import { ESTILO_BLOQUEO, ESTILO_ESTADO } from "@/lib/restaurant/reserva-estilos";
 import { errorMessage } from "@/lib/format";
 import { ReservaModal } from "@/components/admin/ReservaModal";
 import { BloqueoMesaModal } from "@/components/admin/BloqueoMesaModal";
 import { MesaMultiSelect } from "@/components/admin/MesaMultiSelect";
+import { ReservasTimeline } from "@/components/admin/ReservasTimeline";
 import {
   CalendarIcon,
   CheckIcon,
@@ -27,6 +29,7 @@ import {
   PlusIcon,
   RefreshIcon,
   SearchIcon,
+  TableIcon,
   UsersIcon,
 } from "@/components/icons";
 import type { EstadoReserva, MesaEstadoAdmin, ReservaAdmin, ZonaAdmin } from "@/lib/restaurant/admin-types";
@@ -66,19 +69,6 @@ const ESTADO_FILTROS: { id: "TODAS" | EstadoReserva; label: string }[] = [
   { id: "NO_SHOW", label: "No presentados" },
 ];
 
-const ESTILO_ESTADO: Record<EstadoReserva, { badge: string; dot: string; label: string }> = {
-  CONFIRMADA: { badge: "bg-blue-500/15 text-blue-300", dot: "bg-blue-500", label: "Confirmada" },
-  SENTADA: { badge: "bg-orange-500/15 text-orange-300", dot: "bg-orange-500", label: "Sentada" },
-  CANCELADA: {
-    badge: "bg-noche-ink-faint/15 text-noche-ink-faint",
-    dot: "bg-noche-ink-faint",
-    label: "Cancelada",
-  },
-  NO_SHOW: { badge: "bg-noche-danger/15 text-noche-danger", dot: "bg-noche-danger", label: "No presentado" },
-};
-
-const ESTILO_BLOQUEO = { badge: "bg-zinc-500/20 text-zinc-300", dot: "bg-zinc-500", label: "Bloqueada" };
-
 function StatTile({ label, value, valueClassName }: { label: string; value: number; valueClassName?: string }) {
   return (
     <div className="rounded-lg border border-noche-border bg-noche-surface px-4 py-3 text-center">
@@ -103,6 +93,7 @@ export function ReservasBoard() {
   const [mostrarReserva, setMostrarReserva] = useState(false);
   const [mostrarBloqueo, setMostrarBloqueo] = useState(false);
   const [actualizandoId, setActualizandoId] = useState<string | null>(null);
+  const [vista, setVista] = useState<"lista" | "mesas">("lista");
 
   const esHoy = fecha === todayISO();
 
@@ -215,6 +206,14 @@ export function ReservasBoard() {
     }
   };
 
+  const irAListaConReserva = (reserva: ReservaAdmin) => {
+    setVista("lista");
+    if (!esBloqueo(reserva)) {
+      setEstadoFiltro("TODAS");
+      setBusqueda(reserva.nombre_cliente);
+    }
+  };
+
   return (
     <div className="mt-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -294,31 +293,56 @@ export function ReservasBoard() {
       </div>
 
       <div className="mt-5 flex flex-wrap items-center gap-3">
-        <div className="flex flex-1 min-w-[200px] items-center gap-2 rounded-lg border border-noche-border bg-noche-surface px-3 py-2">
-          <SearchIcon className="h-4 w-4 shrink-0 text-noche-ink-faint" />
-          <input
-            value={busqueda}
-            onChange={(e) => setBusqueda(e.target.value)}
-            placeholder="Buscar por nombre o teléfono…"
-            className="w-full bg-transparent text-sm text-noche-ink placeholder:text-noche-ink-faint outline-none"
-          />
+        <div className="flex flex-wrap gap-1.5 rounded-lg border border-noche-border p-1">
+          <button
+            type="button"
+            onClick={() => setVista("lista")}
+            className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[11px] uppercase tracking-widest2 transition-colors ${
+              vista === "lista" ? "bg-noche-primary/15 text-noche-primary" : "text-noche-ink-muted"
+            }`}
+          >
+            Lista
+          </button>
+          <button
+            type="button"
+            onClick={() => setVista("mesas")}
+            className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[11px] uppercase tracking-widest2 transition-colors ${
+              vista === "mesas" ? "bg-noche-primary/15 text-noche-primary" : "text-noche-ink-muted"
+            }`}
+          >
+            <TableIcon className="h-3.5 w-3.5" />
+            Mesas
+          </button>
         </div>
-        <div className="flex flex-wrap gap-1.5">
-          {ESTADO_FILTROS.map((f) => (
-            <button
-              key={f.id}
-              type="button"
-              onClick={() => setEstadoFiltro(f.id)}
-              className={`rounded-lg px-3 py-1.5 text-[11px] uppercase tracking-widest2 transition-colors ${
-                estadoFiltro === f.id
-                  ? "bg-noche-primary/15 text-noche-primary"
-                  : "border border-noche-border text-noche-ink-muted"
-              }`}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
+        {vista === "lista" ? (
+          <div className="flex flex-1 min-w-[200px] items-center gap-2 rounded-lg border border-noche-border bg-noche-surface px-3 py-2">
+            <SearchIcon className="h-4 w-4 shrink-0 text-noche-ink-faint" />
+            <input
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+              placeholder="Buscar por nombre o teléfono…"
+              className="w-full bg-transparent text-sm text-noche-ink placeholder:text-noche-ink-faint outline-none"
+            />
+          </div>
+        ) : null}
+        {vista === "lista" ? (
+          <div className="flex flex-wrap gap-1.5">
+            {ESTADO_FILTROS.map((f) => (
+              <button
+                key={f.id}
+                type="button"
+                onClick={() => setEstadoFiltro(f.id)}
+                className={`rounded-lg px-3 py-1.5 text-[11px] uppercase tracking-widest2 transition-colors ${
+                  estadoFiltro === f.id
+                    ? "bg-noche-primary/15 text-noche-primary"
+                    : "border border-noche-border text-noche-ink-muted"
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+        ) : null}
         <div className="flex flex-wrap gap-1.5">
           <button
             type="button"
@@ -379,6 +403,22 @@ export function ReservasBoard() {
         </p>
       ) : null}
 
+      {vista === "mesas" ? (
+        cargando ? (
+          <p className="py-8 text-center text-sm text-noche-ink-muted">Cargando reservas…</p>
+        ) : (
+          <ReservasTimeline
+            fecha={fecha}
+            esHoy={esHoy}
+            mesas={mesas}
+            zonas={zonas}
+            reservas={reservas}
+            zonaFiltroId={zonaFiltroId}
+            incluirBloqueos={incluirBloqueos}
+            onSelectReserva={irAListaConReserva}
+          />
+        )
+      ) : (
       <div className="mt-4 space-y-2">
         {cargando ? (
           <p className="py-8 text-center text-sm text-noche-ink-muted">Cargando reservas…</p>
@@ -533,6 +573,7 @@ export function ReservasBoard() {
           })
         )}
       </div>
+      )}
 
       {mostrarReserva ? (
         <ReservaModal
