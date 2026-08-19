@@ -83,32 +83,92 @@ type CameraConfig = {
   maxDistance: number;
 };
 
-// Misma dirección de encuadre que la vista general (11, 10, 12.65) normalizada, reutilizada para cada zona.
-const DIR_3D = { x: 0.564, y: 0.513, z: 0.649 };
+type Bounds3D = { xMin: number; xMax: number; yMin: number; yMax: number; zMin: number; zMax: number };
+
+// Límites visuales de cada zona (mesas + mobiliario fijo: barra, botelleros, sofás, estantería, columnas, toldo…),
+// usados solo para encuadrar la cámara al cambiar de zona. A diferencia de REGIONES (que solo acota dónde se
+// pueden colocar las mesas), aquí se incluye todo lo que debe quedar visible dentro del encuadre.
+const CAMERA_BOUNDS: Record<PrefijoZona, Bounds3D> = {
+  "": { xMin: -10.4, xMax: 2.4, yMin: -0.2, yMax: 3, zMin: -5.9, zMax: 5.7 },
+  S: { xMin: -10.4, xMax: 2.4, yMin: -0.2, yMax: 3, zMin: -5.9, zMax: 5.7 },
+  B: { xMin: 3.8, xMax: 10.5, yMin: -0.2, yMax: 3.95, zMin: -6.2, zMax: 0.5 },
+  L: { xMin: 2.7, xMax: 9.9, yMin: -0.2, yMax: 1.9, zMin: 0.8, zMax: 5.9 },
+  T: { xMin: -10.4, xMax: 10.4, yMin: -0.2, yMax: 3.9, zMin: 5.9, zMax: 10.4 },
+};
+
+// Límites visuales del local completo (todas las zonas), para la vista general "Todas".
+const CAMERA_BOUNDS_TODAS: Bounds3D = { xMin: -10.4, xMax: 10.5, yMin: -0.2, yMax: 3.95, zMin: -6.2, zMax: 10.4 };
+
+// Misma dirección de encuadre en 3D que la vista general original, reutilizada para cada zona.
+const DIR_3D = new THREE.Vector3(0.564, 0.513, 0.649).normalize();
+const DIR_TOP = new THREE.Vector3(0, 1, 0);
+
+const CAMERA_FOV = 45;
+const HALF_FOV_TAN = Math.tan(THREE.MathUtils.degToRad(CAMERA_FOV / 2));
+// Relación ancho/alto mínima asumida del lienzo (el panel mide 600px de alto y ocupa el ancho disponible):
+// usarla al calcular el encaje horizontal garantiza que quepa la zona incluso en ventanas más estrechas.
+const MIN_ASPECT_ASUMIDO = 1.55;
+
+function proyeccionSemiancho(half: THREE.Vector3, eje: THREE.Vector3): number {
+  return Math.abs(half.x * eje.x) + Math.abs(half.y * eje.y) + Math.abs(half.z * eje.z);
+}
+
+// Calcula la distancia mínima de cámara (con margen) para que la caja `bounds` quepa entera dentro
+// del campo de visión, mirando desde la dirección `dir`. Usa la función de soporte de la caja proyectada
+// sobre los ejes de pantalla (derecha/arriba), válida para cualquier dirección de cámara.
+function distanciaParaEncajar(bounds: Bounds3D, dir: THREE.Vector3, margen: number): number {
+  const half = new THREE.Vector3(
+    (bounds.xMax - bounds.xMin) / 2,
+    (bounds.yMax - bounds.yMin) / 2,
+    (bounds.zMax - bounds.zMin) / 2,
+  );
+  const forward = dir.clone().negate();
+  const worldUp = new THREE.Vector3(0, 1, 0);
+  let right: THREE.Vector3;
+  let up: THREE.Vector3;
+  if (Math.abs(forward.dot(worldUp)) > 0.999) {
+    // Vista cenital (Planta): eje X del mundo -> horizontal de pantalla, eje Z -> vertical.
+    right = new THREE.Vector3(1, 0, 0);
+    up = new THREE.Vector3(0, 0, 1);
+  } else {
+    right = new THREE.Vector3().crossVectors(forward, worldUp).normalize();
+    up = new THREE.Vector3().crossVectors(right, forward).normalize();
+  }
+
+  const semialtoVertical = proyeccionSemiancho(half, up);
+  const semianchoHorizontal = proyeccionSemiancho(half, right);
+
+  const distanciaVertical = (semialtoVertical / HALF_FOV_TAN) * margen;
+  const distanciaHorizontal = (semianchoHorizontal / (MIN_ASPECT_ASUMIDO * HALF_FOV_TAN)) * margen;
+  return Math.max(distanciaVertical, distanciaHorizontal);
+}
 
 function cameraConfigFor(zona: PrefijoZona | null, top: boolean): CameraConfig {
-  if (zona === null) {
-    return top
-      ? { position: [0, 20, 2], target: [0, 0, 1.5], minDistance: 6, maxDistance: 28 }
-      : { position: [11, 10, 15], target: [0, 0, 1.5], minDistance: 6, maxDistance: 28 };
-  }
-  const region = REGIONES[zona];
-  const centerX = (region.xMin + region.xMax) / 2;
-  const centerZ = (region.zMin + region.zMax) / 2;
-  const maxDim = Math.max(region.xMax - region.xMin, region.zMax - region.zMin);
-  const target: [number, number, number] = [centerX, 0, centerZ];
+  const bounds = zona === null ? CAMERA_BOUNDS_TODAS : CAMERA_BOUNDS[zona];
+  const centerX = (bounds.xMin + bounds.xMax) / 2;
+  const centerZ = (bounds.zMin + bounds.zMax) / 2;
+
   if (top) {
-    const height = Math.max(maxDim * 0.98, 7);
+    // Vista en planta: mira siempre al nivel del suelo, la altura del mobiliario no importa aquí.
+    const target: [number, number, number] = [centerX, 0, centerZ];
+    const distance = Math.max(distanciaParaEncajar(bounds, DIR_TOP, 1.15), 7);
     return {
-      position: [centerX, height, centerZ],
+      position: [centerX, distance, centerZ],
       target,
-      minDistance: Math.max(height * 0.4, 4),
-      maxDistance: Math.max(height * 1.8, 10),
+      minDistance: Math.max(distance * 0.4, 4),
+      maxDistance: Math.max(distance * 1.8, 10),
     };
   }
-  const distance = Math.max(maxDim * 0.956, 7);
+
+  const centerY = (bounds.yMin + bounds.yMax) / 2;
+  const target: [number, number, number] = [centerX, centerY, centerZ];
+  const distance = Math.max(distanciaParaEncajar(bounds, DIR_3D, 1.22), 8);
   return {
-    position: [centerX + DIR_3D.x * distance, DIR_3D.y * distance, centerZ + DIR_3D.z * distance],
+    position: [
+      centerX + DIR_3D.x * distance,
+      centerY + DIR_3D.y * distance,
+      centerZ + DIR_3D.z * distance,
+    ],
     target,
     minDistance: Math.max(distance * 0.5, 6),
     maxDistance: Math.max(distance * 2.2, 28),
@@ -271,7 +331,7 @@ export default function Floorplan3D({
       <Canvas
         shadows
         dpr={[1, 1.5]}
-        camera={{ position: cameraConfig.position, fov: 45 }}
+        camera={{ position: cameraConfig.position, fov: CAMERA_FOV }}
       >
         <ambientLight intensity={1.15} />
         <directionalLight position={[3, 10, 4]} intensity={1.8} castShadow shadow-mapSize={[2048, 2048]} />
