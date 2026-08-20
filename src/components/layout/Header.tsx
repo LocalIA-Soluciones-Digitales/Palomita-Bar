@@ -21,6 +21,13 @@ export function Header() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Solo la home tiene una foto de portada (siempre oscura, en los dos
+  // temas) bajo el header transparente; el resto de páginas empiezan con
+  // el fondo normal de la página, que ya se adapta con noche-ink. Mientras
+  // el header flota sobre esa foto forzamos texto claro fijo, igual que
+  // hace HeroSection, para que no se vuelva ilegible en modo día.
+  const overPhoto = pathname === "/" && !scrolled && !mobileMenuOpen;
+
   return (
     <header
       className={`fixed inset-x-0 top-0 z-40 transition-colors duration-300 ${
@@ -40,10 +47,14 @@ export function Header() {
             className="h-9 w-auto md:h-10"
           />
           <span>
-            <span className="block font-display text-xl tracking-wide text-noche-ink">
+            <span
+              className={`block font-display text-xl tracking-wide transition-colors ${overPhoto ? "text-white" : "text-noche-ink"}`}
+            >
               Palomita Bar
             </span>
-            <span className="block text-[10px] uppercase tracking-widest2 text-noche-ink-muted">
+            <span
+              className={`block text-[10px] uppercase tracking-widest2 transition-colors ${overPhoto ? "text-white/70" : "text-noche-ink-muted"}`}
+            >
               Coctelería &amp; Picoteo
             </span>
           </span>
@@ -57,7 +68,7 @@ export function Header() {
                 key={link.href}
                 href={link.href}
                 className={`text-sm transition-colors hover:text-noche-primary ${
-                  active ? "text-noche-primary" : "text-noche-ink/80"
+                  active ? "text-noche-primary" : overPhoto ? "text-white/85" : "text-noche-ink/80"
                 }`}
               >
                 {link.label}
@@ -66,7 +77,9 @@ export function Header() {
           })}
           <Link
             href="/admin/login"
-            className="inline-flex items-center rounded-full border border-noche-border px-5 py-2.5 text-sm font-medium text-noche-ink/80 transition-colors hover:border-noche-primary hover:text-noche-primary"
+            className={`inline-flex items-center rounded-full border px-5 py-2.5 text-sm font-medium transition-colors hover:border-noche-primary hover:text-noche-primary ${
+              overPhoto ? "border-white/30 text-white/85" : "border-noche-border text-noche-ink/80"
+            }`}
           >
             Panel de gestión
           </Link>
@@ -81,16 +94,28 @@ export function Header() {
             target="_blank"
             rel="noreferrer"
             aria-label="Instagram de Palomita Bar"
-            className="text-noche-ink-muted transition-colors hover:text-noche-primary"
+            className={`transition-colors hover:text-noche-primary ${overPhoto ? "text-white/70" : "text-noche-ink-muted"}`}
           >
             <InstagramIcon className="h-5 w-5" />
           </a>
-          <ThemeToggle />
+          <ThemeToggle
+            className={
+              overPhoto
+                ? "flex h-9 w-9 items-center justify-center rounded-full border border-white/30 text-white/80 transition-colors hover:border-noche-primary hover:text-noche-primary"
+                : undefined
+            }
+          />
         </nav>
 
         <div className="flex items-center gap-2 md:hidden">
-          <ThemeToggle />
-          <MobileNav open={mobileMenuOpen} onOpenChange={setMobileMenuOpen} />
+          <ThemeToggle
+            className={
+              overPhoto
+                ? "flex h-9 w-9 items-center justify-center rounded-full border border-white/30 text-white/80 transition-colors hover:border-noche-primary hover:text-noche-primary"
+                : undefined
+            }
+          />
+          <MobileNav open={mobileMenuOpen} onOpenChange={setMobileMenuOpen} light={overPhoto} />
         </div>
       </div>
     </header>

@@ -9,9 +9,11 @@ import { NAV_LINKS } from "@/lib/constants";
 type MobileNavProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Icono claro fijo mientras el botón flota sobre la foto del hero. */
+  light?: boolean;
 };
 
-export function MobileNav({ open, onOpenChange }: MobileNavProps) {
+export function MobileNav({ open, onOpenChange, light }: MobileNavProps) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -46,17 +48,17 @@ export function MobileNav({ open, onOpenChange }: MobileNavProps) {
       >
         <span className="relative block h-4 w-6">
           <span
-            className={`absolute left-0 top-0 h-px w-6 bg-noche-ink transition-transform ${
+            className={`absolute left-0 top-0 h-px w-6 transition-transform ${light ? "bg-white" : "bg-noche-ink"} ${
               open ? "translate-y-[7px] rotate-45" : ""
             }`}
           />
           <span
-            className={`absolute left-0 top-1/2 h-px w-6 -translate-y-1/2 bg-noche-ink transition-opacity ${
+            className={`absolute left-0 top-1/2 h-px w-6 -translate-y-1/2 transition-opacity ${light ? "bg-white" : "bg-noche-ink"} ${
               open ? "opacity-0" : "opacity-100"
             }`}
           />
           <span
-            className={`absolute bottom-0 left-0 h-px w-6 bg-noche-ink transition-transform ${
+            className={`absolute bottom-0 left-0 h-px w-6 transition-transform ${light ? "bg-white" : "bg-noche-ink"} ${
               open ? "-translate-y-[7px] -rotate-45" : ""
             }`}
           />

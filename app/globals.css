@@ -31,9 +31,11 @@
     --noche-ink-faint: 0.55 0.02 300;
     --noche-border: 0.32 0.03 300;
 
-    /* Velo del hero (foto de portada): oscuro fijo en modo noche —
-       coincide con el diseño original, no lo toques al ajustar el modo
-       día. Ver "Modo día" más abajo para su contrapartida clara. */
+    /* Velo del hero (foto de portada): siempre oscuro, en modo noche y en
+       modo día por igual. La foto de portada es fotografía de ambiente
+       oscura; un velo claro la deja sin oscurecer lo suficiente para que
+       el texto (blanco fijo, ver HeroSection) se lea bien encima. Por eso
+       estas variables NO se sobrescriben en el bloque "Modo día" de abajo. */
     --hero-scrim-a: rgb(0 0 0 / 0.75);
     --hero-scrim-b: rgb(0 0 0 / 0.35);
     --hero-scrim-c: rgb(0 0 0 / 0.1);
@@ -58,16 +60,10 @@
     --noche-ink: 0.16 0.02 300;
     --noche-ink-muted: 0.38 0.02 300;
     --noche-ink-faint: 0.55 0.02 300;
-    --noche-border: 0.84 0.02 82;
-
-    /* Velo del hero en modo día: crema cálido (mismo tono que el fondo de
-       la página), no negro — evita el hero "moody" y mantiene la lectura
-       editorial clara. Mucho más ligero que la versión original para que
-       la foto se vea nítida, no lavada. */
-    --hero-scrim-a: oklch(var(--noche-bg) / 0.55);
-    --hero-scrim-b: oklch(var(--noche-bg) / 0.22);
-    --hero-scrim-c: oklch(var(--noche-bg) / 0.04);
-    --hero-vignette: oklch(var(--noche-bg) / 0.12);
+    /* Más oscuro que un simple -0.1L sobre el fondo: en modo día los bordes
+       delimitan tarjetas, inputs y botones sobre fondos muy claros, y con
+       un contraste bajo (L 0.84 vs 0.97 de --noche-bg) casi desaparecían. */
+    --noche-border: 0.78 0.024 82;
   }
 }
 
