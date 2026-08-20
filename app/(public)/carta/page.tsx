@@ -41,7 +41,7 @@ export default async function CartaPage({
         .
       </p>
 
-      <div className="mt-16">
+      <div className="mt-8">
         <CategoryMenu categorias={picoteo} productos={productos} highlightProductId={product} />
       </div>
     </div>

@@ -40,7 +40,7 @@ export default async function CocteleriaPage({
         .
       </p>
 
-      <div className="mt-16">
+      <div className="mt-8">
         <CategoryMenu categorias={bebidas} productos={productos} highlightProductId={product} />
       </div>
     </div>
