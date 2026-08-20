@@ -151,8 +151,9 @@ export function CategoryMenu({
   const scrollToCategory = (id: string) => {
     const node = sectionRefs.current[id];
     if (!node) return;
+    const siteHeaderHeight = document.querySelector("header")?.getBoundingClientRect().height ?? 64;
     const stickyBarHeight = stickyRef.current?.getBoundingClientRect().height ?? 76;
-    const headerHeight = 64 + stickyBarHeight;
+    const headerHeight = siteHeaderHeight + stickyBarHeight;
     const y = node.getBoundingClientRect().top + window.scrollY - headerHeight - 32;
     window.scrollTo({ top: y, behavior: "smooth" });
   };
@@ -168,7 +169,7 @@ export function CategoryMenu({
     <div>
       <div
         ref={stickyRef}
-        className="sticky top-16 z-20 -mx-6 border-b border-noche-border bg-noche-bg/95 px-6 py-3 backdrop-blur-md"
+        className="sticky top-16 z-20 -mx-6 border-b border-noche-border bg-noche-bg/95 px-6 py-3 backdrop-blur-md md:top-20"
       >
         <div className="relative">
           <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-noche-ink-faint" />
