@@ -25,7 +25,9 @@ export function ProductGridPicker({
   gridClassName?: string;
   listMaxHeightClassName?: string;
 }) {
-  const productosCategoria = productos.filter((p) => p.categoria_id === categoriaActiva);
+  const productosCategoria = productos
+    .filter((p) => p.categoria_id === categoriaActiva)
+    .sort((a, b) => a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" }));
 
   const grid = (
     <div className={`grid gap-2 ${gridClassName}`}>
