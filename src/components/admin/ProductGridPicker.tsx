@@ -77,7 +77,7 @@ export function ProductGridPicker({
 
   return (
     <div className={className}>
-      <div className="flex gap-1.5 overflow-x-auto pb-1">
+      <div className="-mt-2 flex gap-1.5 overflow-x-auto pb-1 pr-2 pt-2">
         {categorias.map((c) => {
           const activa = categoriaActiva === c.id;
           const enCarrito = productos
