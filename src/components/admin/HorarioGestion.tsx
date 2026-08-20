@@ -73,24 +73,18 @@ export function HorarioGestion() {
         ) : null}
       </div>
 
-      <div className="px-6 py-6">
+      <div className="px-4 py-4">
         {cargando ? (
           <p className="text-sm text-noche-ink-muted">Cargando…</p>
         ) : (
           <>
-            <div className="hidden text-xs uppercase tracking-widest2 text-noche-ink-faint sm:grid sm:grid-cols-[52px_120px_1fr] sm:pb-2">
-              <span />
-              <span>Día</span>
-              <span className="text-center">Horario</span>
-            </div>
-
             <ul className="divide-y divide-noche-border">
               {DIAS_SEMANA.map((nombre, i) => {
                 const dia = semana[i]!;
                 return (
                   <li
                     key={nombre}
-                    className="flex flex-wrap items-center gap-x-3 gap-y-2 py-4 sm:grid sm:grid-cols-[52px_120px_1fr]"
+                    className="flex flex-wrap items-center gap-x-3 gap-y-2 py-3 sm:grid sm:grid-cols-[44px_88px_1fr]"
                   >
                     <button
                       type="button"
@@ -108,37 +102,33 @@ export function HorarioGestion() {
                       />
                     </button>
 
-                    <span className="min-w-0 flex-1 text-[15px] font-medium text-noche-ink sm:flex-none">
-                      {nombre}
-                    </span>
+                    <span className="min-w-0 flex-1 text-sm text-noche-ink sm:flex-none">{nombre}</span>
 
                     {dia.abierto ? (
-                      <div className="order-4 flex w-full items-center justify-center gap-2 sm:order-none sm:w-auto sm:justify-self-center">
+                      <div className="order-4 flex w-full items-center gap-2 sm:order-none sm:w-auto">
                         <input
                           type="time"
                           value={dia.desde}
                           onChange={(e) => actualizarDia(i, { desde: e.target.value })}
-                          className="w-32 rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2 text-sm text-noche-ink"
+                          className="w-full min-w-0 rounded-lg border border-noche-border bg-noche-surface-2 px-2 py-1.5 text-sm text-noche-ink sm:w-auto"
                         />
                         <span className="shrink-0 text-noche-ink-faint">–</span>
                         <input
                           type="time"
                           value={dia.hasta}
                           onChange={(e) => actualizarDia(i, { hasta: e.target.value })}
-                          className="w-32 rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2 text-sm text-noche-ink"
+                          className="w-full min-w-0 rounded-lg border border-noche-border bg-noche-surface-2 px-2 py-1.5 text-sm text-noche-ink sm:w-auto"
                         />
                       </div>
                     ) : (
-                      <span className="order-4 text-sm text-noche-ink-faint sm:order-none sm:justify-self-center">
-                        Cerrado
-                      </span>
+                      <span className="order-4 text-sm text-noche-ink-faint sm:order-none">Cerrado</span>
                     )}
                   </li>
                 );
               })}
             </ul>
 
-            <div className="mt-6 rounded-lg border border-noche-border bg-noche-surface-2 px-4 py-3.5">
+            <div className="mt-4 rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2.5">
               <p className="text-xs uppercase tracking-widest2 text-noche-ink-faint">Así se verá en la home</p>
               <p className="mt-1.5 whitespace-pre-line text-sm text-noche-ink/80">
                 {formatearHorarioVisual(semana)}
