@@ -153,7 +153,7 @@ export function CategoryMenu({
     if (!node) return;
     const stickyBarHeight = stickyRef.current?.getBoundingClientRect().height ?? 76;
     const headerHeight = 64 + stickyBarHeight;
-    const y = node.getBoundingClientRect().top + window.scrollY - headerHeight - 24;
+    const y = node.getBoundingClientRect().top + window.scrollY - headerHeight - 32;
     window.scrollTo({ top: y, behavior: "smooth" });
   };
 
