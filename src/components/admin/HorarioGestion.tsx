@@ -84,7 +84,7 @@ export function HorarioGestion() {
                 return (
                   <li
                     key={nombre}
-                    className="flex flex-wrap items-center gap-x-3 gap-y-2 py-3 sm:grid sm:grid-cols-[44px_88px_1fr]"
+                    className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2 py-3"
                   >
                     <button
                       type="button"
@@ -102,26 +102,26 @@ export function HorarioGestion() {
                       />
                     </button>
 
-                    <span className="min-w-0 flex-1 text-sm text-noche-ink sm:flex-none">{nombre}</span>
+                    <span className="w-20 shrink-0 text-sm text-noche-ink">{nombre}</span>
 
                     {dia.abierto ? (
-                      <div className="order-4 flex w-full items-center gap-2 sm:order-none sm:w-auto">
+                      <div className="flex items-center gap-2">
                         <input
                           type="time"
                           value={dia.desde}
                           onChange={(e) => actualizarDia(i, { desde: e.target.value })}
-                          className="w-full min-w-0 rounded-lg border border-noche-border bg-noche-surface-2 px-2 py-1.5 text-sm text-noche-ink sm:w-auto"
+                          className="w-28 rounded-lg border border-noche-border bg-noche-surface-2 px-2 py-1.5 text-sm text-noche-ink"
                         />
                         <span className="shrink-0 text-noche-ink-faint">–</span>
                         <input
                           type="time"
                           value={dia.hasta}
                           onChange={(e) => actualizarDia(i, { hasta: e.target.value })}
-                          className="w-full min-w-0 rounded-lg border border-noche-border bg-noche-surface-2 px-2 py-1.5 text-sm text-noche-ink sm:w-auto"
+                          className="w-28 rounded-lg border border-noche-border bg-noche-surface-2 px-2 py-1.5 text-sm text-noche-ink"
                         />
                       </div>
                     ) : (
-                      <span className="order-4 text-sm text-noche-ink-faint sm:order-none">Cerrado</span>
+                      <span className="text-sm text-noche-ink-faint">Cerrado</span>
                     )}
                   </li>
                 );
