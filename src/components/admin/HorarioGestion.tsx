@@ -78,22 +78,16 @@ export function HorarioGestion() {
           <p className="text-sm text-noche-ink-muted">Cargando…</p>
         ) : (
           <>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-7">
+            <ul className="-mx-4 divide-y divide-noche-border">
               {DIAS_SEMANA.map((nombre, i) => {
                 const dia = semana[i]!;
                 return (
-                  <div
+                  <li
                     key={nombre}
-                    className={`flex flex-col items-center gap-2.5 rounded-xl border px-3 py-4 transition-colors ${
-                      dia.abierto
-                        ? "border-noche-primary/25 bg-noche-primary/[0.06]"
-                        : "border-noche-border bg-noche-surface-2/40"
+                    className={`flex flex-wrap items-center gap-x-4 gap-y-2 border-l-[3px] px-4 py-3.5 transition-colors ${
+                      dia.abierto ? "border-noche-primary bg-noche-primary/[0.04]" : "border-transparent"
                     }`}
                   >
-                    <span className="text-xs font-medium uppercase tracking-widest2 text-noche-ink-faint">
-                      {nombre.slice(0, 3)}
-                    </span>
-
                     <button
                       type="button"
                       onClick={() => actualizarDia(i, { abierto: !dia.abierto })}
@@ -110,29 +104,35 @@ export function HorarioGestion() {
                       />
                     </button>
 
+                    <span
+                      className={`text-sm font-medium ${dia.abierto ? "text-noche-ink" : "text-noche-ink-faint"}`}
+                    >
+                      {nombre}
+                    </span>
+
                     {dia.abierto ? (
-                      <div className="flex w-full flex-col items-center gap-1.5">
+                      <div className="ml-auto flex items-center gap-2">
                         <input
                           type="time"
                           value={dia.desde}
                           onChange={(e) => actualizarDia(i, { desde: e.target.value })}
-                          className="w-full rounded-lg border border-noche-border bg-noche-surface-2 px-2 py-1.5 text-center text-sm text-noche-ink"
+                          className="w-32 rounded-lg border border-noche-border bg-noche-surface-2 px-2.5 py-1.5 text-sm text-noche-ink"
                         />
-                        <span className="text-xs text-noche-ink-faint">hasta</span>
+                        <span className="shrink-0 text-noche-ink-faint">–</span>
                         <input
                           type="time"
                           value={dia.hasta}
                           onChange={(e) => actualizarDia(i, { hasta: e.target.value })}
-                          className="w-full rounded-lg border border-noche-border bg-noche-surface-2 px-2 py-1.5 text-center text-sm text-noche-ink"
+                          className="w-32 rounded-lg border border-noche-border bg-noche-surface-2 px-2.5 py-1.5 text-sm text-noche-ink"
                         />
                       </div>
                     ) : (
-                      <span className="py-3 text-xs text-noche-ink-faint">Cerrado</span>
+                      <span className="ml-auto text-sm text-noche-ink-faint">Cerrado</span>
                     )}
-                  </div>
+                  </li>
                 );
               })}
-            </div>
+            </ul>
 
             <div className="mt-4 rounded-lg border border-noche-border bg-noche-surface-2 px-3 py-2.5">
               <p className="text-xs uppercase tracking-widest2 text-noche-ink-faint">Así se verá en la home</p>
