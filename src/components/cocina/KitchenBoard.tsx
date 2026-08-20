@@ -5,7 +5,7 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { formatCentimos } from "@/lib/format";
 import { playNewOrderChime } from "@/lib/notify-sound";
 import { renderTicketComandaHTML, imprimirTicketHTML } from "@/lib/print/ticket";
-import { PrinterIcon } from "@/components/icons";
+import { PrinterIcon, TrashIcon } from "@/components/icons";
 import type { EstadoPedido } from "@/lib/restaurant/types";
 import type { PedidoCocina, PedidoCocinaItem } from "@/lib/restaurant/cocina-types";
 
@@ -172,6 +172,25 @@ export function KitchenBoard({ pedidosIniciales }: { pedidosIniciales: PedidoCoc
     const { error } = await supabase.rpc("avanzar_pedido_cocina", {
       p_pedido_id: pedidoId,
       p_nuevo_estado: nuevoEstado,
+    });
+    if (!error) {
+      await refetch();
+    }
+    setActualizando(null);
+  };
+
+  const cancelarPedido = async (pedido: PedidoCocina) => {
+    const etiqueta = pedido.mesa_numero
+      ? pedido.mesa_nombre
+        ? `${pedido.mesa_nombre} (Mesa ${pedido.mesa_numero})`
+        : `Mesa ${pedido.mesa_numero}`
+      : "este pedido";
+    if (!confirm(`¿Cancelar la comanda de ${etiqueta}? Esta acción no se puede deshacer.`)) return;
+    setActualizando(pedido.id);
+    const supabase = createSupabaseBrowserClient();
+    const { error } = await supabase.rpc("avanzar_pedido_cocina", {
+      p_pedido_id: pedido.id,
+      p_nuevo_estado: "CANCELLED",
     });
     if (!error) {
       await refetch();
@@ -412,14 +431,25 @@ export function KitchenBoard({ pedidosIniciales }: { pedidosIniciales: PedidoCoc
                       </p>
                     ) : null}
 
-                    <button
-                      type="button"
-                      onClick={() => reimprimirComanda(pedido, filtro)}
-                      className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg py-1.5 text-[11px] uppercase tracking-widest2 text-noche-ink-faint transition-colors hover:text-noche-ink"
-                    >
-                      <PrinterIcon className="h-3 w-3" />
-                      Reimprimir comanda
-                    </button>
+                    <div className="mt-2 flex items-center">
+                      <button
+                        type="button"
+                        onClick={() => reimprimirComanda(pedido, filtro)}
+                        className="flex flex-1 items-center justify-center gap-1.5 rounded-lg py-1.5 text-[11px] uppercase tracking-widest2 text-noche-ink-faint transition-colors hover:text-noche-ink"
+                      >
+                        <PrinterIcon className="h-3 w-3" />
+                        Reimprimir comanda
+                      </button>
+                      <button
+                        type="button"
+                        disabled={actualizando === pedido.id}
+                        onClick={() => cancelarPedido(pedido)}
+                        className="flex flex-1 items-center justify-center gap-1.5 rounded-lg py-1.5 text-[11px] uppercase tracking-widest2 text-noche-ink-faint transition-colors hover:text-noche-danger disabled:opacity-50"
+                      >
+                        <TrashIcon className="h-3 w-3" />
+                        Cancelar comanda
+                      </button>
+                    </div>
                   </div>
                 );
               })}
