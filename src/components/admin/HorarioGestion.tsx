@@ -39,12 +39,6 @@ export function HorarioGestion() {
     setGuardado(false);
   };
 
-  const copiarATodos = (indice: number) => {
-    const referencia = semana[indice]!;
-    setSemana((prev) => prev.map(() => ({ ...referencia })) as SemanaHorario);
-    setGuardado(false);
-  };
-
   const handleGuardar = async () => {
     setGuardando(true);
     setGuardado(false);
@@ -90,7 +84,7 @@ export function HorarioGestion() {
                 return (
                   <li
                     key={nombre}
-                    className="flex flex-wrap items-center gap-x-3 gap-y-2 py-3 sm:grid sm:grid-cols-[44px_88px_1fr_auto]"
+                    className="flex flex-wrap items-center gap-x-3 gap-y-2 py-3 sm:grid sm:grid-cols-[44px_88px_1fr]"
                   >
                     <button
                       type="button"
@@ -129,15 +123,6 @@ export function HorarioGestion() {
                     ) : (
                       <span className="order-4 text-sm text-noche-ink-faint sm:order-none">Cerrado</span>
                     )}
-
-                    <button
-                      type="button"
-                      onClick={() => copiarATodos(i)}
-                      className="shrink-0 rounded-lg px-2 py-1 text-xs text-noche-ink-faint transition hover:bg-noche-surface-2 hover:text-noche-primary"
-                      title={`Aplicar el horario de ${nombre} a toda la semana`}
-                    >
-                      Copiar
-                    </button>
                   </li>
                 );
               })}
