@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { formatCentimos } from "@/lib/format";
 import type { Categoria, Producto } from "@/lib/restaurant/types";
 import { MinusIcon, PlusIcon } from "@/components/icons";
@@ -43,6 +44,17 @@ export function ProductGridPicker({
             }`}
           >
             <div>
+              {producto.imagen_url ? (
+                <div className="relative mb-2 aspect-square w-full overflow-hidden rounded-lg bg-noche-surface-3">
+                  <Image
+                    src={producto.imagen_url}
+                    alt=""
+                    fill
+                    sizes="160px"
+                    className="object-cover"
+                  />
+                </div>
+              ) : null}
               <p className="text-sm font-medium leading-snug text-noche-ink">{producto.nombre}</p>
               <p className="mt-0.5 text-xs text-noche-ink-muted">
                 {formatCentimos(producto.precio_centimos)} €
