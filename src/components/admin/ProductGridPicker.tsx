@@ -81,44 +81,46 @@ export function ProductGridPicker({
         return (
           <div
             key={producto.id}
-            className={`flex flex-col items-center rounded-xl border p-2 text-center transition-colors ${
+            className={`flex flex-col overflow-hidden rounded-xl border transition-colors ${
               cantidad > 0
                 ? "border-noche-primary bg-noche-primary/5"
                 : "border-noche-border bg-noche-surface-2/60"
             }`}
           >
             {producto.imagen_url ? (
-              <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-lg bg-noche-surface-3">
+              <div className="relative h-32 w-full shrink-0 bg-noche-surface-3">
                 <Image
                   src={producto.imagen_url}
                   alt=""
                   fill
-                  sizes="112px"
+                  sizes="220px"
                   className="object-cover"
                 />
               </div>
             ) : null}
-            <p className="mt-1.5 text-base font-semibold leading-snug text-noche-ink">{producto.nombre}</p>
-            <p className="mt-0.5 text-xs text-noche-ink-muted">
-              {formatCentimos(producto.precio_centimos)} €
-            </p>
-            <div className="mt-2 flex items-center justify-between self-stretch">
-              <button
-                type="button"
-                onClick={() => onCantidadChange(producto.id, -1)}
-                disabled={cantidad === 0}
-                className="flex h-7 w-7 items-center justify-center rounded-full border border-noche-border text-noche-ink transition-colors disabled:opacity-30"
-              >
-                <MinusIcon className="h-3 w-3" />
-              </button>
-              <span className="text-sm font-semibold tabular-nums text-noche-ink">{cantidad}</span>
-              <button
-                type="button"
-                onClick={() => onCantidadChange(producto.id, 1)}
-                className="flex h-7 w-7 items-center justify-center rounded-full bg-noche-primary text-noche-ink transition-colors hover:bg-noche-primary-dark"
-              >
-                <PlusIcon className="h-3 w-3" />
-              </button>
+            <div className="flex flex-col items-center p-2 text-center">
+              <p className="text-base font-semibold leading-snug text-noche-ink">{producto.nombre}</p>
+              <p className="mt-0.5 text-xs text-noche-ink-muted">
+                {formatCentimos(producto.precio_centimos)} €
+              </p>
+              <div className="mt-2 flex items-center justify-between self-stretch">
+                <button
+                  type="button"
+                  onClick={() => onCantidadChange(producto.id, -1)}
+                  disabled={cantidad === 0}
+                  className="flex h-7 w-7 items-center justify-center rounded-full border border-noche-border text-noche-ink transition-colors disabled:opacity-30"
+                >
+                  <MinusIcon className="h-3 w-3" />
+                </button>
+                <span className="text-sm font-semibold tabular-nums text-noche-ink">{cantidad}</span>
+                <button
+                  type="button"
+                  onClick={() => onCantidadChange(producto.id, 1)}
+                  className="flex h-7 w-7 items-center justify-center rounded-full bg-noche-primary text-noche-ink transition-colors hover:bg-noche-primary-dark"
+                >
+                  <PlusIcon className="h-3 w-3" />
+                </button>
+              </div>
             </div>
           </div>
         );
