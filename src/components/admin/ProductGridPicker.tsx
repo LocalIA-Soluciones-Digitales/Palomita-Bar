@@ -88,13 +88,13 @@ export function ProductGridPicker({
             }`}
           >
             {producto.imagen_url ? (
-              <div className="relative h-32 w-full shrink-0 bg-noche-surface-3">
+              <div className="relative aspect-square w-full shrink-0 bg-noche-surface-3">
                 <Image
                   src={producto.imagen_url}
                   alt=""
                   fill
                   sizes="220px"
-                  className="object-cover"
+                  className="object-cover object-top"
                 />
               </div>
             ) : null}
