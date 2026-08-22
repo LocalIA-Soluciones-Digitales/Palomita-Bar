@@ -94,7 +94,7 @@ export function ProductGridPicker({
                   alt=""
                   fill
                   sizes="220px"
-                  className="object-cover object-top"
+                  className="object-contain"
                 />
               </div>
             ) : null}
