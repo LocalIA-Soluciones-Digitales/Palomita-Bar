@@ -81,30 +81,28 @@ export function ProductGridPicker({
         return (
           <div
             key={producto.id}
-            className={`flex flex-col justify-between rounded-xl border p-3 transition-colors ${
+            className={`flex flex-col items-center rounded-xl border p-2 text-center transition-colors ${
               cantidad > 0
                 ? "border-noche-primary bg-noche-primary/5"
                 : "border-noche-border bg-noche-surface-2/60"
             }`}
           >
-            <div className="flex flex-col items-center text-center">
-              {producto.imagen_url ? (
-                <div className="relative mb-1.5 h-24 w-24 shrink-0 overflow-hidden rounded-lg bg-noche-surface-3">
-                  <Image
-                    src={producto.imagen_url}
-                    alt=""
-                    fill
-                    sizes="96px"
-                    className="object-cover"
-                  />
-                </div>
-              ) : null}
-              <p className="text-base font-semibold leading-snug text-noche-ink">{producto.nombre}</p>
-              <p className="mt-0.5 text-xs text-noche-ink-muted">
-                {formatCentimos(producto.precio_centimos)} €
-              </p>
-            </div>
-            <div className="mt-2.5 flex items-center justify-between">
+            {producto.imagen_url ? (
+              <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-lg bg-noche-surface-3">
+                <Image
+                  src={producto.imagen_url}
+                  alt=""
+                  fill
+                  sizes="112px"
+                  className="object-cover"
+                />
+              </div>
+            ) : null}
+            <p className="mt-1.5 text-base font-semibold leading-snug text-noche-ink">{producto.nombre}</p>
+            <p className="mt-0.5 text-xs text-noche-ink-muted">
+              {formatCentimos(producto.precio_centimos)} €
+            </p>
+            <div className="mt-2 flex items-center justify-between self-stretch">
               <button
                 type="button"
                 onClick={() => onCantidadChange(producto.id, -1)}

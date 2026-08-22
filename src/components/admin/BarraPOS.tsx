@@ -120,7 +120,7 @@ export function BarraPOS() {
             onCategoriaChange={setCategoriaActiva}
             cantidades={cantidades}
             onCantidadChange={setCantidad}
-            gridClassName="grid-cols-2 sm:grid-cols-3 xl:grid-cols-4"
+            gridClassName="grid-cols-3 sm:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6"
           />
         )}
       </div>
