@@ -249,17 +249,17 @@ export function ProductDetailModal({
               </span>
 
               {producto.imagen_url ? (
-                <div className="relative mx-auto mt-3 h-28 w-28 shrink-0 overflow-hidden rounded-xl bg-noche-surface-2 sm:h-32 sm:w-32">
+                <div className="relative mt-3 aspect-[4/3] w-full overflow-hidden rounded-xl bg-noche-surface-2">
                   <Image
                     src={producto.imagen_url}
                     alt={producto.nombre}
                     fill
-                    sizes="128px"
+                    sizes="(min-width: 768px) 380px, 90vw"
                     className="object-cover"
                   />
                 </div>
               ) : (
-                <div className="mx-auto mt-3 h-28 w-28 shrink-0 rounded-xl bg-noche-surface-2 sm:h-32 sm:w-32" />
+                <div className="mt-3 aspect-[4/3] w-full rounded-xl bg-noche-surface-2" />
               )}
 
               <h2 className="mt-3 font-display text-xl text-noche-ink sm:text-2xl">{producto.nombre}</h2>
