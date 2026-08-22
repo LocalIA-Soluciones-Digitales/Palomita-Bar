@@ -89,12 +89,12 @@ export function ProductGridPicker({
           >
             <div className="flex flex-col items-center text-center">
               {producto.imagen_url ? (
-                <div className="relative mb-1.5 h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-noche-surface-3">
+                <div className="relative mb-1.5 h-24 w-24 shrink-0 overflow-hidden rounded-lg bg-noche-surface-3">
                   <Image
                     src={producto.imagen_url}
                     alt=""
                     fill
-                    sizes="64px"
+                    sizes="96px"
                     className="object-cover"
                   />
                 </div>
