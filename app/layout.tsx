@@ -30,6 +30,11 @@ export const metadata: Metadata = {
     locale: "es_ES",
     type: "website",
   },
+  appleWebApp: {
+    capable: true,
+    title: "Palomita",
+    statusBarStyle: "black-translucent",
+  },
 };
 
 export default function RootLayout({
