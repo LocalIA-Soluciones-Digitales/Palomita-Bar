@@ -148,8 +148,6 @@ export function ProductDetailModal({
   const macros = useMemo(() => macroBreakdown(producto), [producto]);
   const tieneNutricion = producto.ingredientes.length > 0 || producto.calorias != null;
 
-  const esBebidaLarga = categoriaNombre === "Cócteles" || categoriaNombre === "Combinados";
-
   const goPrev = () => onNavigate((activeIndex - 1 + items.length) % items.length);
   const goNext = () => onNavigate((activeIndex + 1) % items.length);
 
@@ -258,43 +256,20 @@ export function ProductDetailModal({
                 ) : null}
               </div>
 
+              {/* Cuadrado a todo el ancho: mismo encuadre que la miniatura de la carta.
+                  Con max-h la caja dejaba de ser cuadrada y recortaba la foto (3:4) en una franja. */}
               {producto.imagen_url ? (
-                esBebidaLarga ? (
-                  <div className="relative mt-3 h-56 w-40 self-center overflow-hidden rounded-xl bg-noche-surface-2">
-                    <Image
-                      src={producto.imagen_url}
-                      alt=""
-                      aria-hidden="true"
-                      fill
-                      sizes="160px"
-                      className="scale-125 object-cover opacity-70 blur-2xl saturate-150"
-                    />
-                    <div className="absolute inset-0 bg-noche-surface/40" />
-                    <Image
-                      src={producto.imagen_url}
-                      alt={producto.nombre}
-                      fill
-                      sizes="160px"
-                      className="relative object-contain drop-shadow-[0_8px_20px_rgba(0,0,0,0.45)]"
-                    />
-                  </div>
-                ) : (
-                  <div className="relative mt-3 aspect-square w-full max-h-56 overflow-hidden rounded-xl bg-noche-surface-2">
-                    <Image
-                      src={producto.imagen_url}
-                      alt={producto.nombre}
-                      fill
-                      sizes="(min-width: 768px) 380px, 90vw"
-                      className="object-cover object-center"
-                    />
-                  </div>
-                )
+                <div className="relative mt-3 aspect-square w-full overflow-hidden rounded-xl bg-noche-surface-2">
+                  <Image
+                    src={producto.imagen_url}
+                    alt={producto.nombre}
+                    fill
+                    sizes="(min-width: 768px) 380px, 90vw"
+                    className="object-cover object-center"
+                  />
+                </div>
               ) : (
-                <div
-                  className={`mt-3 rounded-xl bg-noche-surface-2 ${
-                    esBebidaLarga ? "h-56 w-40 self-center" : "aspect-square w-full max-h-56"
-                  }`}
-                />
+                <div className="mt-3 aspect-square w-full rounded-xl bg-noche-surface-2" />
               )}
 
               <h2 className="mt-3 font-display text-xl text-noche-ink sm:text-2xl">{producto.nombre}</h2>

@@ -2,6 +2,9 @@
 -- Generadas con Gemini a partir de una foto existente de la carta como referencia
 -- de estilo, recortadas a 3:4 (675x900) y subidas a Storage en palomita-bar/carta/.
 --
+-- Se volvieron a recortar centrando el plato en el cuadrado que muestra la carta;
+-- el sufijo ?v=2 fuerza a la CDN y al optimizador de Next a pedir la versión nueva.
+--
 -- Las pulguitas de Desayuno usan el sufijo "2" porque pulguitajamon.webp y
 -- pulguitabonito.webp ya existen y pertenecen a los productos de Picoteo.
 -- Se filtra por categoría para no tocar esos productos homónimos.
@@ -12,7 +15,7 @@
 begin;
 
 update restaurant.productos p
-set imagen_url = 'https://ukhfaphloxlszomccgde.supabase.co/storage/v1/object/public/palomita-bar/carta/' || v.archivo,
+set imagen_url = 'https://ukhfaphloxlszomccgde.supabase.co/storage/v1/object/public/palomita-bar/carta/' || v.archivo || '?v=2',
     updated_at = now()
 from (values
   ('Desayuno', 'Tosta Mantequilla',           'tostamantequilla.webp'),
