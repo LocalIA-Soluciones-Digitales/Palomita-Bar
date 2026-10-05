@@ -46,6 +46,12 @@ export async function getCarta(): Promise<Producto[]> {
   return (data ?? []) as unknown as Producto[];
 }
 
+/** Carta que ven los clientes: sin suplementos ni conceptos internos de caja (solo TPV). */
+export async function getCartaClientes(): Promise<Producto[]> {
+  const productos = await getCarta();
+  return productos.filter((p) => p.visible_carta !== false);
+}
+
 export async function validarMesa(identificador: string): Promise<Mesa | null> {
   const { data, error } = await supabase.rpc("validar_mesa", {
     p_site_key: siteKey(),

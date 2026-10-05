@@ -20,6 +20,8 @@ export interface Producto {
   precio_terraza_centimos: number | null;
   imagen_url: string | null;
   disponible: boolean;
+  /** false = solo TPV/panel (suplementos, conceptos de caja); no se muestra a clientes. */
+  visible_carta: boolean;
   destacado: boolean;
   alergenos: string[];
   orden: number;

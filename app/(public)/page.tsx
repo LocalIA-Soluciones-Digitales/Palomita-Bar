@@ -1,5 +1,5 @@
 import {
-  getCarta,
+  getCartaClientes,
   getCategorias,
   getHorarioPublico,
   getResenasAprobadas,
@@ -17,7 +17,7 @@ export const revalidate = 60;
 export default async function HomePage() {
   const [categorias, productos, siteImages, horario, resenas] = await Promise.all([
     getCategorias(),
-    getCarta(),
+    getCartaClientes(),
     getSiteImages(),
     getHorarioPublico(),
     getResenasAprobadas().catch(() => []),

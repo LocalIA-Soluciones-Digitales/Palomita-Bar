@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getCarta, getCategorias } from "@/lib/restaurant/queries";
+import { getCartaClientes, getCategorias } from "@/lib/restaurant/queries";
 import { CategoryMenu } from "@/components/menu/CategoryMenu";
 import { buildMenuJsonLd } from "@/lib/restaurant/menu-jsonld";
 
@@ -19,7 +19,7 @@ export default async function CartaPage({
   const [{ product }, categorias, productos] = await Promise.all([
     searchParams,
     getCategorias(),
-    getCarta(),
+    getCartaClientes(),
   ]);
   const picoteo = categorias.filter((categoria) => categoria.tipo === "comida");
   const menuJsonLd = buildMenuJsonLd(picoteo, productos, "Carta de picoteo — Palomita Bar");

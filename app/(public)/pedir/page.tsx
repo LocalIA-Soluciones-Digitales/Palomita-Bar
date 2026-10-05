@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getCarta, getCategorias, getPedidoPublico, validarMesa } from "@/lib/restaurant/queries";
+import { getCartaClientes, getCategorias, getPedidoPublico, validarMesa } from "@/lib/restaurant/queries";
 import { CartProvider } from "@/components/cart/cart-context";
 import { TableSessionProvider } from "@/components/mesa/table-session-context";
 import { TableEntry } from "@/components/mesa/TableEntry";
@@ -32,7 +32,7 @@ export default async function PedirPage({
 
   const [categorias, productos, pedidoARepetir] = await Promise.all([
     getCategorias(),
-    getCarta(),
+    getCartaClientes(),
     repetirPedidoId ? getPedidoPublico(repetirPedidoId) : Promise.resolve(null),
   ]);
   const mesaLabel = mesa
