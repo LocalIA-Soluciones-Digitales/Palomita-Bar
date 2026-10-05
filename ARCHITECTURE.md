@@ -408,9 +408,10 @@ Aplicado:
   producción a fecha de hoy. Vercel ya da logs/analytics básicos sin configuración adicional.
 
 Pendiente, son decisiones/acciones del usuario, no código:
-- **Dominio propio (`palomitabar.es`)**: no lo he comprado ni configurado — es una decisión y
-  un gasto real. Si se quiere, dímelo y lo compruebo/gestiono con las herramientas de Vercel
-  (o se añade manualmente en Vercel → Domains si ya se posee).
+- **Dominio propio**: `palomitabar.es` era el dominio anterior del bar y ya no es suyo (hoy
+  sirve páginas de casinos/apuestas); no debe enlazarse desde ningún sitio. Los valores por
+  defecto de `NEXT_PUBLIC_SITE_URL` apuntan a `https://palomita-bar.vercel.app`. Si se compra
+  un dominio nuevo, añadirlo en Vercel → Domains y actualizar esa variable.
 - **Cuenta de Stripe real** (ver §10).
 - La organización "LocalIA Soluciones Digitales" no existe (o no es visible) en Vercel — el
   proyecto vive en la cuenta personal `edortadossantos-projects`. No bloquea nada hoy, pero si

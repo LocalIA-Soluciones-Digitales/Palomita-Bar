@@ -5,6 +5,6 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       { userAgent: "*", allow: "/", disallow: ["/admin", "/pedido"] },
     ],
-    sitemap: `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://palomitabar.es"}/sitemap.xml`,
+    sitemap: `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://palomita-bar.vercel.app"}/sitemap.xml`,
   };
 }

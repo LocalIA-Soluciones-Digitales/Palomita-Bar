@@ -5,7 +5,7 @@ import type { MetadataRoute } from "next";
 const routes = ["", "/carta", "/cocteleria", "/galeria", "/reservar"];
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const base = process.env.NEXT_PUBLIC_SITE_URL ?? "https://palomitabar.es";
+  const base = process.env.NEXT_PUBLIC_SITE_URL ?? "https://palomita-bar.vercel.app";
 
   return routes.map((route) => ({
     url: `${base}${route}`,

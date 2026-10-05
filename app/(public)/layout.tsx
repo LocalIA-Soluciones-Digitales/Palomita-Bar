@@ -58,7 +58,7 @@ export default async function PublicLayout({
     },
     telephone: SITE.phone,
     sameAs: [SITE.instagram.url],
-    url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://palomitabar.es",
+    url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://palomita-bar.vercel.app",
     openingHoursSpecification,
   };
 
