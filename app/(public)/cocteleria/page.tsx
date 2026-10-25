@@ -3,7 +3,7 @@ import { getCartaClientes, getCategorias } from "@/lib/restaurant/queries";
 import { CategoryMenu } from "@/components/menu/CategoryMenu";
 import { buildMenuJsonLd } from "@/lib/restaurant/menu-jsonld";
 
-export const revalidate = 60;
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: "Coctelería",

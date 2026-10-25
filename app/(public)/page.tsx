@@ -12,7 +12,7 @@ import { ReviewsSection } from "@/components/home/ReviewsSection";
 import { AmbienceSection } from "@/components/home/AmbienceSection";
 import { LocationSection } from "@/components/home/LocationSection";
 
-export const revalidate = 60;
+export const revalidate = 3600;
 
 export default async function HomePage() {
   const [categorias, productos, siteImages, horario, resenas] = await Promise.all([

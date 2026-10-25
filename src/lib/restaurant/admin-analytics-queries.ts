@@ -6,6 +6,7 @@ import type {
   ResenaAdmin,
   VisitaAdmin,
 } from "@/lib/restaurant/admin-types";
+import { refrescarWeb } from "@/lib/restaurant/refrescar-web";
 
 // Consultas de solo-administrador: leen tablas cuya RLS ya restringe el
 // SELECT a is_developer() (visits, error_logs, newsletter_subscribers) o a
@@ -69,12 +70,14 @@ export async function actualizarEstadoResenaAdmin(id: string, estado: EstadoRese
     .eq("id", id)
     .eq("cliente_id", clienteId());
   if (error) throw error;
+  refrescarWeb();
 }
 
 export async function eliminarResenaAdmin(id: string): Promise<void> {
   const supabase = createSupabaseBrowserClient();
   const { error } = await supabase.from("resenas").delete().eq("id", id).eq("cliente_id", clienteId());
   if (error) throw error;
+  refrescarWeb();
 }
 
 export async function getErrorLogsAdmin(): Promise<ErrorLogAdmin[]> {

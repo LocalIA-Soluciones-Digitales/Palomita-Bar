@@ -16,6 +16,7 @@ import type {
 } from "@/lib/restaurant/admin-types";
 import type { EstadoPedido, SiteImages } from "@/lib/restaurant/types";
 import type { PedidoCocina } from "@/lib/restaurant/cocina-types";
+import { refrescarWeb } from "@/lib/restaurant/refrescar-web";
 
 const PALOMITA_CLIENTE_ID = process.env.NEXT_PUBLIC_PALOMITA_CLIENTE_ID;
 
@@ -52,6 +53,7 @@ export async function upsertCategoriaAdmin(input: {
     p_orden: input.orden,
   });
   if (error) throw error;
+  refrescarWeb();
   return data as unknown as CategoriaAdmin;
 }
 
@@ -62,6 +64,7 @@ export async function eliminarCategoriaAdmin(id: string): Promise<void> {
     p_cliente_id: clienteId(),
   });
   if (error) throw error;
+  refrescarWeb();
 }
 
 export async function getProductosAdmin(): Promise<ProductoAdmin[]> {
@@ -98,6 +101,7 @@ export async function upsertProductoAdmin(input: {
     p_imagen_url: input.imagenUrl ?? null,
   });
   if (error) throw error;
+  refrescarWeb();
   return data as unknown as ProductoAdmin;
 }
 
@@ -123,6 +127,7 @@ export async function eliminarProductoAdmin(id: string): Promise<void> {
     p_cliente_id: clienteId(),
   });
   if (error) throw error;
+  refrescarWeb();
 }
 
 export async function getMesasAdmin(): Promise<MesaAdmin[]> {
@@ -589,6 +594,7 @@ export async function setConfiguracionAdmin(horario: string): Promise<void> {
     p_horario: horario,
   });
   if (error) throw error;
+  refrescarWeb();
 }
 
 export async function getSiteImagesAdmin(): Promise<SiteImages | null> {
@@ -607,6 +613,7 @@ export async function setSiteImagesAdmin(value: SiteImages): Promise<void> {
     p_value: value,
   });
   if (error) throw error;
+  refrescarWeb();
 }
 
 export async function subirImagenSitio(file: File, carpeta: string): Promise<string> {
